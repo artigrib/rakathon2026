@@ -206,3 +206,36 @@ def test_relay_twiml_when_enabled(monkeypatch, client):
     monkeypatch.setattr(m, "settings", replace(m.settings, voice_mode="relay", public_url="https://demo.example"))
     x = c.post("/twilio/voice/P11").text
     assert "ConversationRelay" in x and "wss://demo.example/ws/relay/P11" in x and 'language="cs-CZ"' in x
+
+
+def test_elevenlabs_voice_is_played_and_cached(client, monkeypatch, tmp_path):
+    c, store = client
+    import backend.tts as tts
+    import backend.channels as ch
+    from dataclasses import replace
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "test")
+    monkeypatch.setattr(tts, "CACHE", tmp_path)
+    calls = []
+    monkeypatch.setattr(tts, "_synthesize", lambda text, timeout: calls.append(text) or b"ID3fake-mp3")
+    monkeypatch.setattr(ch, "settings", replace(ch.settings, public_url="https://demo.example"))
+    c.post("/api/send", json={"items": [{"id": "P12", "channel": "voice", "text": "Dobrý den.\n\nStiskněte 1."}]})
+    x = c.post("/twilio/voice/P12").text
+    assert "<Play>https://demo.example/audio/" in x and "<Say" not in x
+    name = x.split("/audio/")[1].split("<")[0]
+    assert c.get(f"/audio/{name}").content == b"ID3fake-mp3"
+    c.post("/twilio/voice/P12")
+    assert calls.count("Dobrý den.\n\nStiskněte 1.") == 1  # cached, generated once
+    assert c.get("/audio/../../etc/passwd").status_code == 404
+
+
+def test_voice_falls_back_to_twilio_say_when_tts_fails(client, monkeypatch, tmp_path):
+    c, _ = client
+    import backend.tts as tts
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "test")
+    monkeypatch.setattr(tts, "CACHE", tmp_path)
+    def boom(text, timeout):
+        raise TimeoutError()
+    monkeypatch.setattr(tts, "_synthesize", boom)
+    c.post("/api/send", json={"items": [{"id": "P13", "channel": "voice", "text": "Dobrý den."}]})
+    x = c.post("/twilio/voice/P13").text
+    assert "<Say" in x and "Dobrý den." in x

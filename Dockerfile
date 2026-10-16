@@ -7,7 +7,7 @@ COPY engine engine
 COPY backend backend
 COPY web/app web/app
 COPY data data
-ENV PORT=8000 STATE_FILE=/data/state.json
+ENV PORT=8000 STATE_FILE=/data/state.json TTS_CACHE=/data/audio
 VOLUME /data
 EXPOSE 8000
 CMD ["sh", "-c", "uvicorn backend.app:app --host 0.0.0.0 --port ${PORT}"]

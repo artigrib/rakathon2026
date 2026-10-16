@@ -43,6 +43,12 @@ Web se každé 3 s ptá `GET /api/state` – změna z webhooku se ukáže sama.
   asistent mluví výhradně schválenými větami (`backend/voice_ai.py`), na dotazy (cena, bolest, záření…) odpovídá z FAQ,
   jinak předá sestře. Záložní režim `gather` = přečte skript a čeká na 1 / 2.
 
+## Hlas (ElevenLabs)
+S `ELEVENLABS_API_KEY` v `.env` hovor mluví přirozenou češtinou z ElevenLabs (Twilio přehraje MP3 přes `<Play>`).
+Zvuk se generuje při zahájení hovoru a ukládá do mezipaměti, každá věta jen jednou. Při chybě se použije hlas Twilio.
+Hlas: v ElevenLabs Voice Library vybrat hlas, který zní dobře česky, a jeho ID dát do `ELEVENLABS_VOICE_ID`
+(použije se i v režimu `VOICE_MODE=relay`). Před ukázkou předgenerovat: `python -m backend.tts`.
+
 ## Stránka pro pacienta
 SMS obsahuje osobní odkaz `/p/{token}` (bez ID a zdravotních údajů v URL i na stránce):
 „Ano, mám zájem · Už jsem objednaný/á · Zavolejte mi · Teď ne · Nepřeji si další zprávy“ → stejná cesta jako webhook.

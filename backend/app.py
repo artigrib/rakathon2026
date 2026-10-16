@@ -14,7 +14,8 @@ from pydantic import BaseModel
 import json
 from datetime import timedelta
 
-from . import channels, messages
+from . import channels, messages, tts
+from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import STAGE, understand
 from .settings import settings
@@ -37,6 +38,8 @@ def patient_link(pid: str) -> str:
     token = store.token(pid)  # created on first contact; the page works on any host
     return f"{settings.public_url}/p/{token}" if settings.public_url else ""
 VOICE_NO_DIGIT = "Děkujeme. Pokud budete chtít, ozvěte se prosím své ordinaci. Na shledanou."
+VOICE_THANKS = {"interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
+                "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."}
 
 
 # ---------- API for the web app ----------
@@ -64,7 +67,17 @@ class StepRequest(BaseModel):
 def health():
     from . import llm
     return {"ok": True, "mode": "live" if settings.live else "mock", "liveLimit": settings.live_limit,
-            "ai": llm.provider() if llm.enabled() else None}
+            "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio"}
+
+
+@app.get("/audio/{name}")
+def audio(name: str):
+    """Generated call audio for Twilio <Play> (only cached files we created)."""
+    from fastapi.responses import FileResponse
+    path = tts.path_for(name)
+    if not path:
+        raise HTTPException(404)
+    return FileResponse(path, media_type="audio/mpeg")
 
 
 @app.get("/api/state")
@@ -91,6 +104,8 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     live = budget[0] > 0 and channel in ("sms", "voice", "whatsapp")
     try:
         if channel == "voice":
+            if live:  # generate the Czech audio before dialling, so the call starts without a pause
+                tts.ensure(text.strip())
             r = channels.start_call(pid, live)
         elif channel == "whatsapp":
             r = channels.send_whatsapp(text, live)
@@ -213,8 +228,7 @@ async def voice_answer(pid: str, request: Request):
     form = await _form(request)
     said = form.get("Digits") or form.get("SpeechResult") or ""
     d = _apply_reply(pid, said, "voice")
-    thanks = {"interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
-              "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."}.get(d["stage"], VOICE_NO_DIGIT)
+    thanks = VOICE_THANKS.get(d["stage"], VOICE_NO_DIGIT)
     return Response(channels.twiml_say(thanks), media_type="application/xml")
 
 

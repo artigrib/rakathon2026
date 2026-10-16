@@ -2,6 +2,7 @@
 All real traffic goes to settings.demo_to: the challenge data has synthetic phone numbers."""
 from xml.sax.saxutils import escape
 
+from . import tts
 from .settings import settings
 
 
@@ -43,30 +44,44 @@ def start_call(patient_id: str, live: bool) -> dict:
     return {"sid": c.sid, "live": True, "to": settings.demo_to, "status": c.status}
 
 
+NO_ANSWER = "Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou."
+
+
+def speak(text: str) -> str:
+    """ElevenLabs audio when available (natural Czech voice), Twilio's built-in voice otherwise."""
+    name = tts.ensure(text)
+    if name and settings.public_url:
+        return f"<Play>{escape(settings.public_url)}/audio/{name}</Play>"
+    return f'<Say language="{settings.voice_lang}" voice="{settings.voice_name}">{escape(text)}</Say>'
+
+
 def voice_twiml(patient_id: str, script: str) -> str:
-    """Fallback voice flow without AI: read the script, wait for 1 (interested) / 2 (not now).
-    The AI conversation (ConversationRelay, cs-CZ) replaces <Gather> once the LLM endpoint is ready."""
-    say = lambda t: f'<Say language="{settings.voice_lang}" voice="{settings.voice_name}">{escape(t)}</Say>'
-    parts = [p for p in script.split("\n\n") if p.strip()]
+    """Voice flow without AI: play the script, wait for 1 (interested) / 2 (not now) or a spoken answer."""
     return (
         '<?xml version="1.0" encoding="UTF-8"?><Response>'
         f'<Gather input="dtmf speech" numDigits="1" language="{settings.voice_lang}" timeout="8" '
         f'action="{settings.public_url}/twilio/voice/{patient_id}/answer" method="POST">'
-        + "".join(say(p) for p in parts) +
+        + speak(script.strip()) +
         "</Gather>"
-        + say("Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou.")
+        + speak(NO_ANSWER)
         + "</Response>"
     )
 
 
 def twiml_say(text: str) -> str:
-    return (f'<?xml version="1.0" encoding="UTF-8"?><Response><Say language="{settings.voice_lang}" '
-            f'voice="{settings.voice_name}">{escape(text)}</Say></Response>')
+    return f'<?xml version="1.0" encoding="UTF-8"?><Response>{speak(text)}</Response>'
 
 
 def relay_twiml(ws_url: str, greeting: str) -> str:
     """AI conversation: Twilio ConversationRelay (cs-CZ speech in/out) connected to our WebSocket."""
     return ('<?xml version="1.0" encoding="UTF-8"?><Response><Connect>'
             f'<ConversationRelay url="{escape(ws_url)}" language="{settings.voice_lang}" '
-            f'welcomeGreeting="{escape(greeting, {chr(34): "&quot;"})}" dtmfDetection="true"/>'
+            f'welcomeGreeting="{escape(greeting, {chr(34): "&quot;"})}" dtmfDetection="true"{_relay_voice()}/>'
             "</Connect></Response>")
+
+
+def _relay_voice() -> str:
+    """Same ElevenLabs voice in the AI conversation (Twilio ConversationRelay supports ElevenLabs voice IDs)."""
+    import os
+    vid = os.getenv("ELEVENLABS_VOICE_ID")
+    return f' ttsProvider="ElevenLabs" voice="{escape(vid)}"' if vid else ""

@@ -3,3 +3,4 @@ backend/state.json
 __pycache__/
 .pytest_cache/
 *.pyc
+backend/audio_cache/
