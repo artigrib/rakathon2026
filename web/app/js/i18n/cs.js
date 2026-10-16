@@ -7,25 +7,21 @@ export const T = {
   nav: { tasks: "Úkoly", patients: "Pacienti", overview: "Přehled programu" },
 
   tasks: {
-    title: "Úkoly na tento týden",
-    sub: (n, date) => `${n} pacientů ordinace, vyhodnoceno ${date}. Seznam se obnovuje každý týden.`,
-    allDone: "Na tento týden je hotovo. Systém hlídá pacienty dál a ozve se, až bude co dělat.",
+    title: "Tento týden",
+    allDone: "Hotovo. Systém hlídá pacienty dál.",
   },
   sections: {
-    invite: { title: "Pozvánky k odeslání", what: "Splňují kritéria programu a ještě nebyli pozváni.", empty: "Pozvánky na tento týden jsou odeslané." },
-    replied: { title: "Ozvali se", what: "Domluvte další krok. Pacient se může objednat sám u kteréhokoli pneumologa v programu.", empty: "Nikdo nečeká na odpověď." },
-    doctor: { title: "Rozhodne lékař", what: "Chybějící nebo rozporné údaje. Pacienta neoslovíme, dokud lékař nerozhodne.", empty: "Nic nečeká na lékaře." },
-    results: { title: "Výsledky vyšetření", what: "Pacient si výsledek LDCT přinese. Zapište ho a systém naplánuje další termín.", empty: "Žádný výsledek nečeká na zápis." },
+    invite: { title: "Pozvat", empty: "Odesláno." },
+    replied: { title: "Ozvali se", empty: "Nikdo nečeká." },
+    doctor: { title: "Rozhodne lékař", empty: "Nic nečeká." },
+    results: { title: "Výsledky", empty: "Nic k zápisu." },
   },
   batch: {
-    text: (mix) => `Odejdou jménem lékaře, každá kanálem podle historie pacienta (${mix}). Kteroukoli můžete upravit nebo vynechat.`,
-    approve: (n) => `Schválit a odeslat ${n} ${pl(n, "pozvánku", "pozvánky", "pozvánek")}`,
-    mix: (n, ch) => `${ch} ${n}×`,
+    approve: (n) => `Odeslat ${n} ${pl(n, "pozvánku", "pozvánky", "pozvánek")}`,
   },
 
   patients: {
     title: "Pacienti",
-    sub: (n) => `${n} registrovaných pacientů ordinace.`,
     filters: { all: "Všichni", todo: "Čeká na vás", running: "Probíhá", done: "Uzavřeno", excluded: "Nesplňují kritéria" },
     empty: "V této skupině teď nikdo není.",
   },
@@ -34,26 +30,26 @@ export const T = {
 
   // One sentence: what is going on with the patient.
   state: {
-    invite: (ch) => `Pozvánka připravena – ${ch}`,
-    skipped: "Vynecháno z této dávky",
-    sent: (d, ch) => `Pozván ${d} – ${ch}`,
-    sentNext: (d, ch) => `Zatím bez odpovědi. Další pokus ${d}: ${ch}.`,
-    sentWait: "Zatím bez odpovědi.",
+    invite: (ch) => ch,
+    skipped: "Vynecháno",
+    sent: (d, ch) => `Pozván ${d}, ${ch}`,
+    sentNext: (d, ch) => `Další pokus ${d}: ${ch}`,
+    sentWait: "",
     interested: "Má zájem o vyšetření",
     callback: "Prosí o zavolání",
-    nurse_call: "Neozval se na čtyři pokusy – zavolejte osobně",
-    not_now: (d) => `Teď nechce. Systém se znovu ozve ${d}.`,
-    declined: "Odmítl účast – vykázat 01197",
+    nurse_call: "Neozval se – zavolejte",
+    not_now: (d) => `Teď ne, znovu ${d}`,
+    declined: "Odmítl (01197)",
     booked: "Objednán u pneumologa",
-    bookedNext: "Až LDCT proběhne, potvrďte to.",
-    ldct: "LDCT proběhlo – zapište výsledek",
+    bookedNext: "",
+    ldct: "Zapište výsledek LDCT",
     result: {
-      negative: (d) => `Výsledek negativní. Další LDCT od ${d}.`,
-      indeterminate: () => "Výsledek neurčitý. Kontrolu určí pneumolog.",
-      positive: () => "Výsledek pozitivní. Péči převzalo specializované centrum.",
+      negative: (d) => `Negativní, další LDCT ${d}`,
+      indeterminate: () => "Neurčitý, kontrolu určí pneumolog",
+      positive: () => "Pozitivní, předáno do centra",
     },
     excluded: "Vyřazen lékařem",
-    replied: (d, via) => `Odpověď ${d}${via ? ` (${via})` : ""}`,
+    replied: (d, via) => `${d}${via ? `, ${via}` : ""}`,
     via: { sms: "SMS", link: "odkaz v SMS", voice: "telefon", "voice-ai": "hovor s asistentem", ui: "zapsáno v ordinaci" },
   },
   status: {
@@ -67,7 +63,7 @@ export const T = {
   channelNoPortal: "Pacient nemá aktivní portál se souhlasem se zprávami",
 
   actions: {
-    edit: "Upravit text",
+    edit: "Upravit",
     skip: "Vynechat",
     unskip: "Vrátit do dávky",
     booked: "Objednán",
@@ -79,6 +75,7 @@ export const T = {
     include: "Zařadit",
     exclude: "Vyřadit",
     exception: "Přesto zařadit",
+    open: "Zobrazit podrobnosti",
     confirmSend: (ch) => `Odeslat – ${ch}`,
     cancel: "Zrušit",
     details: "Podrobnosti",
@@ -89,10 +86,12 @@ export const T = {
 
   demo: {
     title: "Ukázka",
-    intro: "Ovládání jen pro předvedení. V provozu tyto kroky dělají pacienti a čas.",
+    intro: "Jen pro předvedení.",
+    palette: "Barvy",
+    palettes: { petrol: "Petrolejová", orange: "Oranžová", cobalt: "Kobaltová" },
     clock: (d) => `Den ukázky: ${d}`,
     next: "Další den",
-    replies: "Ukázat simulaci odpovědí pacientů",
+    replies: "Simulovat odpovědi pacientů",
     replyLabel: "Odpověď pacienta:",
     reply: { interested: "Má zájem", booked: "Už se objednal", callback: "Zavolejte mi", not_now: "Teď ne" },
     // Sample texts sent through the real reply classifier in live mode.
@@ -150,22 +149,18 @@ export const T = {
 
   overview: {
     title: "Přehled programu",
-    sub: (n, gps, date) => `${n} pacientů u ${gps} praktických lékařů, vyhodnoceno ${date}.`,
+    sub: (n, gps, date) => `${n} pacientů, ${gps} ordinací, ${date}`,
     funnel: "Od dat k výsledku",
-    funnelWhat: "Kolik pacientů je v jakém kroku programu.",
     funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Objednáni u pneumologa", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
-    exclusionsWhat: "Každé rozhodnutí má uvedený důvod.",
     exclusionRows: [
       ["EXCLUDED_AGE", "Mimo věk 55–74"], ["EXCLUDED_PACK_YEARS", "Méně než 20 balíčkoroků"],
       ["EXCLUDED_SMOKING_STATUS", "Nikdy nekouřili"], ["EXCLUDED_RECENT_CT", "Nedávné CT nebo už ve screeningu"],
       ["NEEDS_REVIEW", "Chybí nebo nesedí údaje"],
     ],
     practices: "Ordinace",
-    practicesWhat: "Kliknutím otevřete úkoly ordinace.",
     cols: ["Ordinace", "Pacientů", "Splňují", "K pozvání", "Ozvali se", "Pro lékaře"],
     dataQuality: "Kvalita dat",
-    dataQualityWhat: "Co engine v datech opravil a co nechal na lékaři.",
     dq: {
       rows: (n) => `${n} poškozených řádků v kuřácké anamnéze – opraveno a označeno k ověření.`,
       encoding: (n) => `${n} hodnot s poškozenou diakritikou – opraveno.`,
@@ -174,12 +169,8 @@ export const T = {
     },
   },
 
-  footer: (d) => `Ukázka nad syntetickými daty výzvy Rakathon 2026. Odesílání zpráv je simulované. Vyhodnoceno ${d}.`,
-  footerLive: (d, live, ai) => (live
-    ? "Živý režim: SMS a hovory odcházejí přes Twilio na ukázkový telefon. Data jsou syntetická."
-    : "Server běží v testovacím režimu bez Twilio, odesílání je simulované.")
-    + (ai ? ` Odpovědím pacientů rozumí AI (${ai}), bezpečnostní pravidla mají přednost.` : "")
-    + ` Vyhodnoceno ${d}.`,
+  footer: (d) => `Syntetická data Rakathon 2026, odesílání simulované, vyhodnoceno ${d}.`,
+  footerLive: (d, live, ai) => `Syntetická data Rakathon 2026, ${live ? "živé SMS a hovory přes Twilio" : "odesílání simulované"}${ai ? `, AI ${ai}` : ""}, vyhodnoceno ${d}.`,
   apiError: "Server neodpověděl. Zkuste to prosím znovu.",
   loadError: "Data se nepodařilo načíst. Obnovte prosím stránku.",
 };

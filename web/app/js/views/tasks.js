@@ -1,19 +1,14 @@
 // Default screen: what the practice has to do this week, most urgent first.
 import { SECTIONS } from "../config.js";
 import { T } from "../i18n/cs.js";
-import { fmtDate, countBy } from "../util.js";
-import { batchOf, plannedContact, stageOf, taskOf } from "../domain.js";
+import { batchOf, stageOf, taskOf } from "../domain.js";
 import { row } from "../components/row.js";
 
 const ORDER = { nurse_call: 0, callback: 1, interested: 2, ldct: 0, booked: 1 };
 
 function batchBlock(mine) {
-  const batch = batchOf(mine);
-  if (!batch.length) return "";
-  const mix = Object.entries(countBy(batch, (p) => plannedContact(p).channel))
-    .map(([ch, n]) => T.batch.mix(n, T.channel[ch])).join(", ");
-  return `<div class="batch"><p>${T.batch.text(mix)}</p>
-    <button type="button" class="btn btn--primary btn--big" data-action="approve-batch">${T.batch.approve(batch.length)}</button></div>`;
+  const n = batchOf(mine).length;
+  return n ? `<div class="batch"><button type="button" class="btn btn--primary btn--big" data-action="approve-batch">${T.batch.approve(n)}</button></div>` : "";
 }
 
 export function tasks(ui, data, rowCtx) {
@@ -30,7 +25,6 @@ export function tasks(ui, data, rowCtx) {
       <div class="section__aside">
         <span class="count${due ? " is-due" : ""}">${due}</span>
         <h2 id="h-${s}">${S.title}</h2>
-        <p>${S.what}</p>
       </div>
       <div class="section__body">
         ${s === "invite" ? batchBlock(rows) : ""}
@@ -40,8 +34,7 @@ export function tasks(ui, data, rowCtx) {
   }).join("");
 
   return `<header class="pagehead">
-      <h1>${T.tasks.title}</h1>
-      <p>${T.tasks.sub(mine.length, fmtDate(data.refDate))}${total ? "" : ` ${T.tasks.allDone}`}</p>
+      <h1>${T.tasks.title}</h1>${total ? "" : `<p>${T.tasks.allDone}</p>`}
     </header>${sections}`;
 }
 

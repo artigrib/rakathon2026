@@ -11,7 +11,7 @@ export function patients(ui, data, rowCtx) {
   const list = ui.filter === "all" ? mine : mine.filter((p) => phaseOf(p) === ui.filter);
   const tabs = FILTERS.map((f) => `<button type="button" data-action="pick-filter" data-filter="${f}" aria-pressed="${ui.filter === f}">
     ${T.patients.filters[f]} <span class="muted">${counts[f] || 0}</span></button>`).join("");
-  return `<header class="pagehead"><h1>${T.patients.title}</h1><p>${T.patients.sub(mine.length)}</p></header>
+  return `<header class="pagehead"><h1>${T.patients.title}</h1></header>
     <nav class="tabs" aria-label="Skupiny pacientů">${tabs}</nav>
     <section aria-live="polite">${list.length ? list.map((p) => row(p, rowCtx.of(p))).join("") : `<p class="empty">${T.patients.empty}</p>`}</section>`;
 }

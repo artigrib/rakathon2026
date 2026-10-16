@@ -46,7 +46,7 @@ export function detail(p, decision) {
   const info = p.flags.filter((f) => f.sev !== "warning");
   const path = journey(stageOf(p));
   return html`<div class="detail">
-    <section><h3>${D.evaluation}</h3><ul class="timeline">${p.reasons.map((r) => `<li style="grid-template-columns:1fr">${esc(r)}</li>`)}${
+    <section><h3>${D.evaluation} <span class="muted" style="font-weight:400">${p.id}</span></h3><ul class="timeline">${p.reasons.map((r) => `<li style="grid-template-columns:1fr">${esc(r)}</li>`)}${
       info.map((f) => `<li style="grid-template-columns:1fr" class="muted">${esc(f.text)}</li>`)}</ul>
       ${warnings.length ? html`<h3 style="margin-top:16px">${D.warnings}</h3><ul class="warn">${warnings.map((f) => `<li>${esc(f.text)}</li>`)}</ul>` : ""}</section>
     ${path ? html`<section><h3>${D.journey}</h3>${path}</section>` : ""}

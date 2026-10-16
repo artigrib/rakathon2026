@@ -5,8 +5,8 @@ import { store } from "../state.js";
 
 const O = T.overview;
 
-const section = (id, title, what, body) => `<section class="section grid" aria-labelledby="o-${id}">
-  <div class="section__aside"><h2 id="o-${id}">${title}</h2><p>${what}</p></div>
+const section = (id, title, body) => `<section class="section grid" aria-labelledby="o-${id}">
+  <div class="section__aside"><h2 id="o-${id}">${title}</h2></div>
   <div class="section__body">${body}</div></section>`;
 
 export function overview(data) {
@@ -40,8 +40,8 @@ export function overview(data) {
     <li>${O.dq.conflict(flagged(["PY_CONFLICT"]))}</li><li>${O.dq.ct(flagged(["CT_SCHEDULED", "CT_CANCELLED"]))}</li></ul>`;
 
   return `<header class="pagehead"><h1>${O.title}</h1><p>${O.sub(P.length, practices(P).length, fmtDate(data.refDate))}</p></header>
-    ${section("funnel", O.funnel, O.funnelWhat, funnel)}
-    ${section("why", O.exclusions, O.exclusionsWhat, reasons)}
-    ${section("practices", O.practices, O.practicesWhat, table)}
-    ${section("dq", O.dataQuality, O.dataQualityWhat, dq)}`;
+    ${section("funnel", O.funnel, funnel)}
+    ${section("why", O.exclusions, reasons)}
+    ${section("practices", O.practices, table)}
+    ${section("dq", O.dataQuality, dq)}`;
 }
