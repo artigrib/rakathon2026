@@ -38,14 +38,14 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 - Secrets only in `backend/.env` (gitignored). Never commit keys.
 - UI copy is Czech, plain and short. No dashes (– —), arrows, middle dots, exclamation marks, ellipses, "AI" labels, internal codes (VPL-…) in patient texts. Medical statements only if verifiable (free, covered by insurance, short, painless, low-dose CT). A test enforces this for patient templates.
 - Patient texts live only in `web/app/content/messages.cs.json`.
-- Design: Swiss grid, graphite on #f4f4f2, one accent (palette switch in the demo panel: petrol/orange/cobalt, pending decision), amber only for data warnings.
+- Design: Swiss grid, graphite on #f4f4f2, one accent (petrol #11615d), amber only for data warnings.
 - AI never decides inclusion or sending. It only classifies replies; the phone assistant speaks only approved sentences.
 - Run `python -m pytest -q` before pushing.
 
 ## Open tasks (owner)
 1. Done 17. 10. 00:04: live SMS round trip with confirmation, call with key 1 and with spoken "ano". Quick tunnel URL in SUBMISSION.md.
 2. Optional: Twilio upgrade (no trial prefix / key press, full SMS text), then `TWILIO_TRIAL=0` (Artem + VPS).
-3. Choose accent colour, then remove the palette switch (designer).
+3. Done: petrol accent, palette switch removed.
 4. Optional: e-mail channel via Twilio/SendGrid; WhatsApp sandbox join on demo phone.
 5. Saturday: fill the submit form from SUBMISSION.md, record backup video if UI changes (`submission/`).
 
