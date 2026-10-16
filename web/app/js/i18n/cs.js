@@ -121,6 +121,7 @@ export const T = {
     text: "Text zprávy",
     voiceText: "Co asistent řekne",
     note: "Zpráva nesděluje diagnózu. Odeslání schvalujete vy a zapíše se do historie.",
+    trial: "Zkušební účet Twilio. Odejde jen tento krátký text bez diakritiky.",
   },
 
   detail: {

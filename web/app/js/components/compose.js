@@ -1,6 +1,6 @@
 import { CHANNELS } from "../config.js";
 import { T } from "../i18n/cs.js";
-import { message } from "../content/messages.cs.js";
+import { fixedText, message } from "../content/messages.cs.js";
 import { cap, esc, html } from "../util.js";
 import { failedChannels, plannedContact } from "../domain.js";
 
@@ -20,9 +20,9 @@ export function compose(p, chosenChannel) {
       })}
     </div>
     <label class="compose__label" for="msg-${p.id}">${channel === "voice" ? T.compose.voiceText : T.compose.text}</label>
-    <textarea id="msg-${p.id}">${esc(message(p, channel, plan.variant))}</textarea>
+    <textarea id="msg-${p.id}" ${fixedText(channel) ? "readonly" : ""}>${esc(message(p, channel, plan.variant))}</textarea>
     <div class="compose__foot">
-      <p>${T.compose.note}</p>
+      <p>${fixedText(channel) ? T.compose.trial : T.compose.note}</p>
       <button type="button" class="btn" data-action="close-compose">${T.actions.cancel}</button>
       <button type="button" class="btn btn--primary" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.confirmSend(T.channel[channel])}</button>
     </div>

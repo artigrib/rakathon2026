@@ -135,7 +135,7 @@ async function init() {
     return;
   }
   backend = await api.health();
-  await loadMessages({ withLink: !!backend });
+  await loadMessages({ withLink: !!backend, trial: !!backend?.trial });
   const gps = practices(data.patients);
   if (!gps.includes(ui.gp)) ui.gp = gps[0];
   $("gp").innerHTML = gps.map((g) => `<option>${g}</option>`).join("");

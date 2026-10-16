@@ -87,6 +87,7 @@ main { padding-block: 40px 120px; }
 .channels button:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
 .channels small { font-size: 0.75rem; }
 .compose textarea { width: 100%; min-height: 180px; border: 2px solid var(--ink); border-radius: 0; padding: 12px; background: var(--surface); line-height: 1.5; }
+.compose textarea[readonly] { min-height: 0; border-style: dashed; color: var(--muted, inherit); }
 .compose__foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
 .compose__foot p { margin-right: auto; font-size: var(--t-s); color: var(--ink-2); max-width: 52ch; }
 

@@ -67,7 +67,8 @@ class StepRequest(BaseModel):
 def health():
     from . import llm
     return {"ok": True, "mode": "live" if settings.live else "mock", "liveLimit": settings.live_limit,
-            "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio"}
+            "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio",
+            "trial": settings.live and settings.trial}
 
 
 @app.get("/audio/{name}")
