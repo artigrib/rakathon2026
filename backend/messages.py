@@ -26,10 +26,16 @@ def render(patient: dict, channel: str, variant: str = "FIRST_INVITE", url: str 
     })
 
 
-def with_link(text: str, url: str) -> str:
-    """Texts composed in the web app carry a marker where the patient's personal link goes."""
-    if url:
+def with_link(text: str, url: str, channel: str = "") -> str:
+    """Personal reply link. Old texts may carry a marker; texts from the web app get the link appended
+    (SMS / WhatsApp short form, e-mail long form, nothing for a call)."""
+    if url and MARKER in text:
         return text.replace(MARKER, url)
+    if url and url not in text and channel in ("sms", "whatsapp", "email"):
+        part = M["parts"]["link" if channel == "email" else "link_short"]
+        return text.rstrip() + _fill(part, {"url": url})
+    if url:
+        return text
     for part in ("link", "link_short"):  # no public URL (mock mode): drop the whole link sentence
         text = text.replace(_fill(M["parts"][part], {"url": MARKER}), "")
     return text

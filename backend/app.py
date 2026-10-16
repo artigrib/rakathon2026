@@ -105,7 +105,7 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     """One outbound touch. budget[0] = how many may still go out for real in this request."""
     if not fsm.allowed(fsm.state_of(store.get(pid)), "send"):  # e.g. referred, refused, excluded: never contact
         return {"id": pid, "sid": None, "live": False, "status": "not_allowed"}
-    text = messages.with_link(text, patient_link(pid))
+    text = messages.with_link(text, patient_link(pid), channel)
     real = ("sms", "voice", "whatsapp") + (("email",) if settings.email_live else ())
     live = budget[0] > 0 and channel in real
     try:

@@ -1,0 +1,62 @@
+INFO:     Started server process [448]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8803 (Press CTRL+C to quit)
+INFO:     127.0.0.1:60164 - "GET / HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:60164 - "GET /app/index.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/css/tokens.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/css/base.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /app/js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/css/components.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/config.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/i18n/cs.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /app/js/util.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/state.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/domain.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/js/content/messages.cs.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/fsm.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/views/tasks.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/js/views/overview.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/components/demo.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /app/js/views/patients.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/js/components/toast.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/components/row.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/components/compose.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/js/components/detail.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/components/journey.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/data/patients.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/content/messages.cs.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/content/journey.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /api/state HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/index.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/css/tokens.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/css/base.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/css/components.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/js/config.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/i18n/cs.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/js/util.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/state.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/domain.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /app/js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/fsm.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60188 - "GET /app/js/views/overview.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60198 - "GET /app/js/views/tasks.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /app/js/components/demo.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/views/patients.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60164 - "GET /app/js/content/messages.cs.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/components/toast.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/components/row.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60174 - "GET /app/js/components/compose.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/components/detail.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/js/components/journey.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/data/patients.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/content/messages.cs.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /app/content/journey.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /api/state HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "POST /api/send HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60170 - "GET /api/state HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60202 - "GET /api/state HTTP/1.1" 200 OK

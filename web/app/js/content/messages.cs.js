@@ -12,6 +12,9 @@ export async function loadMessages(opts = {}) {
   trial = !!opts.trial;
 }
 
+/** In live mode the server appends the patient's personal reply link to SMS, WhatsApp and e-mail. */
+export const linkNote = (channel) => withLink && ["sms", "whatsapp", "email"].includes(channel) && !trial;
+
 /** True when this channel sends the fixed short trial text (the nurse cannot edit it). */
 export const fixedText = (channel) => trial && channel === "sms";
 
@@ -23,7 +26,7 @@ export function message(patient, channel, variant = "FIRST_INVITE") {
   if (fixedText(channel)) return gsm(M.sms.TRIAL); // exactly what the backend sends
   const set = M[M.channel_template[channel] || "email"];
   const phone = PRACTICES[patient.gp]?.phone;
-  const url = withLink ? M.parts.link_marker : "";
+  const url = ""; // the personal link is added by the server when sending (see linkNote)
   return fill(set[variant] || set.FIRST_INVITE, {
     gp: patient.gp,
     contact: patient.pneu ? M.parts.contact_with_pneu : M.parts.contact,

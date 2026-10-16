@@ -72,3 +72,10 @@ def test_trial_sms_fits_one_segment():
     from backend.messages import sms_trial
     t = sms_trial()
     assert t.isascii() and 38 + len(t) <= 160
+
+
+def test_link_is_appended_for_text_channels_not_for_calls():
+    assert with_link("Dobrý den.", "https://y/p/1", "sms").endswith("https://y/p/1")
+    assert "https://y/p/1" in with_link("Dobrý den.", "https://y/p/1", "email")
+    assert with_link("Dobrý den.", "https://y/p/1", "voice") == "Dobrý den."
+    assert with_link("Dobrý den.", "", "sms") == "Dobrý den."
