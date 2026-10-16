@@ -16,8 +16,10 @@ to the LDCT result. Doctor decides exceptions and conflicting data. FHIR R4 expo
 - `deploy/docker-compose.yml`, `Dockerfile`, `.github/workflows/deploy.yml`
 - `SPEC.md` (rules, doctor's answers, system boundaries), `BACKLOG.md` (done / todo), `SUBMISSION.md` (texts for the submit form, 3-min table demo script)
 
-## Challenge data (not in this public repo)
-The AstraZeneca challenge data must not be published. Copy it to the VPS separately (Artem has the files):
+## Private files (not in this public repo)
+Everything private lives in the Google Drive folder "Plíce včas (privátní)" owned by Artem:
+challenge data `plice-data.tgz`, the doctor's presentation, contacts. Keys are never stored there either.
+The AstraZeneca challenge data must not be published. Copy it to the VPS separately:
 `scp -r data/ vps:~/rakathon2026/data/` (1_patients.csv … 5_data_dictionary.csv, README.pdf), then
 `python scripts/build_web_data.py` (creates web/app/data/patients.json). Without it the app and most tests do not run.
 
