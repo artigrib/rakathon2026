@@ -55,7 +55,9 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 - Artem decides and relays anything that needs a human (keys, Twilio console, phone tests, Drive uploads).
 - To avoid conflicts: `git pull --rebase` before every change, small commits, push right away.
   If you need to change a file the other side owns, write a note in `bridge/` first.
-- Private files: if this session has Google Drive access, read the folder "Plíce včas (privátní)"; otherwise Artem copies them by scp.
+- Private files: Google Drive folder "Plíce včas (privátní)". The VPS session gets Drive through the claude.ai connector
+  (Claude Code logged in with Artem's claude.ai account, check `/status` and `/mcp`). Download `plice-data.tgz` from that
+  folder and unpack it in the repo root. Fallback: Artem copies it by scp.
 
 ## Bridge between sessions
 Cloud session (claude.ai) and VPS session talk through this repo.
