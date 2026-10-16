@@ -5,6 +5,7 @@
 Without Twilio keys it runs in MOCK mode. With keys + PUBLIC_URL (ngrok) + DEMO_TO it sends for real."""
 from datetime import date
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import RedirectResponse, Response
@@ -200,9 +201,12 @@ def _apply_reply(pid, text, via, day=None):
 async def inbound_sms(request: Request):
     form = await _form(request)
     pid = store.last_contacted((form.get("From") or "").replace("whatsapp:", ""))  # SMS and WhatsApp share this webhook
+    reply = ""
     if pid:
-        _apply_reply(pid, form.get("Body", ""), "sms")
-    return Response('<?xml version="1.0" encoding="UTF-8"?><Response/>', media_type="application/xml")
+        d = _apply_reply(pid, form.get("Body", ""), "sms")
+        reply = messages.sms_reply(d["journey"][-1].get("intent"), d["stage"])
+    body = f"<Message>{escape(reply)}</Message>" if reply else ""
+    return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
 
 
 @app.post("/twilio/status")

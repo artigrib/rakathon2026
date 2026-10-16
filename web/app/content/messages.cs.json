@@ -32,5 +32,12 @@
     "letter": "email",
     "portal": "email",
     "printout": "email"
+  },
+  "sms_reply": {
+    "interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví termín vyšetření.",
+    "booked": "Děkujeme, zapsali jsme si, že termín už máte.",
+    "callback": "Děkujeme. Sestra z ordinace Vám zavolá.",
+    "not_now": "Rozumíme, děkujeme. Ozveme se později.",
+    "declined": "Rozumíme, děkujeme za odpověď."
   }
 }

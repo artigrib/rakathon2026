@@ -30,5 +30,6 @@ for p in r["patients"]:
     })
 out = {"refDate": r["ref_date"], "issues": r["data_issues"], "patients": patients}
 dst = ROOT / "web/app/data/patients.json"
+dst.parent.mkdir(parents=True, exist_ok=True)
 dst.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print(dst, dst.stat().st_size)

@@ -239,3 +239,12 @@ def test_voice_falls_back_to_twilio_say_when_tts_fails(client, monkeypatch, tmp_
     c.post("/api/send", json={"items": [{"id": "P13", "channel": "voice", "text": "Dobrý den."}]})
     x = c.post("/twilio/voice/P13").text
     assert "<Say" in x and "Dobrý den." in x
+
+
+def test_inbound_sms_gets_a_confirmation(client):
+    c, store = client
+    store.data["outbox"].append({"patient": "P5", "to": "+420111", "live": True, "channel": "sms"})
+    x = c.post("/twilio/sms", data={"From": "+420111", "Body": "Ano"}).text
+    assert "<Message>" in x and "ozve" in x and store.get("P5")["stage"] == "interested"
+    y = c.post("/twilio/sms", data={"From": "+420111", "Body": "STOP"}).text
+    assert "<Message>" not in y
