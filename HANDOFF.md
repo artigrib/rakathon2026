@@ -16,6 +16,11 @@ to the LDCT result. Doctor decides exceptions and conflicting data. FHIR R4 expo
 - `deploy/docker-compose.yml`, `Dockerfile`, `.github/workflows/deploy.yml`
 - `SPEC.md` (rules, doctor's answers, system boundaries), `BACKLOG.md` (done / todo), `SUBMISSION.md` (texts for the submit form, 3-min table demo script)
 
+## Challenge data (not in this public repo)
+The AstraZeneca challenge data must not be published. Copy it to the VPS separately (Artem has the files):
+`scp -r data/ vps:~/rakathon2026/data/` (1_patients.csv … 5_data_dictionary.csv, README.pdf), then
+`python scripts/build_web_data.py` (creates web/app/data/patients.json). Without it the app and most tests do not run.
+
 ## Run on the VPS
 ```bash
 cp backend/.env.example backend/.env      # fill: TWILIO_*, DEMO_TO, PUBLIC_URL, ELEVENLABS_*, LLM_*, TUNNEL_TOKEN

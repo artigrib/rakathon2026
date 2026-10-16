@@ -4,3 +4,10 @@ __pycache__/
 .pytest_cache/
 *.pyc
 backend/audio_cache/
+
+# Challenge data (AstraZeneca, not public) and everything generated from it
+data/
+web/app/data/patients.json
+examples/run_result.json
+examples/fhir_bundle.json
+submission/*.webm

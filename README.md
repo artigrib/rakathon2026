@@ -2,6 +2,8 @@
 
 Identifikace pacientů pro screening karcinomu plic (Prevence pro plíce) + doporučení kontaktu.
 
+Data výzvy (AstraZeneca) nejsou v repozitáři: zkopírujte je do `data/` a spusťte `python scripts/build_web_data.py`.
+
 ```bash
 pip install openpyxl pytest
 python -m engine data --ref-date 2026-10-16 -o examples/run_result.json   # JSON dle CONTRACT.md
