@@ -5,27 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Prevence pro plíce · Vaše ordinace</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700&display=swap">
 <style>
-  :root { --paper:#f7f6f2; --surface:#fff; --ink:#141414; --muted:#5a5a57; --blue:#1f4fa0; --yellow:#f2b705; --red:#d4301f; }
-  @media (prefers-color-scheme: dark) { :root { --paper:#121212; --surface:#1b1b1b; --ink:#f2f1ec; --muted:#a8a7a1; --blue:#6f9cf0; --yellow:#f7c531; --red:#ff5a45; } }
+  :root { --paper:#fff; --ink:#000; --ink-2:#555; --hair:#d9d9d9; --red:#e2001a; --on-red:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#000; --ink:#fff; --ink-2:#b3b3b3; --hair:#333; --red:#ff3347; --on-red:#000; } }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--paper); color:var(--ink); font: 20px/1.5 "Segoe UI", Arial, sans-serif; }
-  main { max-width: 560px; margin: 0 auto; padding: 24px 16px 48px; }
-  .bar { height: 10px; background: linear-gradient(90deg, var(--blue) 0 33%, var(--yellow) 33% 66%, var(--red) 66%); }
-  h1 { font-size: 28px; line-height: 1.25; margin: 24px 0 12px; }
+  body { margin:0; background:var(--paper); color:var(--ink); font: 20px/1.5 "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 28px 16px 48px; border-top: 6px solid var(--ink); }
+  h1 { font-size: 30px; line-height: 1.15; margin: 20px 0 12px; letter-spacing: -0.01em; }
   p { margin: 0 0 16px; }
-  .muted { color: var(--muted); font-size: 17px; }
-  form { display: grid; gap: 12px; margin: 24px 0; }
-  button { min-height: 64px; width: 100%; font: inherit; font-weight: 600; border: 3px solid var(--ink); background: var(--surface); color: var(--ink); text-align: left; padding: 12px 18px; cursor: pointer; }
-  button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
-  button:focus-visible { outline: 4px solid var(--yellow); outline-offset: 2px; }
-  .quiet { min-height: 48px; border: 0; background: none; text-decoration: underline; font-weight: 400; font-size: 17px; color: var(--muted); padding: 8px 0; }
-  .box { background: var(--surface); border-left: 10px solid var(--blue); padding: 16px 18px; margin: 16px 0; }
-  a { color: var(--blue); }
+  .muted { color: var(--ink-2); font-size: 17px; }
+  form { display: grid; gap: 10px; margin: 28px 0; }
+  button { min-height: 64px; width: 100%; font: inherit; font-weight: 600; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); text-align: left; padding: 12px 18px; cursor: pointer; border-radius: 0; }
+  button.primary { background: var(--red); border-color: var(--red); color: var(--on-red); }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .quiet { min-height: 48px; border: 0; background: none; text-decoration: underline; font-weight: 400; font-size: 17px; color: var(--ink-2); padding: 8px 0; }
+  .box { border-left: 6px solid var(--red); padding: 4px 0 4px 18px; margin: 16px 0; }
+  a { color: inherit; }
 </style>
 </head>
 <body>
-<div class="bar" aria-hidden="true"></div>
 <main>
 $content
 </main>

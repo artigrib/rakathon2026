@@ -1,7 +1,7 @@
 import { CHANNELS } from "../config.js";
 import { T } from "../i18n/cs.js";
 import { message } from "../content/messages.cs.js";
-import { esc, html } from "../util.js";
+import { cap, esc, html } from "../util.js";
 import { failedChannels, plannedContact } from "../domain.js";
 
 export function compose(p, chosenChannel) {
@@ -16,7 +16,7 @@ export function compose(p, chosenChannel) {
         const note = c === plan.channel ? T.channelRecommended : failed.has(c) ? T.channelFailed : "";
         return `<button type="button" data-action="pick-channel" data-id="${p.id}" data-channel="${c}"
           aria-pressed="${c === channel}" ${disabled ? `disabled title="${esc(T.channelNoPortal)}"` : ""}>
-          ${T.channel[c]}${note ? `<small>${note}</small>` : ""}</button>`;
+          ${cap(T.channel[c])}${note ? `<small>${note}</small>` : ""}</button>`;
       })}
     </div>
     <label class="compose__label" for="msg-${p.id}">${channel === "voice" ? T.compose.voiceText : T.compose.text}</label>
@@ -24,7 +24,7 @@ export function compose(p, chosenChannel) {
     <div class="compose__foot">
       <p>${T.compose.note}</p>
       <button type="button" class="btn" data-action="close-compose">${T.actions.cancel}</button>
-      <button type="button" class="btn btn--primary" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.confirmSend} · ${T.channel[channel]}</button>
+      <button type="button" class="btn btn--primary" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.confirmSend(T.channel[channel])}</button>
     </div>
   </div>`;
 }

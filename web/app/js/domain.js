@@ -1,4 +1,4 @@
-// Maps engine output + practice decisions to worklist buckets and journey stages. Pure functions.
+// What the practice has to do about each patient. Pure functions over engine output + recorded decisions.
 import { JOURNEY, RESULTS } from "./config.js";
 import { store } from "./state.js";
 
@@ -11,33 +11,48 @@ export function stageOf(p) {
   return effectiveStatus(p, d) === "ELIGIBLE" && p.next === "GP_REFERRAL" ? "interested" : null;
 }
 
-export function bucketOf(p) {
+/** Work-queue section for the patient, or null when nothing needs doing right now. */
+export function taskOf(p) {
   const d = store.get(p.id);
-  if (d.override === "EXCLUDED") return "waiting";
+  if (d.override === "EXCLUDED") return null;
   const stage = stageOf(p);
-  if (["booked", "ldct", "result"].includes(stage)) return "journey";
-  if (["interested", "callback", "nurse_call"].includes(stage)) return "interested";
-  if (stage) return "waiting"; // sent, not_now, declined
+  if (["interested", "callback", "nurse_call"].includes(stage)) return "replied";
+  if (["booked", "ldct"].includes(stage)) return "results";
+  if (stage) return null; // sent, not_now, declined, result: the system or the patient is on the move
   const status = effectiveStatus(p, d);
-  if (status === "NEEDS_REVIEW") return "review";
-  if (status !== "ELIGIBLE") return "notEligible";
-  if (p.next === "WAIT" || p.next === "DO_NOT_CONTACT") return "waiting";
-  return "contact";
+  if (status === "NEEDS_REVIEW") return "doctor";
+  if (status !== "ELIGIBLE" || p.next === "WAIT" || p.next === "DO_NOT_CONTACT") return null;
+  return "invite";
 }
 
-/** This week's batch = contact bucket minus rows the practice skipped. */
-export const batchOf = (patients) => patients.filter((p) => bucketOf(p) === "contact" && !store.get(p.id).skipped);
+/** Patients-view filter group. */
+export function phaseOf(p) {
+  const d = store.get(p.id);
+  if (taskOf(p)) return "todo";
+  if (d.override === "EXCLUDED") return "done";
+  const stage = stageOf(p);
+  if (["result", "declined"].includes(stage)) return "done";
+  if (stage || p.next === "WAIT") return "running";
+  return effectiveStatus(p, d) === "ELIGIBLE" ? "running" : "excluded";
+}
+
+/** This week's batch = invite section minus rows the practice skipped. */
+export const batchOf = (patients) => patients.filter((p) => taskOf(p) === "invite" && !store.get(p.id).skipped);
 
 /** Index of the reached journey step (-1 = not invited yet). */
 export const journeyIndex = (stage) => JOURNEY.findIndex((j) => j.stages.includes(stage));
 
-export function nextScreening(result, date) {
-  const days = RESULTS[result]?.nextDays;
+export function addDays(date, days) {
   if (!days || !date) return null;
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
+
+export const nextScreening = (result, date) => addDays(date, RESULTS[result]?.nextDays);
+
+/** Last recorded event with the given stage (for "when / how did they answer"). */
+export const lastEvent = (p, stage) => [...(store.get(p.id).journey || [])].reverse().find((e) => !stage || e.stage === stage);
 
 /** Channel and variant to use; an included-by-doctor patient gets the default first invite. */
 export function plannedContact(p) {

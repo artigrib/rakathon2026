@@ -2,34 +2,25 @@
 <title>Plíce včas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 
-<header class="appbar">
-  <div class="wrap">
-    <div class="brand">
-      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="18.5" y="2" width="3" height="16" fill="var(--ink)"/>
-        <path d="M18 14 A12 14 0 0 0 4 30 L18 30 Z" fill="var(--blue)"/>
-        <path d="M22 14 A12 14 0 0 1 36 30 L22 30 Z" fill="var(--red)"/>
-        <rect x="4" y="33" width="32" height="4" fill="var(--yellow)"/>
-      </svg>
-      <span class="brand__name">Plíce včas<span class="brand__sub">Prevence pro plíce · pro ordinace praktických lékařů</span></span>
-    </div>
-    <label class="field" for="gp">Ordinace <select id="gp"></select></label>
-    <div class="segmented" role="group" aria-label="Pohled">
-      <button type="button" data-action="pick-view" data-view="worklist" aria-pressed="true">Ordinace</button>
-      <button type="button" data-action="pick-view" data-view="overview" aria-pressed="false">Přehled programu</button>
-    </div>
+<header class="top">
+  <div class="wrap grid">
+    <div class="mark"><b>Plíce včas</b><span>Prevence pro plíce – screening rakoviny plic</span></div>
+    <nav class="nav" id="nav" aria-label="Hlavní navigace"></nav>
+    <label class="practice" for="gp">Ordinace <select id="gp"></select></label>
   </div>
 </header>
 
 <main class="wrap">
-  <div id="view" style="display:flex;flex-direction:column;gap:24px"><p class="empty">Načítám pacienty…</p></div>
-  <p class="foot"><span id="foot"></span> <button type="button" class="btn btn--quiet" data-action="reset">Obnovit ukázková data</button></p>
+  <div id="view"><p class="empty">Načítám pacienty…</p></div>
+  <p class="foot" id="foot"></p>
 </main>
+
+<details class="demo" id="demo" hidden></details>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script type="module" src="js/app.js"></script>

@@ -5,19 +5,32 @@ import { store } from "./state.js";
 import { api } from "./api.js";
 import { batchOf, plannedContact, practices } from "./domain.js";
 import { loadMessages, message } from "./content/messages.cs.js";
-import { worklist } from "./views/worklist.js";
+import { tasks, taskCount } from "./views/tasks.js";
+import { patients } from "./views/patients.js";
 import { overview } from "./views/overview.js";
+import { demoPanel } from "./components/demo.js";
 import { toast, hideToast } from "./components/toast.js";
 
-const ui = { view: "worklist", gp: DEFAULT_GP, bucket: "contact", composing: null, chosenChannel: null };
+const ui = { view: "tasks", gp: DEFAULT_GP, filter: "all", composing: null, chosenChannel: null, demoReplies: false };
 let data;
-let backend = null; // {mode: "live" | "mock"} when served by the backend, else null (static page, local simulation)
+let backend = null; // {mode, ai} when served by the backend; null = static page with local simulation
 let seen = -1;
 const $ = (id) => document.getElementById(id);
 
+const rowCtx = {
+  of: (p) => ({
+    composing: ui.composing === p.id, chosenChannel: ui.chosenChannel,
+    plan: data.live?.plans[p.id], link: data.live?.links[p.id], demo: ui.demoReplies,
+  }),
+};
+
 function render() {
-  $("view").innerHTML = ui.view === "worklist" ? worklist(ui, data) : overview(data);
-  document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === ui.view));
+  const mine = data.patients.filter((p) => p.gp === ui.gp);
+  const due = taskCount(mine);
+  $("nav").innerHTML = ["tasks", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
+    ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${v === "tasks" && due ? ` <span class="due">${due}</span>` : ""}</button>`).join("");
+  $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
+  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock });
   $("gp").value = ui.gp;
 }
 
@@ -40,7 +53,7 @@ async function send(items) {
   await pull();
 }
 
-/** Journey step or patient reply: backend runs the same logic as a real webhook. */
+/** Journey step or patient reply: the backend runs the same logic as a real webhook. */
 async function step(id, body) {
   if (!backend) {
     return body.text ? store.step(id, body.reply, today()) : store.step(id, body.stage, today(), body.result ? { result: body.result } : {});
@@ -50,8 +63,8 @@ async function step(id, body) {
 }
 
 const actions = {
-  "pick-view": (el) => { ui.view = el.dataset.view; ui.composing = null; },
-  "pick-bucket": (el) => { ui.bucket = el.dataset.bucket; ui.composing = null; },
+  "pick-view": (el) => { ui.view = el.dataset.view; ui.composing = null; window.scrollTo(0, 0); },
+  "pick-filter": (el) => { ui.filter = el.dataset.filter; ui.composing = null; },
   "open-compose": (el) => { ui.composing = el.dataset.id; ui.chosenChannel = null; },
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
@@ -72,11 +85,11 @@ const actions = {
   },
   skip: (el) => { store.skip(el.dataset.id); toast(T.toast.skipped); },
   unskip: (el) => { store.skip(el.dataset.id, false); toast(T.toast.unskipped); },
-  // Simulated patient reply; in live mode the sample text goes through the real reply classifier.
+  // Simulated patient reply; with the backend the sample text goes through the real reply understanding.
   reply: async (el) => {
     const r = el.dataset.reply;
-    await step(el.dataset.id, { reply: r, text: T.journey.replyText[r] });
-    toast(T.toast.reply(T.journey.replies[r]), { undo: !backend });
+    await step(el.dataset.id, { reply: r, text: T.demo.replyText[r] });
+    toast(T.toast.reply(T.demo.reply[r]), { undo: !backend });
   },
   step: async (el) => {
     const { id, stage, result } = el.dataset;
@@ -85,14 +98,15 @@ const actions = {
   },
   include: (el) => { store.include(el.dataset.id); toast(el.dataset.exception ? T.toast.exception : T.toast.included); },
   exclude: (el) => { store.exclude(el.dataset.id); toast(T.toast.excluded); },
+  "toggle-replies": (el) => { ui.demoReplies = el.checked; if (ui.demoReplies && ui.view === "tasks") { ui.view = "patients"; ui.filter = "running"; } },
   tick: async () => {
     const r = await api.tick(1);
     await pull();
     toast(T.toast.tick(r.touches.length), { undo: false });
   },
   undo: () => { store.undo(); hideToast(); },
-  reset: async () => { if (backend) await api.reset(); store.reset(); seen = -1; hideToast(); },
-  "open-practice": (el) => { ui.gp = el.dataset.gp; ui.view = "worklist"; ui.bucket = "contact"; },
+  reset: async () => { if (backend) await api.reset(); store.reset(); seen = -1; if (backend) await pull(); hideToast(); },
+  "open-practice": (el) => { ui.gp = el.dataset.gp; ui.view = "tasks"; window.scrollTo(0, 0); },
 };
 
 async function dispatch(e) {
@@ -121,11 +135,12 @@ async function init() {
   const gps = practices(data.patients);
   if (!gps.includes(ui.gp)) ui.gp = gps[0];
   $("gp").innerHTML = gps.map((g) => `<option>${g}</option>`).join("");
-  $("gp").addEventListener("change", (e) => { ui.gp = e.target.value; ui.view = "worklist"; ui.bucket = "contact"; ui.composing = null; render(); });
+  $("gp").addEventListener("change", (e) => { ui.gp = e.target.value; ui.composing = null; render(); });
   document.addEventListener("click", dispatch);
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("tr[data-action]")) dispatch(e); });
   const d = fmtDate(data.refDate);
   $("foot").textContent = backend ? T.footerLive(d, backend.mode === "live", backend.ai) : T.footer(d);
+  $("demo").hidden = false;
   if (backend) {
     await pull().catch(() => {});
     // Replies arrive by webhook at any time: refresh, but never while the nurse is editing a message.

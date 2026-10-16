@@ -26,6 +26,7 @@ Vlastníci: **A** = Artem · **BE** = backend · **DS** = designér · **CC** = 
 - FHIR R4 transaction Bundle (Patient, Observation, ImagingStudy, Communication, Task), validace R4B v testech, `scripts/fhir_export.py --post` do IRIS.
 - Dockerfile, docker-compose (+ Cloudflare Tunnel), GitHub Actions (testy → deploy na VPS).
 - Odevzdání: SUBMISSION.md (texty CZ/EN, AI a dopad, FHIR, scénář ukázky u stolu), titulní obrázek 16:9, záložní video 71 s. 82 testů.
+- Redesign UX/UI (zpětná vazba designéra): švýcarský styl (mřížka, Inter Tight, černá/bílá + signální červená jen pro „čeká na vás“), úkolově orientovaná obrazovka Úkoly (pozvánky → ozvali se → rozhodne lékař → výsledky), Pacienti s filtry, stav jednou větou, jedna hlavní akce na řádek, ukázkové ovládání odděleno do panelu. Nový titulní obrázek a video.
 - Kontakty: Matys (AZ), Hoferek (InterSystems – hackathon kit FHIR), Baštař (org – pozdní registrace).
 
 ## 🔴 P0 – dnes do 19:00 (organizační, blokuje vše)
