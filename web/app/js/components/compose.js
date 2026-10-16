@@ -3,11 +3,14 @@ import { T } from "../i18n/cs.js";
 import { fixedText, message } from "../content/messages.cs.js";
 import { cap, esc, html } from "../util.js";
 import { failedChannels, plannedContact } from "../domain.js";
+import { store } from "../state.js";
 
 export function compose(p, chosenChannel) {
   const plan = plannedContact(p);
   const channel = chosenChannel || plan.channel;
   const failed = failedChannels(p);
+  const draft = store.get(p.id).draft;
+  const text = draft?.text && draft.channel === channel && !fixedText(channel) ? draft.text : message(p, channel, plan.variant);
   return html`<div class="compose" data-compose="${p.id}">
     <span class="compose__label" id="chl-${p.id}">${T.compose.channel}</span>
     <div class="channels" role="group" aria-labelledby="chl-${p.id}">
@@ -20,11 +23,12 @@ export function compose(p, chosenChannel) {
       })}
     </div>
     <label class="compose__label" for="msg-${p.id}">${channel === "voice" ? T.compose.voiceText : T.compose.text}</label>
-    <textarea id="msg-${p.id}" ${fixedText(channel) ? "readonly" : ""}>${esc(message(p, channel, plan.variant))}</textarea>
+    <textarea id="msg-${p.id}" ${fixedText(channel) ? "readonly" : ""}>${esc(text)}</textarea>
     <div class="compose__foot">
       <p>${fixedText(channel) ? T.compose.trial : T.compose.note}</p>
+      <button type="button" class="btn btn--link" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.sendNow}</button>
       <button type="button" class="btn" data-action="close-compose">${T.actions.cancel}</button>
-      <button type="button" class="btn btn--primary" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.confirmSend(T.channel[channel])}</button>
+      <button type="button" class="btn btn--primary" data-action="save-draft" data-id="${p.id}" data-channel="${channel}">${T.actions.saveDraft}</button>
     </div>
   </div>`;
 }

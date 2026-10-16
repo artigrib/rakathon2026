@@ -19,9 +19,11 @@ function describe(p, d, plan) {
   const ev = lastEvent(p, stage);
   const answered = ev?.date ? S.replied(fmtDate(ev.date), S.via[ev.via]) : "";
   switch (stage) {
-    case "sent":
-      return { title: S.sent(fmtDate(d.sent.date), T.channel[d.sent.channel]),
-               sub: plan ? S.sentNext(fmtDate(plan.due), T.channel[plan.channel]) : S.sentWait };
+    case "sent": {
+      const del = [...(d.journey || [])].reverse().find((e) => e.delivery)?.delivery;
+      const next = plan ? S.sentNext(fmtDate(plan.due), T.channel[plan.channel]) : S.sentWait;
+      return { title: S.sent(fmtDate(d.sent.date), T.channel[d.sent.channel]) + (del ? `, ${T.detail.delivery[del] || del}` : ""), sub: next };
+    }
     case "interested":
     case "callback":
       return { title: S[stage] + (ev?.when ? `, ${ev.when}` : ""), sub: answered };
@@ -33,7 +35,8 @@ function describe(p, d, plan) {
     case "result": return { title: S.result[d.result](fmtDate(nextScreening(d.result, ev?.date))) };
   }
   const task = taskOf(p);
-  if (task === "invite") return d.skipped ? { title: S.skipped } : { title: cap(S.invite(T.channel[plannedContact(p).channel])) };
+  if (task === "invite") return d.skipped ? { title: S.skipped }
+    : { title: cap(S.invite(T.channel[plannedContact(p).channel])), sub: d.draft ? S.edited : "" };
   if (task === "doctor") return { title: p.reasons.find((r) => !r.startsWith("Věk")) || T.status.NEEDS_REVIEW };
   if (p.status === "ELIGIBLE") return { title: p.why || T.status.ELIGIBLE };
   return { title: T.status[p.status] };

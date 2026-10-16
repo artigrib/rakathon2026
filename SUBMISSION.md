@@ -46,7 +46,7 @@ Ano. Data výzvy i naše vyhodnocení exportujeme jako FHIR R4 transaction Bundl
 ## Ukázka u stolu (sobota 14:00, 3 minuty)
 1. Problém (20 s): program funguje, polovina záchytů je ve stadiu 1, ale oslovilo se jen 18 % lidí a polovina odmítla.
 2. Dopad a data (30 s): Přehled programu, tabulka Dopad (dnes 18 oslovených, s námi 101). Kvalita dat: poškozené řádky a diakritika opraveny, rozporné balíčkoroky rozhodne lékař. U pacienta důvod každého rozhodnutí.
-3. Odeslání naostro (30 s): Úkoly, Pozvat, u pacienta Upravit, SMS, Odeslat. SMS přijde na telefon Artema (zkušební účet Twilio posílá jen na ověřené číslo). Matysovi ukázat telefon.
+3. Odeslání naostro (30 s): Úkoly, Pozvat, u prvního pacienta Upravit, SMS, Uložit, pak Odeslat N pozvánek (naostro odejde první, ostatní simulovaně). Pozvaní se přesunou do Čekáme na odpověď. SMS přijde na telefon Artema (zkušební účet Twilio posílá jen na ověřené číslo). Matysovi ukázat telefon.
 4. Odpověď (40 s): odpovědět „Ano“. Přijde potvrzení a pacient se sám přesune do Ozvali se. Pak u dalšího pacienta telefonát asistenta: zvednout, stisknout klávesu, asistent mluví česky, odpovědět „ano“ hlasem nebo stisknout 1.
 5. Další kroky (40 s): v panelu Ukázka několikrát Další den. Systém sám volá, pošle WhatsApp a nakonec předá úkol sestře. Pak objednán, LDCT, negativní výsledek, další LDCT za 2 roky.
 6. Další rozvoj (20 s): export FHIR do IRIS, pravidla od roku 2027 jedním přepínačem, chceme pokračovat s AstraZeneca.

@@ -149,3 +149,5 @@ tbody tr:hover td, tbody tr:focus-visible td { background: var(--field); }
 .actions .btn--link { align-items: flex-start; min-height: 40px; }
 .impact td b { color: var(--accent); font-size: var(--t-l); }
 .note { color: var(--ink-2); font-size: var(--t-s); max-width: 60ch; margin-top: 12px; }
+.batch p { margin: 10px 0 0; color: var(--ink-2); font-size: var(--t-s); }
+.section--quiet .count { color: var(--ink-2); }

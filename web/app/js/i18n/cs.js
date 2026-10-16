@@ -11,13 +11,15 @@ export const T = {
     allDone: "Hotovo. Systém hlídá pacienty dál.",
   },
   sections: {
-    invite: { title: "Pozvat", empty: "Odesláno." },
+    invite: { title: "Pozvat", empty: "Vše odesláno. Pozvaní jsou níže v sekci Čekáme na odpověď." },
     replied: { title: "Ozvali se", empty: "Nikdo nečeká." },
     doctor: { title: "Rozhodne lékař", empty: "Nic nečeká." },
     results: { title: "Výsledky", empty: "Nic k zápisu." },
+    waiting: { title: "Čekáme na odpověď", empty: "Nikdo." },
   },
   batch: {
     approve: (n) => `Odeslat ${n} ${pl(n, "pozvánku", "pozvánky", "pozvánek")}`,
+    hint: "U pacienta můžete před odesláním změnit kanál nebo text, nebo ho vynechat.",
   },
 
   patients: {
@@ -32,7 +34,8 @@ export const T = {
   state: {
     invite: (ch) => ch,
     skipped: "Vynecháno",
-    sent: (d, ch) => `Pozván ${d}, ${ch}`,
+    edited: "Upraveno, odejde s ostatními",
+    sent: (d, ch) => `Pozvánka ${d}, ${ch}`,
     sentNext: (d, ch) => `Další pokus ${d}: ${ch}`,
     sentWait: "",
     interested: "Má zájem o vyšetření",
@@ -77,6 +80,8 @@ export const T = {
     exception: "Přesto zařadit",
     open: "Zobrazit podrobnosti",
     confirmSend: () => "Odeslat",
+    saveDraft: "Uložit",
+    sendNow: "Odeslat hned jen jemu",
     cancel: "Zrušit",
     details: "Podrobnosti",
     undo: "Vrátit",
@@ -100,6 +105,7 @@ export const T = {
 
   toast: {
     sent: (ch) => `Odesláno: ${ch}.`,
+    draftSaved: "Uloženo. Odejde s ostatními pozvánkami.",
     approved: (n) => `Odesláno jménem lékaře: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,
     skipped: "Vynecháno z této dávky.",
     unskipped: "Vráceno do dávky.",

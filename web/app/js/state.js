@@ -28,13 +28,15 @@ export const store = {
 
   send(items, date) { // items: [{id, channel, variant, text}]
     commit(Object.fromEntries(items.map((i) => [i.id, {
-      sent: { channel: i.channel, variant: i.variant, date, text: i.text }, skipped: false,
+      sent: { channel: i.channel, variant: i.variant, date, text: i.text }, skipped: false, draft: null,
       ...event(i.id, "sent", date, { channel: i.channel }),
     }])));
   },
   /** Journey step: interested | callback | not_now | booked | declined | ldct | result (extra: {result}) */
   step(id, stage, date, extra = {}) { commit({ [id]: event(id, stage, date, extra) }); },
   skip(id, skipped = true) { commit({ [id]: { skipped } }); },
+  /** Nurse's change to one invitation in the weekly batch (channel and/or text). Sent with the batch. */
+  draft(id, channel, text) { commit({ [id]: { draft: { channel, text }, skipped: false } }); },
   include(id) { commit({ [id]: { override: "ELIGIBLE" } }); },
   exclude(id) { commit({ [id]: { override: "EXCLUDED" } }); },
 

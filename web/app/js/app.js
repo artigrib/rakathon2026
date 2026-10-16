@@ -69,6 +69,12 @@ const actions = {
   "toggle-detail": (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; },
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
+  "save-draft": (el) => {
+    const id = el.dataset.id;
+    store.draft(id, el.dataset.channel, $(`msg-${id}`)?.value);
+    ui.composing = null;
+    toast(T.toast.draftSaved, { undo: true });
+  },
   "confirm-send": async (el) => {
     const p = find(el.dataset.id);
     const text = $(`msg-${p.id}`)?.value;
@@ -80,7 +86,8 @@ const actions = {
     const rows = batchOf(data.patients.filter((p) => p.gp === ui.gp));
     await send(rows.map((p) => {
       const { channel, variant } = plannedContact(p);
-      return { id: p.id, channel, variant, text: message(p, channel, variant) };
+      const draft = store.get(p.id).draft;
+      return { id: p.id, channel, variant, text: draft?.text || message(p, channel, variant) };
     }));
     toast(T.toast.approved(rows.length), { undo: !backend });
   },

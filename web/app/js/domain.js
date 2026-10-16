@@ -56,6 +56,8 @@ export const lastEvent = (p, stage) => [...(store.get(p.id).journey || [])].reve
 
 /** Channel and variant to use; an included-by-doctor patient gets the default first invite. */
 export function plannedContact(p) {
+  const draft = store.get(p.id).draft;
+  if (draft?.channel) return { channel: draft.channel, variant: p.variant || "FIRST_INVITE" };
   if (p.channel) return { channel: p.channel, variant: p.variant || "FIRST_INVITE" };
   return { channel: p.portal ? "portal" : (p.pref === "letter" ? "letter" : "sms"), variant: "FIRST_INVITE" };
 }
