@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+html { font-size: 112.5%; } /* 18px base: practitioners are often older readers */
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: var(--fs-m); line-height: 1.5; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+button, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.mono { font-family: var(--f-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main.wrap { padding-block: 24px 64px; display: flex; flex-direction: column; gap: 24px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

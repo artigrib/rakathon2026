@@ -1,0 +1,6 @@
+**/__pycache__
+.pytest_cache
+backend/.env
+backend/state.json
+examples
+tests

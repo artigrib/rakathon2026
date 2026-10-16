@@ -1,0 +1,18 @@
+# VPS: app + Cloudflare Tunnel (HTTPS without opening ports). Set TUNNEL_TOKEN in backend/.env,
+# or delete the tunnel service and put Caddy / nginx in front of :8000.
+services:
+  app:
+    build: ..
+    env_file: ../backend/.env
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["plice-data:/data"]
+    restart: unless-stopped
+  tunnel:
+    image: cloudflare/cloudflared:2024.12.2
+    command: tunnel --no-autoupdate run
+    env_file: ../backend/.env   # needs TUNNEL_TOKEN=…
+    depends_on: [app]
+    restart: unless-stopped
+    profiles: ["tunnel"]
+volumes:
+  plice-data:

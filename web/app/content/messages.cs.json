@@ -1,0 +1,35 @@
+{
+  "_about": "Patient-facing templates (Czech), shared by the web app (compose preview) and the backend (automatic follow-ups). Doctor 16.10.: in the GP's name; simple, calm, informative, motivating – the patient must not get scared. Deck slide 20: say it is free, give a phone number. Placeholders: {gp} {contact} {call_us} {link}.",
+  "parts": {
+    "contact_with_pneu": "svému praktickému lékaři nebo svému pneumologovi",
+    "contact": "svému praktickému lékaři",
+    "call_us": " na tel. {phone}",
+    "link": "\n\nOdpovědět můžete i zde: {url}",
+    "link_short": " Odpověď: {url}",
+    "link_marker": "[odkaz pro pacienta]"
+  },
+  "email": {
+    "FIRST_INVITE": "Dobrý den,\n\nrádi bychom Vás informovali o programu Prevence pro plíce.\n\nLidé, kteří kouří nebo v minulosti kouřili, mohou absolvovat krátké a nebolestivé preventivní vyšetření plic pomocí nízkodávkového CT. Vyšetření je bezplatné, hradí ho zdravotní pojišťovna.\n\nPokud máte zájem, ozvěte se prosím {contact}{call_us}. Společně probereme, zda je vyšetření pro Vás vhodné.{link}\n\nVíce informací najdete na www.prevenceproplice.cz.\n\nS pozdravem\nVaše ordinace praktického lékaře ({gp})",
+    "REMINDER": "Dobrý den,\n\nrádi bychom Vám znovu připomněli možnost preventivního vyšetření plic v rámci programu Prevence pro plíce.\n\nLidé, kteří kouří nebo v minulosti kouřili, mohou absolvovat krátké a nebolestivé preventivní vyšetření plic pomocí nízkodávkového CT. Vyšetření je bezplatné, hradí ho zdravotní pojišťovna.\n\nPokud máte zájem, ozvěte se prosím {contact}{call_us}. Společně probereme, zda je vyšetření pro Vás vhodné.{link}\n\nVíce informací najdete na www.prevenceproplice.cz.\n\nS pozdravem\nVaše ordinace praktického lékaře ({gp})",
+    "MOTIVATION": "Dobrý den,\n\nrozumíme, že jste o preventivní vyšetření plic zatím neměl(a) zájem. Dovolte nám jen krátce připomenout, proč ho doporučujeme.\n\nPreventivní vyšetření je krátké, nebolestivé a pomáhá udržet plíce zdravé. Čím dřív se případně něco zachytí, tím snadnější je léčba. Většina vyšetření dopadne dobře. Vyšetření je bezplatné, hradí ho zdravotní pojišťovna.\n\nPokud si to rozmyslíte, ozvěte se prosím {contact}{call_us}.{link}\n\nVíce informací najdete na www.prevenceproplice.cz.\n\nS pozdravem\nVaše ordinace praktického lékaře ({gp})"
+  },
+  "sms": {
+    "FIRST_INVITE": "Dobrý den, Vaše ordinace Vám nabízí bezplatné preventivní vyšetření plic (program Prevence pro plíce). Máte-li zájem, odpovězte ANO, nebo se nám ozvěte{call_us}.{link_short} Info: prevenceproplice.cz {gp}",
+    "REMINDER": "Dobrý den, připomínáme nabídku bezplatného preventivního vyšetření plic (Prevence pro plíce). Máte-li zájem, odpovězte ANO, nebo se ozvěte své ordinaci{call_us}.{link_short} {gp}",
+    "MOTIVATION": "Dobrý den, nabídka krátkého preventivního vyšetření plic stále platí. Je nebolestivé, bezplatné a pomáhá udržet plíce zdravé. Pokud si to rozmyslíte, odpovězte ANO.{link_short} {gp}"
+  },
+  "voice": {
+    "FIRST_INVITE": "Dobrý den, tady hlasový asistent ordinace Vašeho praktického lékaře. Jsem automatický asistent, nejsem lékař.\n\nVolám kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké, nebolestivé a bezplatné vyšetření plic.\n\nPokud chcete, aby se Vám ozvala ordinace, stiskněte 1 nebo řekněte ano. Pokud teď ne, stiskněte 2. Děkuji a hezký den.",
+    "REMINDER": "Dobrý den, tady hlasový asistent ordinace Vašeho praktického lékaře. Jsem automatický asistent, nejsem lékař.\n\nVolám znovu kvůli programu Prevence pro plíce – bezplatnému preventivnímu vyšetření plic, o kterém jsme Vám psali.\n\nPokud chcete, aby se Vám ozvala ordinace, stiskněte 1 nebo řekněte ano. Pokud teď ne, stiskněte 2. Děkuji a hezký den.",
+    "MOTIVATION": "Dobrý den, tady hlasový asistent ordinace Vašeho praktického lékaře. Jsem automatický asistent, nejsem lékař.\n\nVolám ještě jednou kvůli preventivnímu vyšetření plic. Víme, že jste o něj zatím neměl(a) zájem. Je krátké, nebolestivé, bezplatné a pomáhá udržet plíce zdravé.\n\nPokud chcete, aby se Vám ozvala ordinace, stiskněte 1 nebo řekněte ano. Pokud ne, stiskněte 2. Děkuji a hezký den."
+  },
+  "channel_template": {
+    "sms": "sms",
+    "whatsapp": "sms",
+    "voice": "voice",
+    "email": "email",
+    "letter": "email",
+    "portal": "email",
+    "printout": "email"
+  }
+}

@@ -1,0 +1,40 @@
+/* Bauhaus system: primaries + black on paper white, geometric sans, square corners, thick rules.
+   Status = shape + colour + word (never colour alone):
+   ● blue circle = contact now · ■ yellow square = interested / referral · ▲ red triangle = review · ◼ black = waiting · ○ outline = not eligible */
+:root {
+  --paper: #f7f6f2;
+  --surface: #ffffff;
+  --ink: #141414;
+  --muted: #5a5a57;
+  --rule: #141414;
+  --hair: #d9d7d0;
+
+  --red: #d4301f;
+  --yellow: #f2b705;
+  --blue: #1f4fa0;
+  --on-red: #ffffff;
+  --on-yellow: #141414;
+  --on-blue: #ffffff;
+  --blue-tint: #e6ecf6;
+
+  --f-display: "Jost", "Futura", "Century Gothic", "Avenir Next", Arial, sans-serif;
+  --f-body: "Jost", "Futura", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --fs-xs: 0.8125rem; --fs-s: 0.9375rem; --fs-m: 1.125rem; --fs-l: 1.375rem; --fs-xl: 2rem; --fs-xxl: 2.75rem;
+  --rule-w: 3px;
+  --gap: 12px;
+  --target: 48px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121212; --surface: #1b1b1b; --ink: #f2f1ec; --muted: #a8a7a1; --rule: #f2f1ec; --hair: #343432;
+    --red: #ff5a45; --yellow: #f7c531; --blue: #6f9cf0; --on-blue: #0d1a33; --on-red: #1b0b08; --blue-tint: #1c2638;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121212; --surface: #1b1b1b; --ink: #f2f1ec; --muted: #a8a7a1; --rule: #f2f1ec; --hair: #343432;
+  --red: #ff5a45; --yellow: #f7c531; --blue: #6f9cf0; --on-blue: #0d1a33; --on-red: #1b0b08; --blue-tint: #1c2638;
+  color-scheme: dark;
+}

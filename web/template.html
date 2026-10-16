@@ -1,0 +1,377 @@
+<title>Plíce včas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column worklist for a GP's own patients — summary tabs on top, big readable rows, actions on the right edge; second view = program overview. */
+:root{
+  --bg:#f4f6f5; --surface:#ffffff; --ink:#17302b; --muted:#566b66; --line:#d6dfdc;
+  --accent:#1d5fa8; --accent-ink:#ffffff; --accent-soft:#e3ecf7;
+  --ok:#1f7a4d; --ok-soft:#e1f2e8; --warn:#9a5b00; --warn-soft:#fbefd9; --bad:#a3342c; --bad-soft:#f8e3e0; --info-soft:#eaf0ef;
+  --f-ui:"Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101816; --surface:#17221f; --ink:#e6eeeb; --muted:#9db0aa; --line:#2b3a36;
+  --accent:#6aa7ec; --accent-ink:#0b1a2b; --accent-soft:#1b2c40;
+  --ok:#6fd19c; --ok-soft:#173326; --warn:#f0b65a; --warn-soft:#3a2b12; --bad:#f08a80; --bad-soft:#3d1d1a; --info-soft:#1d2a27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101816; --surface:#17221f; --ink:#e6eeeb; --muted:#9db0aa; --line:#2b3a36;
+  --accent:#6aa7ec; --accent-ink:#0b1a2b; --accent-soft:#1b2c40;
+  --ok:#6fd19c; --ok-soft:#173326; --warn:#f0b65a; --warn-soft:#3a2b12; --bad:#f08a80; --bad-soft:#3d1d1a; --info-soft:#1d2a27; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:18px;line-height:1.45}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:12px}
+.brand{font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px}
+.brand svg{flex:none}
+.brand small{display:block;font-weight:400;font-size:14px;color:var(--muted)}
+.top .grow{flex:1}
+label.sel{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--muted)}
+select,button,textarea{font:inherit;color:inherit}
+select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:17px;color:var(--ink)}
+.views{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px}
+.views button{border:0;background:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-size:16px;color:var(--muted)}
+.views button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+button:focus-visible,select:focus-visible,textarea:focus-visible,.card summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+h1{font-size:28px;margin:28px 0 4px;text-wrap:balance}
+.lede{color:var(--muted);margin:0 0 20px;max-width:65ch}
+.tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.tab{border:2px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tab b{font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tab span{font-size:15px;color:var(--muted)}
+.tab[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tab.t-go b{color:var(--accent)} .tab.t-ref b{color:var(--ok)} .tab.t-rev b{color:var(--warn)}
+
+.bulk{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:0 0 12px}
+.bulk p{margin:0;color:var(--muted);font-size:16px}
+.list{display:flex;flex-direction:column;gap:10px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);border-left:6px solid var(--line)}
+.card.s-go{border-left-color:var(--accent)} .card.s-ref{border-left-color:var(--ok)} .card.s-rev{border-left-color:var(--warn)} .card.s-done{border-left-color:var(--muted)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 20px;padding:14px 16px;align-items:center}
+.who{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.who .pid{font-family:var(--f-mono);font-size:16px;color:var(--muted)}
+.who b{font-size:19px}
+.why{margin:4px 0 0;font-size:17px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:14px;padding:3px 9px;border-radius:999px;background:var(--info-soft);color:var(--ink)}
+.chip.warning{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.act{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}
+.act .hint{font-size:14px;color:var(--muted);text-align:right;max-width:32ch}
+.btn{border:0;border-radius:9px;padding:12px 18px;font-size:18px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink);white-space:nowrap}
+.btn.ok{background:var(--ok);color:var(--surface)}
+.btn.ghost{background:none;border:2px solid var(--line);color:var(--ink);font-weight:400}
+.btn.small{padding:8px 12px;font-size:16px}
+.status{font-size:16px;font-weight:700;padding:6px 10px;border-radius:8px}
+.status.sent{background:var(--accent-soft);color:var(--accent)} .status.ref{background:var(--ok-soft);color:var(--ok)} .status.no{background:var(--bad-soft);color:var(--bad)} .status.mut{background:var(--info-soft);color:var(--muted)}
+
+details.more{border-top:1px solid var(--line)}
+details.more summary{cursor:pointer;padding:10px 16px;color:var(--accent);font-size:16px;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"▸ ";} details.more[open] summary::before{content:"▾ ";}
+.detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px 24px;padding:4px 16px 16px;font-size:16px}
+.detail h4{margin:0 0 6px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px}
+.detail dt{color:var(--muted)} .detail dd{margin:0;min-width:0}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tl li{display:grid;grid-template-columns:7.5em 1fr;gap:8px}
+.tl time{font-family:var(--f-mono);font-size:14px;color:var(--muted);padding-top:2px}
+
+.compose{border-top:1px solid var(--line);padding:14px 16px;display:grid;gap:12px;background:var(--accent-soft)}
+.channels{display:flex;flex-wrap:wrap;gap:8px}
+.channels button{border:2px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:16px}
+.channels button[aria-pressed="true"]{border-color:var(--accent);font-weight:700}
+.channels button:disabled{opacity:.45;cursor:not-allowed}
+.channels .rec{font-size:12px;color:var(--accent);display:block}
+textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);font-size:16px;line-height:1.5}
+.compose .foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;align-items:center}
+.compose .note{margin:0;font-size:14px;color:var(--muted);flex:1;min-width:200px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-size:17px;z-index:20;max-width:calc(100% - 32px)}
+
+/* overview */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.panel h2{font-size:19px;margin:0 0 12px}
+.funnel{display:flex;flex-direction:column;gap:8px}
+.fbar{display:grid;grid-template-columns:minmax(0,1fr) 3.5em;gap:10px;align-items:center;font-size:16px}
+.fbar .bar{height:30px;border-radius:6px;background:var(--accent-soft);position:relative;overflow:hidden}
+.fbar .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:6px}
+.fbar .bar span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink);font-size:15px;mix-blend-mode:normal}
+.fbar b{text-align:right;font-variant-numeric:tabular-nums}
+.ex{display:flex;flex-direction:column;gap:6px;font-size:16px}
+.ex div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:4px}
+.ex b{font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:16px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--accent-soft)}
+.dq li{margin-bottom:6px}
+.demo{font-size:14px;color:var(--muted);margin-top:28px}
+
+@media (max-width:640px){
+  body{font-size:17px}
+  .row{grid-template-columns:1fr}
+  .act{align-items:stretch}
+  .act .hint{text-align:left;max-width:none}
+  .btn{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 4v12M17 16c-2 2-4 3-6 3M17 16c2 2 4 3 6 3" stroke="var(--accent)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M11 10c-4 1-7 7-7 14 0 3 2 5 5 5 3 0 5-2 5-5v-9" stroke="var(--ink)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M23 10c4 1 7 7 7 14 0 3-2 5-5 5-3 0-5-2-5-5v-9" stroke="var(--ink)" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <div>Plíce včas<small>Prevence pro plíce · pro praktické lékaře</small></div>
+    </div>
+    <div class="grow"></div>
+    <label class="sel" for="gp">Ordinace <select id="gp"></select></label>
+    <div class="views" role="group" aria-label="Pohled">
+      <button type="button" id="v-gp" aria-pressed="true">Moji pacienti</button>
+      <button type="button" id="v-ov" aria-pressed="false">Přehled programu</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="gpview">
+    <h1 id="gp-title"></h1>
+    <p class="lede" id="gp-lede"></p>
+    <div class="tabs" id="tabs"></div>
+    <div class="bulk" id="bulk"></div>
+    <div class="list" id="list"></div>
+  </section>
+  <section id="ovview" hidden>
+    <h1>Přehled programu</h1>
+    <p class="lede" id="ov-lede"></p>
+    <div class="grid2">
+      <div class="panel"><h2>Od dat k vyšetření</h2><div class="funnel" id="funnel"></div></div>
+      <div class="panel"><h2>Proč pacienti nejsou vhodní</h2><div class="ex" id="excl"></div></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Ordinace</h2><div class="tablewrap"><table id="gptable"></table></div></div>
+    <div class="panel" style="margin-top:16px"><h2>Kvalita dat</h2><ul class="dq" id="dq"></ul></div>
+  </section>
+  <p class="demo">Ukázka nad syntetickými daty výzvy Rakathon 2026. Odeslání zpráv je v této verzi simulované. Datum vyhodnocení: <span id="refd"></span>.</p>
+</main>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+const DATA = /*DATA*/;
+const REF = DATA.meta.ref;
+const P = DATA.patients;
+const CH = {portal:"Portál",sms:"SMS",voice:"Telefonát asistenta",email:"E-mail",letter:"Dopis",printout:"Tisk do ordinace"};
+const STATUS_TXT = {ELIGIBLE:"Vhodný",NEEDS_REVIEW:"Ke kontrole",EXCLUDED_AGE:"Mimo věk",EXCLUDED_SMOKING_STATUS:"Nekuřák",EXCLUDED_PACK_YEARS:"Málo balíčkoroků",EXCLUDED_RECENT_CT:"Nedávné CT"};
+const fmt = d => { const [y,m,dd] = d.split("-"); return `${+dd}. ${+m}. ${y}`; };
+const sexTxt = s => s === "F" ? "žena" : s === "M" ? "muž" : "neuvedeno";
+const state = {}; // id -> {sent:{ch,date,variant}, referral:true, override:'ELIGIBLE'|'EXCLUDED', note}
+let tab = "go", gp = null, openCompose = null;
+
+function bucket(p){
+  const s = state[p.id] || {};
+  if (s.override === "EXCLUDED") return "done";
+  if (s.referral) return "done";
+  if (s.sent) return "wait";
+  const st = s.override === "ELIGIBLE" ? "ELIGIBLE" : p.status;
+  if (st === "NEEDS_REVIEW") return "rev";
+  if (st !== "ELIGIBLE") return "out";
+  if (p.next === "GP_REFERRAL") return "ref";
+  if (p.next === "WAIT" || p.next === "DO_NOT_CONTACT") return "wait";
+  return "go";
+}
+const TABS = [
+  ["go","K oslovení","jedním klikem odeslat výzvu","t-go"],
+  ["ref","Mají zájem","vystavit žádanku na LDCT","t-ref"],
+  ["rev","Ke kontrole","chybí nebo nesedí údaje","t-rev"],
+  ["wait","Čekáme na reakci","odesláno, sledujeme",""],
+  ["out","Nesplňují kritéria","s uvedeným důvodem",""],
+];
+
+/* ---------- messages ---------- */
+function message(p, ch, variant){
+  const gpName = `Vaše ordinace praktického lékaře (${p.gp})`;
+  const info = "Více informací najdete na www.prevenceproplice.cz.";
+  if (ch === "voice") return [
+    "Dobrý den, tady hlasový asistent ordinace Vašeho praktického lékaře. Jsem automatický asistent, nejsem lékař.",
+    variant === "MOTIVATION"
+      ? "Volám ještě jednou kvůli preventivnímu vyšetření plic. Víme, že jste o něj zatím neměl(a) zájem. Chceme jen připomenout, že nález zachycený včas se dá léčit mnohem lépe."
+      : "Volám kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké a nebolestivé vyšetření plic.",
+    "Pokud chcete, aby se Vám ozval lékař, stiskněte 1. Pokud ne, stiskněte 2. Děkuji a hezký den."
+  ].join("\n\n");
+  if (ch === "sms") {
+    if (variant === "REMINDER") return `Dobrý den, připomínáme nabídku preventivního vyšetření plic (program Prevence pro plíce). Máte-li zájem nebo dotaz, ozvěte se prosím své ordinaci. ${p.gp}`;
+    if (variant === "MOTIVATION") return `Dobrý den, nabídka preventivního vyšetření plic stále platí. Nález zachycený včas se léčí mnohem lépe. Pokud si to rozmyslíte, stačí se ozvat své ordinaci. ${p.gp}`;
+    return `Dobrý den, Vaše ordinace Vám nabízí preventivní vyšetření plic (program Prevence pro plíce). Máte-li zájem, ozvěte se nám. Info: prevenceproplice.cz ${p.gp}`;
+  }
+  const open = variant === "REMINDER"
+    ? "rádi bychom Vám znovu připomněli možnost preventivního vyšetření plic v rámci programu Prevence pro plíce."
+    : variant === "MOTIVATION"
+    ? "rozumíme, že jste o preventivní vyšetření plic zatím neměl(a) zájem. Dovolte nám jen krátce připomenout, proč ho doporučujeme."
+    : "rádi bychom Vás informovali o programu Prevence pro plíce.";
+  const body = variant === "MOTIVATION"
+    ? "Změny na plicích zachycené včas se dají léčit mnohem úspěšněji než ty, které se objeví až s potížemi. Vyšetření je krátké, nebolestivé a provádí se nízkodávkovým CT."
+    : "Lidé, kteří kouří nebo v minulosti kouřili, mohou absolvovat krátké a nebolestivé preventivní vyšetření plic pomocí nízkodávkového CT.";
+  return `Dobrý den,\n\n${open}\n\n${body}\n\nPokud máte zájem, ozvěte se prosím svému praktickému lékaři${p.pneu ? " nebo svému pneumologovi" : ""}. Společně probereme, zda je vyšetření pro Vás vhodné.\n\n${info}\n\nS pozdravem\n${gpName}`;
+}
+
+/* ---------- rendering ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function gps(){
+  const m = {};
+  P.forEach(p => { if (p.gp) m[p.gp] = (m[p.gp]||0) + 1; });
+  return Object.keys(m).sort();
+}
+
+function renderGP(){
+  const mine = P.filter(p => p.gp === gp);
+  const counts = {go:0,ref:0,rev:0,wait:0,out:0,done:0};
+  mine.forEach(p => counts[bucket(p)]++);
+  $("gp-title").textContent = `Ordinace ${gp}`;
+  $("gp-lede").textContent = `${mine.length} registrovaných pacientů vyhodnoceno k ${fmt(REF)} podle kritérií programu Prevence pro plíce (55–74 let, kuřák nebo bývalý kuřák, alespoň 20 balíčkoroků, bez CT hrudníku za posledních 30 dní).`;
+  $("tabs").innerHTML = TABS.map(([k,l,s,c]) => `<button type="button" class="tab ${c}" data-tab="${k}" aria-pressed="${tab===k}"><b>${counts[k] + (k==="wait"?counts.done:0)}</b><strong>${l}</strong><span>${s}</span></button>`).join("");
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => { tab = b.dataset.tab; openCompose = null; renderGP(); });
+
+  let rows = mine.filter(p => { const b = bucket(p); return tab === "wait" ? (b==="wait"||b==="done") : b === tab; });
+  $("bulk").innerHTML = tab === "go" && rows.length > 1
+    ? `<p>Každý pacient má doporučený kanál podle své historie kontaktů.</p><button type="button" class="btn" id="sendall">Odeslat všem ${rows.length} doporučeným kanálem</button>`
+    : "";
+  if ($("sendall")) $("sendall").onclick = () => { rows.forEach(p => send(p, p.ch, p.var, true)); toast(`Odesláno ${rows.length} pacientům. Uvidíte je v záložce „Čekáme na reakci“.`); renderGP(); };
+
+  $("list").innerHTML = rows.length ? rows.map(card).join("") : `<div class="empty">${emptyText()}</div>`;
+  wire(rows);
+}
+function emptyText(){
+  return {go:"Všichni vhodní pacienti už byli osloveni.",ref:"Zatím žádný pacient neprojevil zájem.",rev:"Nic ke kontrole.",wait:"Zatím nic neodesláno.",out:"Všichni pacienti splňují kritéria."}[tab];
+}
+
+function card(p){
+  const b = bucket(p), s = state[p.id] || {};
+  const cls = {go:"s-go",ref:"s-ref",rev:"s-rev",wait:"s-done",done:"s-done",out:""}[b];
+  const main = p.reasons.filter(r => !r.startsWith("Věk")).join(" · ");
+  const flags = p.flags.filter(f => f[0] === "warning" || b !== "out").slice(0,4);
+  return `<article class="card ${cls}" id="c-${p.id}">
+    <div class="row">
+      <div style="min-width:0">
+        <div class="who"><b>${p.age} let, ${sexTxt(p.sex)}</b><span class="pid">${p.id}</span>${b==="out"?`<span class="chip">${STATUS_TXT[p.status]}</span>`:""}</div>
+        <p class="why">${esc(main)}</p>
+        ${flags.length ? `<div class="chips">${flags.map(f => `<span class="chip ${f[0]}">${esc(f[1])}</span>`).join("")}</div>` : ""}
+      </div>
+      <div class="act">${action(p, b, s)}</div>
+    </div>
+    ${openCompose === p.id ? compose(p) : ""}
+    <details class="more"><summary>Podrobnosti</summary>${detail(p, s)}</details>
+  </article>`;
+}
+
+function action(p, b, s){
+  if (s.referral) return `<span class="status ref">Žádanka vystavena ${fmt(s.referral)}</span><span class="hint">Sledujeme objednání na LDCT</span>`;
+  if (s.override === "EXCLUDED") return `<span class="status mut">Vyřazeno lékařem</span>`;
+  if (s.sent) return `<span class="status sent">Odesláno: ${CH[s.sent.ch]}, ${fmt(s.sent.date)}</span><span class="hint">Čekáme na reakci. Pokud do 14 dní neodpoví, navrhneme jiný kanál.</span>`;
+  if (b === "go") return `<button type="button" class="btn" data-open="${p.id}">Odeslat výzvu – ${CH[p.ch]}</button><span class="hint">${esc(p.why)}</span>`;
+  if (b === "ref") return `<button type="button" class="btn ok" data-ref="${p.id}">Vystavit žádanku na LDCT</button><span class="hint">${esc(p.why)}</span>`;
+  if (b === "rev") return `<button type="button" class="btn small" data-ok="${p.id}">Zařadit k oslovení</button><button type="button" class="btn ghost small" data-no="${p.id}">Vyřadit</button>`;
+  if (b === "wait") return `<span class="status mut">${esc(p.why)}</span>`;
+  return "";
+}
+
+function compose(p){
+  const ch = (state[p.id]?.draftCh) || p.ch;
+  const variant = p.var || "FIRST_INVITE";
+  const opts = ["portal","sms","voice","email","letter"];
+  const tried = new Set(p.hist.filter(h => h[3]==="failed").map(h => h[1]));
+  return `<div class="compose">
+    <div class="channels" role="group" aria-label="Kanál">${opts.map(o => {
+      const dis = (o==="portal" && !p.portal);
+      return `<button type="button" data-ch="${o}" aria-pressed="${o===ch}" ${dis?"disabled title='Pacient nemá aktivní portál se souhlasem'":""}>${CH[o]}${o===p.ch?'<span class="rec">doporučeno</span>':""}${tried.has(o)?'<span class="rec" style="color:var(--bad)">dříve selhalo</span>':""}</button>`;}).join("")}</div>
+    <label for="msg-${p.id}" style="font-size:15px;color:var(--muted)">${ch==="voice"?"Co asistent řekne":"Text zprávy"} (můžete upravit)</label>
+    <textarea id="msg-${p.id}">${esc(message(p, ch, variant))}</textarea>
+    <div class="foot"><p class="note">Zpráva nesděluje diagnózu ani netvrdí, že je pacient zařazen do programu. Odeslání se zapíše do historie kontaktů.</p>
+      <button type="button" class="btn ghost" data-cancel>Zrušit</button>
+      <button type="button" class="btn" data-send="${p.id}">Odeslat</button></div>
+  </div>`;
+}
+
+function detail(p, s){
+  const sm = p.smoking;
+  const smoke = sm ? `<dl>
+      <dt>Status</dt><dd>${{current:"kouří",former:"bývalý kuřák",never:"nikdy nekouřil",unknown:"neznámý"}[sm.st]||"—"}${sm.quit?`, přestal ${sm.quit}`:""}</dd>
+      <dt>Balíčkoroky</dt><dd>${sm.py ?? "—"} ${sm.src && sm.src!=="none" ? `<span style="color:var(--muted)">(${({calculated:"vypočteno",reported:"z dokumentace",derived:"dopočteno"})[sm.src]})</span>`:""}</dd>
+      <dt>Záznam</dt><dd>${esc(sm.note || "—")}</dd>
+    </dl>` : "<p>Kuřácká anamnéza chybí.</p>";
+  const ct = p.ct.length ? `<ul class="tl">${p.ct.map(c => `<li><time>${fmt(c[0])}</time><span>${c[1]==="ldct"?"LDCT hrudníku":c[1].replace("standard_","CT ").replace("chest","hrudníku").replace("abdomen","břicha").replace("head","hlavy")} · ${({completed:"provedeno",scheduled:"naplánováno",cancelled:"zrušeno"})[c[2]]}${c[3]?" · externí":""}${c[5]?` · ${esc(c[5])}`:""}</span></li>`).join("")}</ul>` : "<p>Žádné CT v záznamech.</p>";
+  const H = p.hist.map(h => `<li><time>${fmt(h[0])}</time><span>${CH[h[1]]||h[1]}: ${h[2]==="lung_screening_information"?"info o screeningu plic":"jiná prevence"} · ${({read:"přečteno",delivered:"doručeno",failed:"nedoručeno"})[h[3]]}${h[4]?` · ${({interested:"má zájem",not_interested:"nemá zájem",no_response:"bez odpovědi"})[h[4]]}`:""}</span></li>`);
+  if (s.sent) H.push(`<li><time>${fmt(s.sent.date)}</time><span><b>${CH[s.sent.ch]}: výzva ke screeningu</b> · odesláno (schválil lékař)</span></li>`);
+  return `<div class="detail">
+    <div><h4>Kouření</h4>${smoke}</div>
+    <div><h4>CT vyšetření</h4>${ct}</div>
+    <div><h4>Kontakty</h4>${H.length?`<ul class="tl">${H.join("")}</ul>`:"<p>Pacient zatím nebyl kontaktován.</p>"}
+      <dl style="margin-top:8px"><dt>Portál</dt><dd>${p.portal?"aktivní, souhlas":"ne"}</dd><dt>Preferuje</dt><dd>${CH[p.pref]||p.pref||"—"}</dd>${p.pneu?`<dt>Pneumolog</dt><dd>${p.pneu}</dd>`:""}</dl></div>
+    <div><h4>Vyhodnocení</h4><ul class="tl">${p.reasons.map(r=>`<li style="grid-template-columns:1fr">${esc(r)}</li>`).join("")}</ul></div>
+  </div>`;
+}
+
+function wire(rows){
+  document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { openCompose = b.dataset.open; renderGP(); const el=$("c-"+openCompose); if (el && el.scrollIntoView) el.scrollIntoView({block:"nearest"}); });
+  document.querySelectorAll("[data-ch]").forEach(b => b.onclick = () => { const p = P.find(x=>x.id===openCompose); (state[p.id] ||= {}).draftCh = b.dataset.ch; renderGP(); });
+  document.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { openCompose = null; renderGP(); });
+  document.querySelectorAll("[data-send]").forEach(b => b.onclick = () => { const p = P.find(x=>x.id===b.dataset.send); const ch = state[p.id]?.draftCh || p.ch; send(p, ch, p.var); openCompose = null; toast(`Odesláno: ${CH[ch]}. Zapsáno do historie kontaktů.`); renderGP(); });
+  document.querySelectorAll("[data-ref]").forEach(b => b.onclick = () => { (state[b.dataset.ref] ||= {}).referral = REF; toast("Žádanka na LDCT vystavena. Budeme sledovat, zda se pacient objedná."); renderGP(); });
+  document.querySelectorAll("[data-ok]").forEach(b => b.onclick = () => { (state[b.dataset.ok] ||= {}).override = "ELIGIBLE"; toast("Pacient zařazen k oslovení."); renderGP(); });
+  document.querySelectorAll("[data-no]").forEach(b => b.onclick = () => { (state[b.dataset.no] ||= {}).override = "EXCLUDED"; toast("Pacient vyřazen. Rozhodnutí je zaznamenáno."); renderGP(); });
+}
+function send(p, ch, variant){ (state[p.id] ||= {}).sent = {ch: ch || p.ch, date: REF, variant}; }
+
+let tt;
+function toast(t){ const el=$("toast"); el.textContent=t; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,3500); }
+
+/* ---------- overview ---------- */
+function renderOV(){
+  const n = P.length;
+  const st = c => P.filter(p => p.status === c).length;
+  const elig = st("ELIGIBLE");
+  const toContact = P.filter(p => ["go"].includes(bucket(p))).length;
+  const sent = P.filter(p => state[p.id]?.sent).length + P.filter(p => p.hist.some(h=>h[2]==="lung_screening_information")).length;
+  const interested = P.filter(p => p.next==="GP_REFERRAL").length;
+  const referred = P.filter(p => state[p.id]?.referral).length;
+  $("ov-lede").textContent = `${n} pacientů u ${gps().length} praktických lékařů, vyhodnoceno k ${fmt(REF)}.`;
+  const F = [["Pacienti v datech",n],["Splňují kritéria",elig],["Ke kontrole lékařem",st("NEEDS_REVIEW")],["Oslovení (výzva odeslána)",sent],["Projevili zájem",interested],["Žádanka vystavena",referred]];
+  $("funnel").innerHTML = F.map(([l,v]) => `<div class="fbar"><div class="bar"><i style="width:${Math.max(2,v/n*100)}%"></i><span>${l}</span></div><b>${v}</b></div>`).join("");
+  $("excl").innerHTML = [["Mimo věk 55–74","EXCLUDED_AGE"],["Méně než 20 balíčkoroků","EXCLUDED_PACK_YEARS"],["Nikdy nekouřili","EXCLUDED_SMOKING_STATUS"],["CT hrudníku za posledních 30 dní","EXCLUDED_RECENT_CT"],["Chybí nebo nesedí údaje → ke kontrole","NEEDS_REVIEW"]].map(([l,c])=>`<div><span>${l}</span><b>${st(c)}</b></div>`).join("");
+  const rows = gps().map(g => { const m = P.filter(p=>p.gp===g); return {g, n:m.length, e:m.filter(p=>p.status==="ELIGIBLE").length, go:m.filter(p=>bucket(p)==="go").length, ref:m.filter(p=>bucket(p)==="ref").length, rev:m.filter(p=>bucket(p)==="rev").length}; }).sort((a,b)=>b.go-a.go);
+  $("gptable").innerHTML = `<thead><tr><th>Ordinace</th><th>Pacientů</th><th>Vhodných</th><th>K oslovení</th><th>Mají zájem</th><th>Ke kontrole</th></tr></thead><tbody>${rows.map(r=>`<tr class="click" data-gp="${r.g}" tabindex="0"><td>${r.g}</td><td class="n">${r.n}</td><td class="n">${r.e}</td><td class="n">${r.go}</td><td class="n">${r.ref}</td><td class="n">${r.rev}</td></tr>`).join("")}</tbody>`;
+  document.querySelectorAll("tr[data-gp]").forEach(tr => { const go = () => { gp = tr.dataset.gp; $("gp").value = gp; show("gp"); }; tr.onclick = go; tr.onkeydown = e => { if (e.key==="Enter") go(); }; });
+  const iss = DATA.meta.issues;
+  const miss = iss.filter(i=>i.code==="MISSING_COLUMN").length;
+  const enc = iss.find(i=>i.code==="ENCODING_REPAIRED");
+  $("dq").innerHTML = [
+    miss ? `<li><b>${miss} poškozených řádků</b> v kuřácké anamnéze (chybějící sloupec) – automaticky opraveno a označeno k ověření.</li>` : "",
+    enc ? `<li><b>${esc(enc.text)}</b> – texty jsou znovu čitelné.</li>` : "",
+    `<li><b>Rozporné balíčkoroky: ${P.filter(p=>p.flags.some(f=>f[2]==="PY_CONFLICT")).length}</b> – použita vyšší hodnota, lékař může rozhodnout jinak.</li>`,
+    `<li><b>Plánovaná nebo zrušená CT: ${P.filter(p=>p.flags.some(f=>f[2]==="CT_SCHEDULED"||f[2]==="CT_CANCELLED")).length}</b> – nevylučují, jen upozorňují lékaře.</li>`
+  ].join("");
+}
+
+function show(v){
+  $("gpview").hidden = v !== "gp"; $("ovview").hidden = v !== "ov";
+  $("v-gp").setAttribute("aria-pressed", v==="gp"); $("v-ov").setAttribute("aria-pressed", v==="ov");
+  v === "gp" ? renderGP() : renderOV();
+}
+
+const list = gps();
+$("gp").innerHTML = list.map(g => `<option>${g}</option>`).join("");
+gp = "VPL-0142"; $("gp").value = gp;
+$("gp").onchange = e => { gp = e.target.value; tab = "go"; openCompose = null; show("gp"); };
+$("v-gp").onclick = () => show("gp"); $("v-ov").onclick = () => show("ov");
+$("refd").textContent = fmt(REF);
+show("gp");
+</script>
