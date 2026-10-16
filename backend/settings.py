@@ -34,6 +34,11 @@ class Settings:
     sendgrid_key: str = os.getenv("SENDGRID_API_KEY", "")
     email_from: str = os.getenv("EMAIL_FROM", "")
     demo_email: str = os.getenv("DEMO_EMAIL", "")
+    # Or plain SMTP, e.g. Gmail with an app password: SMTP_HOST=smtp.gmail.com SMTP_USER=you@gmail.com SMTP_PASSWORD=…
+    smtp_host: str = os.getenv("SMTP_HOST", "")
+    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
     # FHIR server (InterSystems IRIS for Health): source of patients and target of the journey write-back
     fhir_base: str = os.getenv("FHIR_BASE", "").rstrip("/")
     fhir_user: str = os.getenv("FHIR_USER", "")
@@ -47,7 +52,8 @@ class Settings:
 
     @property
     def email_live(self) -> bool:
-        return bool(self.sendgrid_key and self.email_from and self.demo_email)
+        smtp = self.smtp_host and self.smtp_user and self.smtp_password
+        return bool(self.demo_email and ((self.sendgrid_key and self.email_from) or smtp))
 
     @property
     def live(self) -> bool:

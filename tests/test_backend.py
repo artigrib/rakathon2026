@@ -269,3 +269,22 @@ def test_patient_messages_hide_phone_and_link_token(client):
     store.log(patient="P9", channel="sms", text="Ahoj https://x/p/SECRETtok", to="+420777", live=True, status="delivered", day="2026-10-16")
     o = c.get("/api/patient/P9").json()["outbox"][0]
     assert "to" not in o and "SECRETtok" not in o["text"] and o["ts"] and o["status"] == "delivered"
+
+
+def test_email_via_smtp(monkeypatch):
+    import backend.channels as ch
+    sent = {}
+
+    class S:
+        def __init__(self, host, port, timeout): sent["host"] = host
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def starttls(self): pass
+        def login(self, u, p): sent["user"] = u
+        def send_message(self, m): sent["to"] = m["To"]; sent["body"] = m.get_content()
+    import smtplib
+    monkeypatch.setattr(smtplib, "SMTP", S)
+    from dataclasses import replace
+    monkeypatch.setattr(ch, "settings", replace(ch.settings, smtp_host="smtp.gmail.com", smtp_user="a@gmail.com", smtp_password="x", demo_email="b@x.cz"))
+    r = ch.send_email("Dobrý den.", True)
+    assert r["live"] and sent["to"] == "b@x.cz" and "Dobrý den." in sent["body"]

@@ -99,6 +99,8 @@ def send_email(body: str, live: bool) -> dict:
     """Plain-text e-mail through the SendGrid v3 API (Twilio SendGrid). Replies come back through the patient link."""
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
+    if settings.smtp_host:
+        return _smtp(body)
     import json
     import urllib.request
     payload = {
@@ -111,3 +113,20 @@ def send_email(body: str, live: bool) -> dict:
                                  headers={"Authorization": f"Bearer {settings.sendgrid_key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as r:
         return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": settings.demo_email, "status": "queued" if r.status == 202 else str(r.status)}
+
+
+def _smtp(body: str) -> dict:
+    import smtplib
+    from email.message import EmailMessage
+    from email.utils import formataddr, make_msgid
+    m = EmailMessage()
+    m["Subject"] = EMAIL_SUBJECT
+    m["From"] = formataddr(("Vaše ordinace", settings.email_from or settings.smtp_user))
+    m["To"] = settings.demo_email
+    m["Message-ID"] = make_msgid(domain="plicevcas.cz")
+    m.set_content(body)
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as s:
+        s.starttls()
+        s.login(settings.smtp_user, settings.smtp_password)
+        s.send_message(m)
+    return {"sid": m["Message-ID"], "live": True, "to": settings.demo_email, "status": "sent"}
