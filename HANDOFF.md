@@ -49,6 +49,14 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 4. Optional: e-mail channel via Twilio/SendGrid; WhatsApp sandbox join on demo phone.
 5. Saturday: fill the submit form from SUBMISSION.md, record backup video if UI changes (`submission/`).
 
+## Who does what (two Claude sessions, one repo)
+- **VPS session** (also opened from the web): runs and deploys the app, live Twilio/ElevenLabs tests, backend fixes found in live tests, server logs.
+- **Cloud session** (claude.ai chat with Artem): engine, web UI and copy, patient texts, submission texts, video, design changes.
+- Artem decides and relays anything that needs a human (keys, Twilio console, phone tests, Drive uploads).
+- To avoid conflicts: `git pull --rebase` before every change, small commits, push right away.
+  If you need to change a file the other side owns, write a note in `bridge/` first.
+- Private files: if this session has Google Drive access, read the folder "Plíce včas (privátní)"; otherwise Artem copies them by scp.
+
 ## Bridge between sessions
 Cloud session (claude.ai) and VPS session talk through this repo.
 - Write a note as a new file `bridge/YYYY-MM-DD-HHMM-<from>.md` (from = cloud | vps), commit, push.
