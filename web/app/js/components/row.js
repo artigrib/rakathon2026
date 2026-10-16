@@ -82,14 +82,15 @@ function demoReplies(p, link) {
     link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${T.demo.openLink}</a>` : ""}</div>`;
 }
 
-export function row(p, { composing, chosenChannel, plan, link, demo, open, outbox }) {
+export function row(p, { composing, chosenChannel, plan, link, demo, open, outbox, lost }) {
   const d = store.get(p.id);
   const { title, sub } = describe(p, d, plan);
+  const why = lost ? T.lost[lost.code](lost.days) : "";
   const showDemo = demo && stageOf(p) === "sent";
   return `<article class="row${d.skipped && taskOf(p) === "invite" ? " row--skipped" : ""}" id="pt-${p.id}">
     <div class="row__main">
       <button type="button" class="who" data-action="toggle-detail" data-id="${p.id}" aria-expanded="${!!open}" title="${A.open}">${esc(T.who(p))}</button>
-      <div class="what"><b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}${showDemo ? demoReplies(p, link) : ""}</div>
+      <div class="what">${why ? `<em class="lostwhy">${esc(why)}</em>` : ""}<b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}${showDemo ? demoReplies(p, link) : ""}</div>
       <div class="actions">${actions(p, d)}</div>
     </div>
     ${composing ? compose(p, chosenChannel) : ""}

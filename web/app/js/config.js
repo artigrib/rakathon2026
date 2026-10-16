@@ -37,4 +37,6 @@ export const PRACTICES = {
 // Backend (FastAPI). When the page is served by the backend, the app switches to live mode automatically;
 // as a static page (artifact) it keeps working locally with simulated sending.
 export const API_BASE = "";
+// "Getting lost": days after which a patient needs a human (doctor's and mentor's input: paper results, slow pneumology).
+export const LOST = { replied: 7, booked: 42, bookedLate: 70, ldct: 21, pause: 90 };
 export const POLL_MS = 3000;

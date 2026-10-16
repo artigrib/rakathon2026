@@ -179,3 +179,9 @@ main.wrap { padding-bottom: 140px; }
 .comm__body details { margin-top: 4px; }
 .comm__body summary { cursor: pointer; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
 .comm__body details p { margin: 6px 0 0; padding: 10px 12px; background: var(--field); white-space: pre-wrap; max-width: 70ch; }
+/* Getting lost: the only place besides data warnings where amber is used. */
+.summary { margin-top: 8px; color: var(--ink-2); }
+.summary b { color: var(--ink); font-weight: 600; }
+.summary .is-lost { color: var(--warn); }
+.section--lost .count.is-due { color: var(--warn); }
+.lostwhy { display: block; font-style: normal; font-weight: 600; color: var(--warn); margin-bottom: 2px; }

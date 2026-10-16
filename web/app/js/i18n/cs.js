@@ -16,10 +16,23 @@ export const T = {
     doctor: { title: "Rozhodne lékař", empty: "Nic nečeká." },
     results: { title: "Výsledky", empty: "Nic k zápisu." },
     waiting: { title: "Čekáme na odpověď", empty: "Nikdo." },
+    lost: { title: "Ztrácejí se" },
   },
   batch: {
     approve: (n) => `Odeslat ${n} ${pl(n, "pozvánku", "pozvánky", "pozvánek")}`,
     hint: "U pacienta můžete před odesláním změnit kanál nebo text, nebo ho vynechat.",
+  },
+
+  // Above the sections: everyone in the programme has an owner and a next step.
+  summary: (all, yours, sys, done, lost) => `${all} v programu: ${yours} čeká na vás, ${sys} hlídá systém, ${done} uzavřeno, ` +
+    (lost ? `<b class="is-lost">${lost} se ztrácí</b>` : "<b>nikdo se neztrácí</b>"),
+  lost: {
+    booked: (n) => `Předán k pneumologovi před ${n} dny, výsledek LDCT chybí. Zavolejte pacientovi.`,
+    ldct: (n) => `LDCT před ${n} dny, výsledek nezapsán. Vyžádejte zprávu.`,
+    replied: (n) => `Ozval se před ${n} dny a nikdo nereagoval.`,
+    failed: () => "Zpráva nebyla doručena. Ověřte telefon nebo zvolte jiný kanál.",
+    exhausted: () => "Plán kontaktů skončil bez odpovědi.",
+    pause: () => "Pauza skončila a nikdo pacienta znovu neoslovil.",
   },
 
   patients: {

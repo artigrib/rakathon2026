@@ -28,7 +28,7 @@ const rowCtx = {
 
 function render() {
   const mine = data.patients.filter((p) => p.gp === ui.gp);
-  const due = taskCount(mine);
+  const due = taskCount(mine, today(), data.live?.plans);
   $("nav").innerHTML = ["tasks", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${v === "tasks" && due ? ` <span class="due">${due}</span>` : ""}</button>`).join("");
   $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);

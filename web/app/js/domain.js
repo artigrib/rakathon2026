@@ -1,5 +1,5 @@
 // What the practice has to do about each patient. Pure functions over engine output + recorded decisions.
-import { JOURNEY, RESULTS } from "./config.js";
+import { JOURNEY, LOST, RESULTS } from "./config.js";
 import { store } from "./state.js";
 import { isFinal, sectionOf } from "./fsm.js";
 
@@ -69,3 +69,25 @@ export function plannedContact(p) {
 export const failedChannels = (p) => new Set(p.history.filter((h) => h.delivery === "failed").map((h) => h.channel));
 
 export const practices = (patients) => [...new Set(patients.map((p) => p.gp).filter(Boolean))].sort();
+
+export const daysBetween = (a, b) => (a && b ? Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 864e5) : 0);
+
+/** Why this patient is getting lost, or null. plans: next automatic touch per patient (undefined = not known locally).
+ *  Returns {code, days, sev: "warn" | "late"}. */
+export function lostOf(p, clock, plans) {
+  const d = store.get(p.id);
+  const stage = stageOf(p);
+  if (!stage || stage === "excluded" || stage === "result" || stage === "declined") return null;
+  const journey = d.journey || [];
+  const last = [...journey].reverse().find((e) => e.stage && !e.ignored);
+  const since = daysBetween(last?.date, clock);
+  const lastSend = [...journey].reverse().find((e) => e.stage === "sent");
+  const failed = journey.some((e) => !e.stage && e.delivery === "failed" && lastSend && e.date >= lastSend.date);
+  if (stage === "booked" && since >= LOST.booked) return { code: "booked", days: since, sev: since >= LOST.bookedLate ? "late" : "warn" };
+  if (stage === "ldct" && since >= LOST.ldct) return { code: "ldct", days: since, sev: "warn" };
+  if (["interested", "callback", "nurse_call"].includes(stage) && since >= LOST.replied) return { code: "replied", days: since, sev: "warn" };
+  if (stage === "sent" && failed) return { code: "failed", days: since, sev: "warn" };
+  if (plans && stage === "sent" && !plans[p.id]) return { code: "exhausted", days: since, sev: "warn" };
+  if (stage === "not_now" && since > LOST.pause && plans && !plans[p.id]) return { code: "pause", days: since, sev: "warn" };
+  return null;
+}
