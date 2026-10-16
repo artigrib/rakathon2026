@@ -34,6 +34,10 @@ class Settings:
     sendgrid_key: str = os.getenv("SENDGRID_API_KEY", "")
     email_from: str = os.getenv("EMAIL_FROM", "")
     demo_email: str = os.getenv("DEMO_EMAIL", "")
+    # FHIR server (InterSystems IRIS for Health): source of patients and target of the journey write-back
+    fhir_base: str = os.getenv("FHIR_BASE", "").rstrip("/")
+    fhir_user: str = os.getenv("FHIR_USER", "")
+    fhir_password: str = os.getenv("FHIR_PASSWORD", "")
     # The demo clock ("Další den") simulates by default; TICK_LIVE=1 lets automatic touches go out for real.
     tick_live: bool = os.getenv("TICK_LIVE", "0") == "1"
     voice_name: str = os.getenv("VOICE_NAME", "Google.cs-CZ-Standard-A")

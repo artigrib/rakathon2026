@@ -32,7 +32,7 @@ function render() {
   $("nav").innerHTML = ["tasks", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${v === "tasks" && due ? ` <span class="due">${due}</span>` : ""}</button>`).join("");
   $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
-  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock });
+  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir });
   $("gp").value = ui.gp;
 }
 
@@ -122,6 +122,7 @@ const actions = {
   },
   exclude: async (el) => { await step(el.dataset.id, { stage: "exclude" }); store.exclude(el.dataset.id); toast(T.toast.excluded); },
   "toggle-replies": (el) => { ui.demoReplies = el.checked; },
+  "fhir-sync": async () => { await api.fhirSync(); location.reload(); },
   tick: async () => {
     const r = await api.tick(1);
     await pull();
@@ -169,7 +170,7 @@ async function init() {
   document.addEventListener("click", dispatch);
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("tr[data-action]")) dispatch(e); });
   const d = fmtDate(data.refDate);
-  $("foot").textContent = backend ? T.footerLive(d, backend.mode === "live") : T.footer(d);
+  $("foot").textContent = (backend ? T.footerLive(d, backend.mode === "live") : T.footer(d)) + (backend?.fhir ? T.footerFhir(backend.fhir) : "");
   $("demo").hidden = false;
   if (backend) {
     await pull().catch(() => {});

@@ -11,6 +11,9 @@ from engine.loader import load
 from engine.rules import run
 
 LOCAL = "https://plicevcas.cz/fhir/CodeSystem"
+# Every original NIS column is kept as an extension, so the data can be read back from the FHIR server without loss
+# (backend/fhir_source.py). The standard FHIR fields carry the same facts for any other system.
+NIS = "https://plicevcas.cz/fhir/StructureDefinition/nis"
 SNOMED = "http://snomed.info/sct"
 LOINC = "http://loinc.org"
 SMOKING = {"current": ("77176002", "Smoker"), "former": ("8517006", "Ex-smoker"), "never": ("266919005", "Never smoked tobacco")}
@@ -33,6 +36,10 @@ def _entry(res):
     res = _clean(res)
     return {"fullUrl": f"{res['resourceType']}/{res['id']}", "resource": res,
             "request": {"method": "PUT", "url": f"{res['resourceType']}/{res['id']}"}}
+
+
+def _nis(row):
+    return [{"url": f"{NIS}/{k}", "valueString": str(v)} for k, v in row.items() if v not in (None, "")]
 
 
 def _ref(kind, id_):
@@ -77,19 +84,22 @@ def bundle(data_dir, ref_date, decisions=None, gp=None) -> dict:
             "identifier": [{"system": "urn:rakathon:patient", "value": pid}],
             "gender": GENDER.get(p["sex"], "unknown"), "birthDate": p["date_of_birth"],
             "address": [{"state": p["residence_region"], "country": "CZ"}],
+            "telecom": [t for t in ({"system": "phone", "value": p.get("phone_number")}, {"system": "email", "value": p.get("email")}) if t["value"]],
+            "extension": _nis(p),
             **({"generalPractitioner": [_ref("Organization", org)]} if org else {}),
         }))
         derived = []
         s = smoking.get(pid)
-        if s and s.get("smoking_status") in SMOKING:
-            code, name = SMOKING[s["smoking_status"]]
+        if s:  # also "unknown": the row must survive the round trip through the FHIR server
+            code, name = SMOKING.get(s.get("smoking_status"), (None, s.get("smoking_status") or "unknown"))
             entries.append(_entry({
                 "resourceType": "Observation", "id": f"smoking-{pid}", "status": "final",
                 "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "social-history"}]}],
                 "code": {"coding": [{"system": LOINC, "code": "72166-2", "display": "Tobacco smoking status"}]},
                 "subject": _ref("Patient", pid), "effectiveDateTime": _date(s.get("recorded_at")),
-                "valueCodeableConcept": {"coding": [{"system": SNOMED, "code": code, "display": name}]},
+                "valueCodeableConcept": {"coding": [{"system": SNOMED, "code": code, "display": name}]} if code else {"text": name},
                 **({"note": [{"text": s["free_text_note"]}]} if s.get("free_text_note") else {}),
+                "extension": _nis(s),
             }))
             derived.append(_ref("Observation", f"smoking-{pid}"))
         py = (r.get("smoking") or {}).get("pack_years")
@@ -106,6 +116,7 @@ def bundle(data_dir, ref_date, decisions=None, gp=None) -> dict:
             notes = [t for t in (c.get("report_text"), "Externí vyšetření" if c.get("is_external") == "true" else "") if t]
             entries.append(_entry({
                 "resourceType": "ImagingStudy", "id": c["ct_id"], "status": CT_STATUS.get(c["status"], "unknown"),
+                "extension": _nis(c),
                 "subject": _ref("Patient", pid), "started": _dt(c["performed_at"]),
                 "modality": [{"system": "http://dicom.nema.org/resources/ontology/DCM", "code": "CT"}],
                 "description": f"{c['body_region']} · {c['protocol']}" + (f" · {c['referral_text']}" if c.get("referral_text") else ""),
@@ -120,6 +131,7 @@ def bundle(data_dir, ref_date, decisions=None, gp=None) -> dict:
                 "medium": [{"coding": [{"system": f"{LOCAL}/channel", "code": c["channel"]}]}],
                 "category": [{"coding": [{"system": f"{LOCAL}/message-type", "code": c["message_type"]}]}],
                 "note": [{"text": f"doručení: {c['delivery_status'] or '—'}; odpověď: {c['response'] or '—'}"}],
+                "extension": _nis(c),
             }))
         for i, e in enumerate(decisions.get(pid, {}).get("journey", [])):
             if e.get("stage") == "sent":

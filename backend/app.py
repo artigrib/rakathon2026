@@ -16,7 +16,7 @@ import json
 import re
 from datetime import timedelta
 
-from . import channels, fsm, messages, tts
+from . import channels, fhir_sink, fsm, messages, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import understand
@@ -27,8 +27,20 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title="Plíce včas")
 store = Store(settings.state_file)
-PATIENTS = {p["id"]: p for p in json.loads((WEB / "data/patients.json").read_text(encoding="utf-8"))["patients"]}
-REF_DATE = json.loads((WEB / "data/patients.json").read_text(encoding="utf-8"))["refDate"]
+PATIENTS: dict = {}
+REF_DATE = "2026-10-16"
+
+
+def load_patients():
+    """web/app/data/patients.json = engine output (from CSV, or from the FHIR server after /api/fhir/sync)."""
+    global REF_DATE
+    d = json.loads((WEB / "data/patients.json").read_text(encoding="utf-8"))
+    PATIENTS.clear()
+    PATIENTS.update({p["id"]: p for p in d["patients"]})
+    REF_DATE = d["refDate"]
+
+
+load_patients()
 
 
 def today() -> str:
@@ -71,7 +83,10 @@ def health():
     return {"ok": True, "mode": "live" if settings.live else "mock", "liveLimit": settings.live_limit,
             "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio",
             "trial": settings.live and settings.trial,
-            "email": settings.email_live}
+            "email": settings.email_live,
+            "fhir": ({"server": settings.fhir_base.split("//")[-1].split("/")[0], "sync": store.data.get("fhir_sync"),
+                      "written": fhir_sink.state["sent"], "errors": fhir_sink.state["errors"], "lastError": fhir_sink.state["last_error"]}
+                     if settings.fhir_base else None)}
 
 
 @app.get("/audio/{name}")
@@ -183,6 +198,47 @@ def patient_messages(pid: str):
     return {"outbox": out}
 
 
+@app.post("/api/fhir/sync")
+def fhir_sync():
+    """Load the practice's patients from the FHIR server (IRIS) and evaluate them with the same engine."""
+    if not settings.fhir_base:
+        raise HTTPException(400, "FHIR_BASE is not set")
+    from engine.webdata import build
+    from .fhir_source import fetch, tables_from, write
+    res = fetch(settings.fhir_base, settings.fhir_user, settings.fhir_password)
+    t = tables_from(res)
+    out = build(write(t, ROOT / "data_fhir"), REF_DATE)
+    (WEB / "data/patients.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    load_patients()
+    info = {"at": datetime_now(), "resources": len(res), "patients": len(out["patients"])}
+    store.data["fhir_sync"] = info
+    store._save()
+    return info
+
+
+@app.post("/api/fhir/push")
+def fhir_push():
+    """Upload the whole practice data + evaluation + journey to the FHIR server as one transaction Bundle."""
+    if not settings.fhir_base:
+        raise HTTPException(400, "FHIR_BASE is not set")
+    import base64
+    import urllib.request
+    from .fhir import bundle
+    b = bundle(ROOT / "data", REF_DATE, store.decisions())
+    req = urllib.request.Request(settings.fhir_base, data=json.dumps(b).encode(), method="POST",
+                                 headers={"Content-Type": "application/fhir+json"})
+    if settings.fhir_user:
+        req.add_header("Authorization", "Basic " + base64.b64encode(f"{settings.fhir_user}:{settings.fhir_password}".encode()).decode())
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return {"status": r.status, "entries": len(b["entry"])}
+
+
+def datetime_now():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("Europe/Prague")).strftime("%Y-%m-%d %H:%M")
+
+
 @app.get("/api/fhir")
 def fhir_bundle(gp: str | None = None):
     """FHIR R4 transaction Bundle (patients, smoking, CT, contacts, evaluation, tasks) – POST it to any FHIR server."""
@@ -223,7 +279,9 @@ def transition(pid, event, day=None, **extra):
         return store.event(pid, None, day, event=event, ignored=True, **extra)
     if event in ("declined", "opt_out"):
         extra.setdefault("intent", event)
-    return store.event(pid, target, day, event=event, **extra)
+    d = store.event(pid, target, day, event=event, **extra)
+    fhir_sink.push(settings, pid, event, d, PATIENTS.get(pid, {}).get("gp"))  # write-back to the FHIR server, async
+    return d
 
 
 def _record_reply(pid, text, understood, via, day=None):

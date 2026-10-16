@@ -110,6 +110,7 @@ export const T = {
     intro: "Jen pro předvedení.",
     clock: (d) => `Den ukázky: ${d}`,
     next: "Další den",
+    fhirSync: "Načíst pacienty z FHIR serveru",
     replies: "Simulovat odpovědi pacientů",
     replyLabel: "Odpověď pacienta:",
     reply: { interested: "Má zájem", booked: "Už se objednal", callback: "Zavolejte mi", not_now: "Teď ne" },
@@ -220,6 +221,7 @@ export const T = {
 
   footer: (d) => `Syntetická data Rakathon 2026, odesílání simulované, vyhodnoceno ${d}.`,
   footerLive: (d, live) => `Syntetická data Rakathon 2026, ${live ? "SMS a hovory odcházejí přes Twilio" : "odesílání simulované"}, vyhodnoceno ${d}.`,
+  footerFhir: (f) => ` Data z FHIR serveru ${f.server}${f.sync ? `, načteno ${f.sync.at}` : ""}. Zpět zapsáno ${f.written} záznamů${f.errors ? `, ${f.errors} chyb` : ""}.`,
   apiError: "Server neodpověděl. Zkuste to prosím znovu.",
   loadError: "Data se nepodařilo načíst. Obnovte prosím stránku.",
 };
