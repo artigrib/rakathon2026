@@ -28,6 +28,24 @@ export function overview(data) {
     <tbody>${O.impactRows.map((r, i) => `<tr><td>${r}</td><td class="n">${today[i]}</td><td class="n"><b>${ours[i]}</b></td></tr>`).join("")}</tbody>
   </table></div><p class="note">${O.impactNote(E)}</p>`;
 
+  // Which channel works (mentor: the doctor wants to know whether it had an effect). A reply counts for the
+  // channel of the last contact before it; records from the practice data count too.
+  const ch = {};
+  const add = (c, k) => { if (!c) return; ch[c] ||= { sent: 0, replied: 0 }; ch[c][k]++; };
+  for (const p of P) {
+    for (const h of p.history) { add(h.channel, "sent"); if (h.response && h.response !== "no_response") add(h.channel, "replied"); }
+    let last = null;
+    for (const e of store.get(p.id).journey || []) {
+      if (e.stage === "sent") { add(e.channel, "sent"); last = e.channel; }
+      else if (e.text && last && !e.ignored) { add(last, "replied"); last = null; }
+    }
+  }
+  const chRows = Object.entries(ch).sort((a, b) => b[1].replied / b[1].sent - a[1].replied / a[1].sent);
+  const channels = chRows.length ? `<div class="tablewrap"><table>
+    <thead><tr>${O.chCols.map((c, i) => `<th${i ? ' class="n"' : ""}>${c}</th>`).join("")}</tr></thead>
+    <tbody>${chRows.map(([c, v]) => `<tr><td>${T.channel[c] || c}</td><td class="n">${v.sent}</td><td class="n">${v.replied}</td><td class="n"><b>${Math.round((100 * v.replied) / v.sent)} %</b></td></tr>`).join("")}</tbody>
+  </table></div><p class="note">${O.chNote}</p>` : "";
+
   const reasons = `<ul class="stats">${O.exclusionRows.map(([code, label]) => `<li><div>${label}</div><b>${byStatus[code] || 0}</b></li>`).join("")}</ul>`;
 
   const rows = practices(P).map((gp) => {
@@ -51,6 +69,7 @@ export function overview(data) {
   return `<header class="pagehead"><h1>${O.title}</h1><p>${O.sub(P.length, practices(P).length, fmtDate(data.refDate))}</p></header>
     ${section("impact", O.impact, impact)}
     ${section("funnel", O.funnel, funnel)}
+    ${channels ? section("channels", O.channels, channels) : ""}
     ${section("why", O.exclusions, reasons)}
     ${section("practices", O.practices, table)}
     ${section("dq", O.dataQuality, dq)}`;

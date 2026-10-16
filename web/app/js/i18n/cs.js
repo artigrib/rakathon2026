@@ -201,6 +201,9 @@ export const T = {
     impactRows: ["Oslovení pacienti", "Odesláni k pneumologovi na LDCT"],
     impactNote: (e) => `Odhad pro ${e} pacientů, kteří splňují kritéria. Dnes program osloví 18 % cílové populace, k pneumologovi odešle 54 % oslovených. Stejný podíl odeslaných předpokládáme i u nás.`,
     funnel: "Od dat k výsledku",
+    channels: "Který kanál funguje",
+    chCols: ["Kanál", "Kontaktů", "Odpověděli", "Úspěšnost"],
+    chNote: "Odpověď se počítá kanálu posledního kontaktu před ní. Zahrnuje záznamy z kartotéky i kontakty z Plíce včas.",
     funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Předáni k pneumologovi", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
     exclusionRows: [
