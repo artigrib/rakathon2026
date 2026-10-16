@@ -11,8 +11,7 @@ import { overview } from "./views/overview.js";
 import { demoPanel } from "./components/demo.js";
 import { toast, hideToast } from "./components/toast.js";
 
-const ui = { view: "tasks", gp: DEFAULT_GP, filter: "all", composing: null, chosenChannel: null, demoReplies: false, open: null,
-  palette: (() => { try { return localStorage.getItem("plice-vcas:palette") || "petrol"; } catch { return "petrol"; } })() };
+const ui = { view: "tasks", gp: DEFAULT_GP, filter: "all", composing: null, chosenChannel: null, demoReplies: false, open: null };
 let data;
 let backend = null; // {mode, ai} when served by the backend; null = static page with local simulation
 let seen = -1;
@@ -31,8 +30,7 @@ function render() {
   $("nav").innerHTML = ["tasks", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${v === "tasks" && due ? ` <span class="due">${due}</span>` : ""}</button>`).join("");
   $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
-  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, palette: ui.palette });
-  document.documentElement.dataset.palette = ui.palette;
+  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock });
   $("gp").value = ui.gp;
 }
 
@@ -69,7 +67,6 @@ const actions = {
   "pick-filter": (el) => { ui.filter = el.dataset.filter; ui.composing = null; },
   "open-compose": (el) => { ui.composing = el.dataset.id; ui.chosenChannel = null; },
   "toggle-detail": (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; },
-  palette: (el) => { ui.palette = el.dataset.palette; try { localStorage.setItem("plice-vcas:palette", ui.palette); } catch { /* per-viewer only */ } },
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
   "confirm-send": async (el) => {

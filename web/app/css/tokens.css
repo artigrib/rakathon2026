@@ -1,7 +1,6 @@
 /* Swiss grid and type, calm clinical colour.
    Graphite on soft paper instead of pure black on white (less glare for long reading, still 14.7:1).
-   One accent colour for "this needs you" (counts with work, the main button); amber only for data warnings.
-   Accent variants (data-palette) are kept for the design review; pick one and delete the rest. */
+   One accent colour for "this needs you" (counts with work, the main button); amber only for data warnings. */
 :root {
   --paper: #f4f4f2;
   --surface: #ffffff;    /* text fields */
@@ -12,21 +11,17 @@
   --field: #e9e9e6;      /* demo panel, compose */
   --warn: #a15c07;       /* amber: data needs a check (4.7:1) */
 
-  --accent: #11615d;     /* B · petrol (default): calm, 7.3:1 with white */
+  --accent: #11615d;     /* petrol: calm, 7.3:1 with white */
   --on-accent: #ffffff;
 
   --font: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --t-s: 0.8333rem; --t-m: 1rem; --t-l: 1.2222rem; --t-xl: 1.7778rem; --t-xxl: 3.5556rem;
   --gutter: 24px; --target: 48px; --max: 1200px;
 }
-:root[data-palette="orange"] { --accent: #b93e0b; }  /* A · Swiss orange (Müller-Brockmann), 5.6:1 */
-:root[data-palette="cobalt"] { --accent: #2f4aa8; }  /* C · cobalt, 7.9:1 */
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a3a8ad; --hair: #2e3235; --rule: #e8e9ea;
     --field: #24272a; --warn: #e0a040; --accent: #4fb3ac; --on-accent: #0b1a19; color-scheme: dark;
   }
-  :root[data-palette="orange"]:not([data-theme="light"]) { --accent: #f07a3e; --on-accent: #1a0c05; }
-  :root[data-palette="cobalt"]:not([data-theme="light"]) { --accent: #8da2f0; --on-accent: #0c1230; }
 }

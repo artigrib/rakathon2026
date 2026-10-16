@@ -19,6 +19,15 @@ export function overview(data) {
   const funnel = `<ol class="stats">${steps.map((v, i) => `<li class="${i >= 4 ? "is-key" : ""}"><div>${O.funnelSteps[i]}
     <div class="bar"><i style="width:${Math.max(0.5, (v / P.length) * 100)}%"></i></div></div><b>${v}</b></li>`).join("")}</ol>`;
 
+  // Programme results so far (SPEC.md): 18 % of the target population reached, 54.4 % of those referred (01196).
+  const E = byStatus.ELIGIBLE || 0;
+  const today = [Math.round(E * 0.18), Math.round(E * 0.18 * 0.544)];
+  const ours = [E, Math.round(E * 0.544)];
+  const impact = `<div class="tablewrap"><table class="impact">
+    <thead><tr>${O.impactCols.map((c, i) => `<th${i ? ' class="n"' : ""}>${c}</th>`).join("")}</tr></thead>
+    <tbody>${O.impactRows.map((r, i) => `<tr><td>${r}</td><td class="n">${today[i]}</td><td class="n"><b>${ours[i]}</b></td></tr>`).join("")}</tbody>
+  </table></div><p class="note">${O.impactNote(E)}</p>`;
+
   const reasons = `<ul class="stats">${O.exclusionRows.map(([code, label]) => `<li><div>${label}</div><b>${byStatus[code] || 0}</b></li>`).join("")}</ul>`;
 
   const rows = practices(P).map((gp) => {
@@ -40,6 +49,7 @@ export function overview(data) {
     <li>${O.dq.conflict(flagged(["PY_CONFLICT"]))}</li><li>${O.dq.ct(flagged(["CT_SCHEDULED", "CT_CANCELLED"]))}</li></ul>`;
 
   return `<header class="pagehead"><h1>${O.title}</h1><p>${O.sub(P.length, practices(P).length, fmtDate(data.refDate))}</p></header>
+    ${section("impact", O.impact, impact)}
     ${section("funnel", O.funnel, funnel)}
     ${section("why", O.exclusions, reasons)}
     ${section("practices", O.practices, table)}

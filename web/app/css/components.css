@@ -146,9 +146,6 @@ tbody tr:hover td, tbody tr:focus-visible td { background: var(--field); }
   .toast { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
 }
 
-.palettes { display: flex; flex-wrap: wrap; gap: 6px; }
-.palettes button { min-height: 36px; padding: 0 10px; border: 1px solid var(--hair); background: var(--surface); display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-s); }
-.palettes button[aria-pressed="true"] { border-color: var(--ink); font-weight: 700; }
-.sw { width: 14px; height: 14px; display: inline-block; }
-.sw--petrol { background: #11615d; } .sw--orange { background: #b93e0b; } .sw--cobalt { background: #2f4aa8; }
 .actions .btn--link { align-items: flex-start; min-height: 40px; }
+.impact td b { color: var(--accent); font-size: var(--t-l); }
+.note { color: var(--ink-2); font-size: var(--t-s); max-width: 60ch; margin-top: 12px; }

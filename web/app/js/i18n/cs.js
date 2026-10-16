@@ -87,8 +87,6 @@ export const T = {
   demo: {
     title: "Ukázka",
     intro: "Jen pro předvedení.",
-    palette: "Barvy",
-    palettes: { petrol: "Petrolejová", orange: "Oranžová", cobalt: "Kobaltová" },
     clock: (d) => `Den ukázky: ${d}`,
     next: "Další den",
     replies: "Simulovat odpovědi pacientů",
@@ -152,6 +150,10 @@ export const T = {
   overview: {
     title: "Přehled programu",
     sub: (n, gps, date) => `${n} pacientů, ${gps} ordinací, ${date}`,
+    impact: "Dopad",
+    impactCols: ["", "Dnes", "S Plíce včas"],
+    impactRows: ["Oslovení pacienti", "Odesláni k pneumologovi na LDCT"],
+    impactNote: (e) => `Odhad pro ${e} pacientů, kteří splňují kritéria. Dnes program osloví 18 % cílové populace, k pneumologovi odešle 54 % oslovených. Stejný podíl odeslaných předpokládáme i u nás.`,
     funnel: "Od dat k výsledku",
     funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Objednáni u pneumologa", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
