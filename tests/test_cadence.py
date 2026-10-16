@@ -49,7 +49,8 @@ def test_shared_templates_render_without_placeholders():
     for ch in ("sms", "voice", "email", "whatsapp", "letter"):
         for v in ("FIRST_INVITE", "REMINDER", "MOTIVATION"):
             t = render(p, ch, v)
-            assert "{" not in t and "VPL-0142" in t or ch == "voice"
+            assert "{" not in t and "VPL-" not in t  # no placeholders, no internal codes in patient texts
+            assert not any(c in t for c in "–—→·!")
     assert "bezplatné" in render(p, "sms")
     assert "https://x/p/abc" in render(p, "sms", url="https://x/p/abc")
 

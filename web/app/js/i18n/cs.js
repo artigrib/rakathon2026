@@ -37,7 +37,7 @@ export const T = {
     sentWait: "",
     interested: "Má zájem o vyšetření",
     callback: "Prosí o zavolání",
-    nurse_call: "Neozval se – zavolejte",
+    nurse_call: "Neozval se, zavolejte mu",
     not_now: (d) => `Teď ne, znovu ${d}`,
     declined: "Odmítl (01197)",
     booked: "Objednán u pneumologa",
@@ -53,7 +53,7 @@ export const T = {
     via: { sms: "SMS", link: "odkaz v SMS", voice: "telefon", "voice-ai": "hovor s asistentem", ui: "zapsáno v ordinaci" },
   },
   status: {
-    ELIGIBLE: "Splňuje kritéria", NEEDS_REVIEW: "Ke kontrole", EXCLUDED_AGE: "Mimo věk 55–74",
+    ELIGIBLE: "Splňuje kritéria", NEEDS_REVIEW: "Ke kontrole", EXCLUDED_AGE: "Mimo věk 55 až 74 let",
     EXCLUDED_SMOKING_STATUS: "Nekuřák", EXCLUDED_PACK_YEARS: "Méně než 20 balíčkoroků", EXCLUDED_RECENT_CT: "Nedávné CT nebo už ve screeningu",
   },
 
@@ -76,7 +76,7 @@ export const T = {
     exclude: "Vyřadit",
     exception: "Přesto zařadit",
     open: "Zobrazit podrobnosti",
-    confirmSend: (ch) => `Odeslat – ${ch}`,
+    confirmSend: () => "Odeslat",
     cancel: "Zrušit",
     details: "Podrobnosti",
     undo: "Vrátit",
@@ -101,7 +101,7 @@ export const T = {
   },
 
   toast: {
-    sent: (ch) => `Odesláno – ${ch}.`,
+    sent: (ch) => `Odesláno: ${ch}.`,
     approved: (n) => `Odesláno jménem lékaře: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,
     skipped: "Vynecháno z této dávky.",
     unskipped: "Vráceno do dávky.",
@@ -128,6 +128,7 @@ export const T = {
     status: "Status", packYears: "Balíčkoroky", note: "Záznam", portal: "Portál", prefers: "Preferuje", pneumologist: "Pneumolog",
     portalYes: "aktivní, souhlas", portalNo: "ne", noSmoking: "Kuřácká anamnéza chybí.", noCt: "Žádné CT v záznamech.",
     noContacts: "Zatím bez kontaktu.",
+    unknown: "neuvedeno",
     smokingStatus: { current: "kouří", former: "bývalý kuřák", never: "nikdy nekouřil", unknown: "neznámý" },
     quit: (y) => `přestal ${y}`,
     pySource: { calculated: "vypočteno", reported: "z dokumentace", derived: "dopočteno" },
@@ -137,10 +138,10 @@ export const T = {
     msgType: { lung_screening_information: "informace o screeningu plic", other_prevention_information: "jiná prevence" },
     delivery: { read: "přečteno", delivered: "doručeno", failed: "nedoručeno", undelivered: "nedoručeno" },
     response: { interested: "má zájem", not_interested: "nemá zájem", no_response: "bez odpovědi" },
-    sentByPractice: (ch) => `Pozvánka – ${ch}, schváleno ordinací`,
-    sentAuto: (ch, n) => `Připomínka – ${ch}, automaticky (krok ${n + 1} plánu)`,
+    sentByPractice: (ch) => `Pozvánka, ${ch}, schválila ordinace`,
+    sentAuto: (ch, n) => `Připomínka, ${ch}, automaticky (${n + 1}. pokus)`,
     said: (t) => `„${t}“`,
-    byAi: (why, when) => `AI: ${why}${when ? ` (kdy: ${when})` : ""}`,
+    byAi: (why, when) => `Rozpoznáno: ${why}${when ? ` Kdy: ${when}.` : ""}`,
     event: {
       interested: "Odpověděl: má zájem", callback: "Prosí o zavolání", not_now: "Teď ne", nurse_call: "Úkol pro sestru: zavolat osobně",
       booked: "Objednán u pneumologa", declined: "Odmítá účast (01197)", ldct: "LDCT proběhlo", result: "Výsledek zapsán",
@@ -154,7 +155,7 @@ export const T = {
     funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Objednáni u pneumologa", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
     exclusionRows: [
-      ["EXCLUDED_AGE", "Mimo věk 55–74"], ["EXCLUDED_PACK_YEARS", "Méně než 20 balíčkoroků"],
+      ["EXCLUDED_AGE", "Mimo věk 55 až 74 let"], ["EXCLUDED_PACK_YEARS", "Méně než 20 balíčkoroků"],
       ["EXCLUDED_SMOKING_STATUS", "Nikdy nekouřili"], ["EXCLUDED_RECENT_CT", "Nedávné CT nebo už ve screeningu"],
       ["NEEDS_REVIEW", "Chybí nebo nesedí údaje"],
     ],
@@ -162,15 +163,15 @@ export const T = {
     cols: ["Ordinace", "Pacientů", "Splňují", "K pozvání", "Ozvali se", "Pro lékaře"],
     dataQuality: "Kvalita dat",
     dq: {
-      rows: (n) => `${n} poškozených řádků v kuřácké anamnéze – opraveno a označeno k ověření.`,
-      encoding: (n) => `${n} hodnot s poškozenou diakritikou – opraveno.`,
-      conflict: (n) => `${n} pacientů s rozpornými balíčkoroky – použita vyšší hodnota, rozhoduje lékař.`,
-      ct: (n) => `${n} plánovaných nebo zrušených CT – nevylučují, jen upozorňují.`,
+      rows: (n) => `${n} poškozených řádků v kuřácké anamnéze. Opraveno, označeno k ověření.`,
+      encoding: (n) => `${n} hodnot s poškozenou diakritikou. Opraveno.`,
+      conflict: (n) => `${n} pacientů s rozpornými balíčkoroky. Použita vyšší hodnota, rozhoduje lékař.`,
+      ct: (n) => `${n} plánovaných nebo zrušených CT. Nevylučují, jen upozorňují.`,
     },
   },
 
   footer: (d) => `Syntetická data Rakathon 2026, odesílání simulované, vyhodnoceno ${d}.`,
-  footerLive: (d, live, ai) => `Syntetická data Rakathon 2026, ${live ? "živé SMS a hovory přes Twilio" : "odesílání simulované"}${ai ? `, AI ${ai}` : ""}, vyhodnoceno ${d}.`,
+  footerLive: (d, live) => `Syntetická data Rakathon 2026, ${live ? "SMS a hovory odcházejí přes Twilio" : "odesílání simulované"}, vyhodnoceno ${d}.`,
   apiError: "Server neodpověděl. Zkuste to prosím znovu.",
   loadError: "Data se nepodařilo načíst. Obnovte prosím stránku.",
 };

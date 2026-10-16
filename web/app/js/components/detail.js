@@ -9,9 +9,9 @@ function smoking(s) {
   if (!s) return `<p>${D.noSmoking}</p>`;
   const src = D.pySource[s.source];
   return html`<dl class="kv">
-    <dt>${D.status}</dt><dd>${D.smokingStatus[s.status] || "—"}${s.quitYear ? `, ${D.quit(s.quitYear)}` : ""}</dd>
-    <dt>${D.packYears}</dt><dd>${s.packYears ?? "—"}${src ? ` <span class="muted">(${src})</span>` : ""}</dd>
-    <dt>${D.note}</dt><dd>${esc(s.note || "—")}</dd>
+    <dt>${D.status}</dt><dd>${D.smokingStatus[s.status] || D.unknown}${s.quitYear ? `, ${D.quit(s.quitYear)}` : ""}</dd>
+    <dt>${D.packYears}</dt><dd>${s.packYears ?? D.unknown}${src ? ` <span class="muted">(${src})</span>` : ""}</dd>
+    <dt>${D.note}</dt><dd>${esc(s.note || D.unknown)}</dd>
   </dl>`;
 }
 
@@ -30,13 +30,13 @@ function contacts(p, decision) {
     const text = !e.stage ? `${T.channel[e.channel] || e.channel}: ${D.delivery[e.delivery] || e.delivery}`
       : e.stage === "sent" ? (e.auto ? D.sentAuto(T.channel[e.channel], e.step) : D.sentByPractice(T.channel[e.channel]))
       : D.event[e.stage] + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : "");
-    const said = e.text && e.stage !== "sent" ? `<br><span class="muted">${esc(D.said(e.text))}${e.source === "ai" ? ` – ${esc(D.byAi(e.why, e.when))}` : ""}</span>` : "";
+    const said = e.text && e.stage !== "sent" ? `<br><span class="muted">${esc(D.said(e.text))}${e.source === "ai" ? `. ${esc(D.byAi(e.why, e.when))}` : ""}</span>` : "";
     rows.push(`<li><time>${fmtDate(e.date)}</time><span>${esc(text)}${said}</span></li>`);
   }
   return html`${rows.length ? `<ul class="timeline">${rows.join("")}</ul>` : `<p>${D.noContacts}</p>`}
     <dl class="kv" style="margin-top:10px">
       <dt>${D.portal}</dt><dd>${p.portal ? D.portalYes : D.portalNo}</dd>
-      <dt>${D.prefers}</dt><dd>${T.channel[p.pref] || p.pref || "—"}</dd>
+      <dt>${D.prefers}</dt><dd>${T.channel[p.pref] || p.pref || D.unknown}</dd>
       ${p.pneu ? `<dt>${D.pneumologist}</dt><dd>${p.pneu}</dd>` : ""}
     </dl>`;
 }

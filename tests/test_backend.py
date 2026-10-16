@@ -181,7 +181,7 @@ def test_ai_call_conversation_over_websocket(client):
         ws.send_json({"type": "setup", "callSid": "CA1"})
         ws.send_json({"type": "prompt", "voicePrompt": "A kolik to stojí?"})
         r = ws.receive_json()
-        assert "bezplatné" in r["token"] and "zájem" in r["token"]
+        assert "bezplatné" in r["token"] and "ozvala sestra" in r["token"]
         ws.send_json({"type": "prompt", "voicePrompt": "Tak jo, ano, mám zájem"})
         assert "ozve" in ws.receive_json()["token"]
         assert ws.receive_json()["type"] == "end"

@@ -1,40 +1,41 @@
-# Odevzdání – submit.rakathon.cz (do soboty 13:00)
+# Odevzdání na submit.rakathon.cz (do soboty 13:00)
 
-## 1 · Projekt
+## 1. Projekt
 **Název:** Plíce včas
 
 **Krátký popis (CZ, 112 znaků):**
-Najde pacienty pro screening plic, osloví je jménem praktika (SMS, AI hovor) a pohlídá, aby došli až k výsledku.
+Najde pacienty pro screening plic, osloví je jménem praktika a pohlídá, aby došli až k výsledku.
 
 **Short description (EN, 127 chars):**
-Finds patients eligible for lung cancer screening, invites them in the GP's name (SMS, AI call) and follows them to the result.
+Finds patients eligible for lung cancer screening, invites them in the GP's name and follows them to the result.
 
 **Delší popis (CZ):**
-Program Prevence pro plíce funguje – 51 % zachycených nádorů je ve stadiu 1 – ale za čtyři roky oslovil jen asi 18 % cílové populace a téměř polovina oslovených odmítne. Plíce včas je tenká vrstva nad daty praktika:
-1. **Najde** vhodné pacienty podle kritérií programu (55–74 let, kuřák/bývalý kuřák, ≥ 20 balíčkoroků, bez CT hrudníku za 30 dní, LDCT interval 1 / 2 roky) i v nedokonalých datech – opraví poškozené řádky a diakritiku, rozporné údaje označí a u každého rozhodnutí ukáže důvod.
-2. **Osloví** je jménem praktika: sestra jednou týdně jedním klikem schválí dávku pozvánek, každá jde kanálem doporučeným podle historie pacienta (SMS, AI hovor, WhatsApp, e-mail, dopis). Texty jsou klidné a nestresující (dle garantky výzvy).
-3. **Pohlídá** cestu pacienta: plán kontaktů (SMS → hovor → hovor → WhatsApp → sestra osobně) běží sám, dokud pacient neodpoví; AI porozumí odpovědi („ano, ale až po Vánocích“), pacient může odpovědět i přes osobní odkaz; sestra vidí Pozván → Odpověděl → Objednán → LDCT → Výsledek a zapíše výsledek z papírové zprávy, systém naplánuje další LDCT.
-Výjimky a kontrolu rozporných údajů má vždy lékař. Data se napojují přes FHIR R4, takže řešení funguje nad různými systémy praktiků a je připravené na sdílený zdravotní záznam (EHDS, změny od 2027 – věk 50–80 je jen přepínač).
+Program Prevence pro plíce funguje: 51 % nádorů zachycených screeningem je ve stadiu 1. Za čtyři roky ale oslovil jen asi 18 % cílové populace a téměř polovina oslovených odmítla.
+Plíce včas pracuje nad daty praktického lékaře a dělá tři věci:
+1. Najde pacienty, kteří splňují kritéria programu: 55 až 74 let, kuřák nebo bývalý kuřák, alespoň 20 balíčkoroků, bez CT hrudníku za posledních 30 dní, interval LDCT 1 rok, po negativním výsledku 2 roky. Poškozené řádky a diakritiku opraví, rozporné údaje označí a u každého rozhodnutí uvede důvod.
+2. Osloví je jménem praktika. Sestra jednou týdně jedním kliknutím schválí pozvánky. Každá jde kanálem podle historie pacienta: SMS, hlasový asistent, WhatsApp, e-mail nebo dopis.
+3. Hlídá, jestli pacient došel až k výsledku. Pokud neodpoví, systém ho podle plánu kontaktuje znovu a nakonec předá sestře. Odpověď pacienta systém rozpozná a zařadí. Sestra zapíše výsledek LDCT a systém naplánuje další termín.
+Výjimky a rozporné údaje vždy rozhoduje lékař. Data se předávají ve formátu FHIR R4, takže řešení funguje nad různými systémy praktiků.
 
 **Longer description (EN):**
-The Czech lung screening programme works – 51 % of detected cancers are stage 1 – yet in four years it reached only ~18 % of the target population and almost half of those invited decline. Plíce včas is a thin layer on top of GP data: it **finds** eligible patients even in messy records (repairs broken rows and encoding, flags conflicts, explains every decision), **invites** them in the GP's name after a one-click weekly approval by the nurse, choosing the channel from each patient's history (SMS, AI phone call, WhatsApp, e-mail, letter), and **follows** each patient until the result: an automatic contact plan runs until the patient answers, AI understands free-text and spoken replies, and the nurse sees Invited → Replied → Booked → LDCT → Result. Doctors keep control of exceptions and conflicting data. FHIR R4 export makes it work across different GP systems and ready for EHDS.
+The Czech lung screening programme works: 51 % of cancers found by screening are stage 1. In four years it reached only about 18 % of the target population, and almost half of those invited declined.
+Plíce včas runs on GP data and does three things. It finds eligible patients by the programme criteria, repairs broken records, flags conflicting data and states the reason for every decision. It invites them in the GP's name after a weekly one-click approval by the nurse, each through the channel that fits the patient's history. It follows each patient to the result: if there is no reply, a fixed contact plan tries again and finally hands over to the nurse; replies are classified automatically; the nurse records the LDCT result and the next date is scheduled. Doctors decide exceptions and conflicting data. Data is exchanged as FHIR R4.
 
-## 3 · Dopad a AI
+## 3. Dopad a AI
 **Jak využíváte AI?**
-- **Porozumění odpovědím pacientů** (SMS, WhatsApp, odkaz, řeč v hovoru): LLM určí záměr (zájem / objednán / zavolat / teď ne / nechci / dotaz) a „kdy“, a sestře napíše krátké zdůvodnění. Bezpečnost: odhlášení („STOP“) rozhodují pravidla vždy, nejistá odpověď jde sestře, výpadek AI → pravidla.
-- **AI telefonní asistent v češtině** (Twilio ConversationRelay): pozve pacienta, odpoví na časté dotazy (cena, bolest, záření) – ale **jen schválenými větami**, nic si nevymýšlí; co nezná, předá sestře.
-- **Doporučení kanálu** podle historie kontaktů (co pacient čte, co selhalo) a plán kontaktů, který se zastaví při první odpovědi.
-- AI nikdy nerozhoduje o zařazení ani o oslovení – to dělají pravidla programu a člověk (human in the loop).
+- Rozpoznání odpovědi pacienta (SMS, WhatsApp, odkaz, řeč v hovoru): jazykový model určí, co pacient chce (má zájem, už je objednaný, chce zavolat, teď ne, nechce, ptá se) a kdy. Odhlášení („STOP“) rozhodují vždy pevná pravidla. Nejistou odpověď dostane sestra. Když model není dostupný, použijí se pravidla.
+- Hlasový asistent v češtině (Twilio ConversationRelay): pozve pacienta a odpoví na časté dotazy (cena, bolest, záření) pouze předem schválenými větami. Na ostatní dotazy odpoví sestra.
+- O zařazení pacienta a o odeslání pozvánky AI nerozhoduje. Rozhodují pravidla programu a člověk.
 
 **Jaký dopad a pro koho?**
-- **Pacienti 55–74 let s kuřáckou anamnézou** – víc z nich se dozví o bezplatném vyšetření a dojde až k LDCT; rakovina plic je nejčastější příčina úmrtí mezi nádory (≈ 5 000 úmrtí ročně v ČR), včasný záchyt vede k vyléčení.
-- **Praktičtí lékaři a sestry** – místo ručního hledání v kartotéce jeden týdenní seznam, jedno kliknutí, přehled kdo došel; kód výkonu 01196/01197 na jednom místě. Zapojeno je zatím jen 62 % praktiků.
-- **Pojišťovny a program** – měřitelný trychtýř od dat k výsledku, škálovatelné přes FHIR.
+- Pacienti 55 až 74 let s kuřáckou anamnézou: víc z nich se dozví o bezplatném vyšetření a dojde k LDCT. Rakovina plic je nejčastější příčina úmrtí na nádorová onemocnění v ČR, ročně asi 5 000 úmrtí.
+- Praktičtí lékaři a sestry: jeden týdenní seznam úkolů místo ručního hledání v kartotéce. Do programu je zatím zapojeno 62 % praktiků.
+- Pojišťovny a program: přehled od dat po výsledek pro každou ordinaci.
 
 **FHIR od InterSystems?**
-Ano. Data výzvy i naše vyhodnocení exportujeme jako FHIR R4 transaction Bundle (Patient, Observation – kuřácký status, balíčkoroky, vyhodnocení kritérií; ImagingStudy – CT; Communication – kontakty; Task – úkol pro ordinaci) a nahráváme do IRIS z hackathon kitu (`scripts/fhir_export.py --post`). Bundle je validovaný proti modelům R4 v testech.
+Ano. Data výzvy i naše vyhodnocení exportujeme jako FHIR R4 transaction Bundle (Patient, Observation pro kuřácký status, balíčkoroky a vyhodnocení, ImagingStudy pro CT, Communication pro kontakty, Task pro ordinaci) a nahráváme do IRIS z hackathon kitu (`scripts/fhir_export.py --post`). Strukturu Bundle ověřují testy proti modelům R4.
 
-## 4 · Odkazy a obrázek
+## 4. Odkazy a obrázek
 - Titulní obrázek 16:9: `submission/title.png`
 - GitHub: _doplnit po vytvoření repozitáře_
 - Demo: _veřejná adresa po nasazení_
@@ -42,12 +43,12 @@ Ano. Data výzvy i naše vyhodnocení exportujeme jako FHIR R4 transaction Bundl
 
 ---
 
-## Ukázka u stolu (sobota 14:00, 3 minuty) – scénář
-1. **Problém (20 s):** „Program funguje – polovina záchytů ve stadiu 1 – ale oslovilo se jen 18 % lidí a polovina odmítne. Praktik nemá čas hledat v kartotéce.“
-2. **Data (30 s):** Přehled programu → kvalita dat: 28 poškozených řádků, 1 146 opravených hodnot, rozporné balíčkoroky → u pacienta „Podrobnosti“: důvod každého rozhodnutí.
-3. **Jedno kliknutí (30 s):** Ordinace → „Tento týden odejde 5 pozvánek“ → Schválit a odeslat. *(Naostro: SMS / AI hovor na telefon Luboše Matyse.)*
-4. **Odpověď (40 s):** Matys odpoví „Ano, ale až po Vánocích“ nebo v hovoru se zeptá „kolik to stojí?“ → na obrazovce se sám přesune pacient, AI ukáže proč.
-5. **Smyčka (40 s):** „Posunout čas o den“ ×3 → systém sám volá, píše WhatsApp, nakonec úkol pro sestru → objednán → LDCT → Negativní → „další LDCT od 2028“.
-6. **Škálování (20 s):** FHIR export do IRIS, pravidla 2027 jedním přepínačem, „chceme v tom pokračovat s AstraZeneca“.
+## Ukázka u stolu (sobota 14:00, 3 minuty)
+1. Problém (20 s): program funguje, polovina záchytů je ve stadiu 1, ale oslovilo se jen 18 % lidí a polovina odmítla.
+2. Data (30 s): Přehled programu, kvalita dat: 28 poškozených řádků, 1 146 opravených hodnot, rozporné balíčkoroky. U pacienta důvod každého rozhodnutí.
+3. Jedno kliknutí (30 s): Tento týden, Odeslat pozvánky. Naostro SMS nebo hovor na telefon Luboše Matyse.
+4. Odpověď (40 s): Matys odpoví „Ano, ale až po Vánocích“ nebo se v hovoru zeptá, kolik to stojí. Pacient se sám přesune do sekce Ozvali se.
+5. Další kroky (40 s): v panelu Ukázka třikrát Další den. Systém sám volá, pošle WhatsApp a nakonec předá úkol sestře. Pak objednán, LDCT, negativní výsledek, další LDCT za 2 roky.
+6. Další rozvoj (20 s): export FHIR do IRIS, pravidla od roku 2027 jedním přepínačem, chceme pokračovat s AstraZeneca.
 
-**Záloha, když selže síť nebo Twilio:** tlačítka „Ukázka – odpověď pacienta“ (stejná cesta jako webhook) + video `submission/demo.webm`.
+Záloha, když selže síť nebo Twilio: simulace odpovědí v panelu Ukázka a video `submission/demo.mp4`.

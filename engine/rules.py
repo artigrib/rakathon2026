@@ -111,7 +111,7 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
             negative = "bez suspekt" in rep
             has_finding = not negative and ("kontrol" in rep or "uzl" in rep or "suspekt" in rep)
             if has_finding:
-                F("LDCT_FINDING", "warning", f"LDCT {_fmt(d)} s nálezem k další kontrole – pacient je ve sledování")
+                F("LDCT_FINDING", "warning", f"LDCT {_fmt(d)} s nálezem k další kontrole. Pacient je ve sledování.")
             interval = cfg.ldct_interval_negative_days if negative else cfg.ldct_interval_days
             if days <= interval:
                 last_ldct = (d, interval, negative)
@@ -123,7 +123,7 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
     if age is None:
         status = "NEEDS_REVIEW"; R("AGE_MISSING", "Chybí datum narození")
     elif not (cfg.min_age <= age <= cfg.max_age):
-        status = "EXCLUDED_AGE"; R("AGE_OUT", f"Věk {age} let – mimo rozmezí {cfg.min_age}–{cfg.max_age}")
+        status = "EXCLUDED_AGE"; R("AGE_OUT", f"Věk {age} let, program je pro {cfg.min_age} až {cfg.max_age} let")
     else:
         R("AGE_OK", f"Věk {age} let")
 
@@ -140,7 +140,7 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
                            "data_quality": smoking.get("data_quality"),
                            "note": smoking.get("free_text_note")}
             if smoking.get("_repaired"):
-                F("DATA_REPAIRED", "warning", "Záznam o kouření byl v datech poškozený (chybějící sloupec) – zkontrolujte")
+                F("DATA_REPAIRED", "warning", "Záznam o kouření byl v datech poškozený (chyběl sloupec). Zkontrolujte ho.")
             if st == "never":
                 status = "EXCLUDED_SMOKING_STATUS"; R("NEVER_SMOKER", "Nikdy nekouřil(a)")
             elif st not in ("current", "former"):
@@ -153,7 +153,7 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
                 if rep is not None and calc is not None and abs(rep - calc) >= 1:
                     F("PY_CONFLICT", "warning", f"Rozdílné balíčkoroky: dokumentace {rep}, výpočet {calc}")
                 elif smoking.get("data_quality") == "conflicting":
-                    F("PY_CONFLICT", "warning", "Dokumentace uvádí rozdílné hodnoty – použita vyšší")
+                    F("PY_CONFLICT", "warning", "Dokumentace uvádí rozdílné hodnoty, použita vyšší")
                 if src == "derived":
                     F("PY_DERIVED", "info", f"Balíčkoroky dopočteny: {derived}")
                 if py < cfg.min_pack_years:
@@ -162,7 +162,7 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
                 else:
                     R("SMOKING_OK", f"{label}, {py:g} balíčkoroků")
                     if st == "current":  # program includes a brief smoking-cessation intervention (deck, slide 10)
-                        F("CESSATION", "info", "Kouří – při návštěvě nabídnout krátkou intervenci k odvykání kouření")
+                        F("CESSATION", "info", "Kouří. Při návštěvě nabídnout krátkou intervenci k odvykání kouření.")
 
     # 5. Recent chest CT (incl. LDCT)
     if status is None:
@@ -175,14 +175,14 @@ def evaluate(p: dict, smoking: dict | None, cts: list[dict], contacts: list[dict
         elif external:
             c = external[-1]
             status = "NEEDS_REVIEW"
-            R("RECENT_CT_EXTERNAL", f"Externí CT hrudníku před {c['days_ago']} dny – ke zvážení lékařem")
+            R("RECENT_CT_EXTERNAL", f"Externí CT hrudníku před {c['days_ago']} dny, rozhodne lékař")
 
     # Already in screening: next LDCT is due only after 1 year (2 years if negative)
     if status is None and last_ldct:
         d, interval, negative = last_ldct
         due = date.fromordinal(d.toordinal() + interval)
         status = "EXCLUDED_RECENT_CT"
-        R("IN_SCREENING", f"Už ve screeningu: LDCT {_fmt(d)}{' bez nálezu' if negative else ''} – další LDCT od {_fmt(due)}")
+        R("IN_SCREENING", f"Už ve screeningu: LDCT {_fmt(d)}{' bez nálezu' if negative else ''}, další LDCT od {_fmt(due)}")
 
     if status is None:
         status = "ELIGIBLE"

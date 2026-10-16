@@ -75,32 +75,32 @@ def recommend(p: dict, contacts: list[dict], status: str, ref: date, cfg) -> dic
     not_int = sum(1 for h in lung if h["response"] == "not_interested")
 
     if last["response"] == "interested":
-        res.update(next_action="GP_REFERRAL", reason=f"Pacient projevil zájem ({last['date']}) – vyplňte anamnézu a žádanku k pneumologovi (ten objedná LDCT)")
+        res.update(next_action="GP_REFERRAL", reason=f"Pacient projevil zájem ({last['date']}). Vyplňte anamnézu a žádanku k pneumologovi, ten objedná LDCT.")
         return res
     if not_int >= 2:
-        res.update(next_action="DO_NOT_CONTACT", reason="Pacient opakovaně odmítl – probrat osobně při příští návštěvě")
+        res.update(next_action="DO_NOT_CONTACT", reason="Pacient opakovaně odmítl. Probrat osobně při příští návštěvě.")
         return res
     if days < cfg.contact_cooldown_days and last["delivery"] != "failed":
-        res.update(next_action="WAIT", reason=f"Odesláno před {days} dny ({cs(last['channel'])}) – čekáme na reakci")
+        res.update(next_action="WAIT", reason=f"Odesláno před {days} dny ({cs(last['channel'])}), čekáme na reakci")
         return res
     if last["response"] == "not_interested":
         ch = next((c for c in ("voice", "letter", "sms") if c in channels and c != last["channel"]), channels[0])
         res.update(next_action="TRY_OTHER_CHANNEL", recommended_channel=ch, message_variant="MOTIVATION",
-                   reason="Pacient napsal, že nemá zájem – jiný kanál a motivační text (časný záchyt = vysoká šance na vyléčení)")
+                   reason="Pacient napsal, že nemá zájem. Zkusit jiný kanál a jiný text.")
         return res
     if last["delivery"] == "failed":
         res.update(next_action="TRY_OTHER_CHANNEL", recommended_channel=channels[0], message_variant="FIRST_INVITE",
-                   reason=f"Doručení přes {cs(last['channel'])} selhalo → zkusit {cs(channels[0])}")
+                   reason=f"Doručení přes {cs(last['channel'])} selhalo, zkusit {cs(channels[0])}")
         return res
     if last["delivery"] == "delivered":
         ch = "sms" if "sms" in channels else channels[0]
         res.update(next_action="SEND_REMINDER", recommended_channel=ch, message_variant="REMINDER",
-                   reason=f"Zpráva ({cs(last['channel'])}) doručena, ale nepřečtena → připomínka: {cs(ch)}")
+                   reason=f"Zpráva ({cs(last['channel'])}) doručena, ale nepřečtena. Připomínka: {cs(ch)}")
         return res
     # read, no response
     ch = "voice" if "voice" in channels else channels[0]
     res.update(next_action="SEND_REMINDER", recommended_channel=ch, message_variant="REMINDER",
-               reason=f"Zpráva ({cs(last['channel'])}) přečtena, ale bez odpovědi → osobnější kanál: {cs(ch)}")
+               reason=f"Zpráva ({cs(last['channel'])}) přečtena, bez odpovědi. Zkusit {cs(ch)}")
     return res
 
 
@@ -110,5 +110,5 @@ def _why_first(p, ch, failed, worked):
     if ch in ("letter", "printout"):
         return "Pacient nemá portál, preferuje " + ("dopis" if ch == "letter" else "tištěnou informaci")
     if failed:
-        return f"Předchozí doručení selhalo ({', '.join(cs(f) for f in sorted(failed))}) → {cs(ch)}"
+        return f"Předchozí doručení selhalo ({', '.join(cs(f) for f in sorted(failed))}), zkusit {cs(ch)}"
     return f"Doporučený kanál: {cs(ch)}"

@@ -143,7 +143,7 @@ async function init() {
   document.addEventListener("click", dispatch);
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("tr[data-action]")) dispatch(e); });
   const d = fmtDate(data.refDate);
-  $("foot").textContent = backend ? T.footerLive(d, backend.mode === "live", backend.ai) : T.footer(d);
+  $("foot").textContent = backend ? T.footerLive(d, backend.mode === "live") : T.footer(d);
   $("demo").hidden = false;
   if (backend) {
     await pull().catch(() => {});

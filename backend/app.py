@@ -213,8 +213,8 @@ async def voice_answer(pid: str, request: Request):
     form = await _form(request)
     said = form.get("Digits") or form.get("SpeechResult") or ""
     d = _apply_reply(pid, said, "voice")
-    thanks = {"interested": "Děkujeme. Sestřička z ordinace se Vám ozve a domluví další postup. Na shledanou.",
-              "callback": "Děkujeme, sestřička z ordinace Vám zavolá. Na shledanou."}.get(d["stage"], VOICE_NO_DIGIT)
+    thanks = {"interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
+              "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."}.get(d["stage"], VOICE_NO_DIGIT)
     return Response(channels.twiml_say(thanks), media_type="application/xml")
 
 
@@ -268,12 +268,12 @@ PAGE = Template((Path(__file__).with_name("templates") / "patient.html").read_te
 PNEU_LIST = "https://www.vzp.cz/poskytovatele/informace-pro-praxi/seznamy-center-a-szz/seznam-center-casneho-zachytu-karcinomu-plic"
 # answer → (journey stage, intent, thank-you text). No health data is ever shown on this page.
 ANSWERS = {
-    "interested": ("interested", "interested", "Děkujeme! Sestra z Vaší ordinace se Vám ozve a domluví další postup. "
-                   f'Objednat se můžete i sami u kteréhokoli pneumologa v programu – <a href="{PNEU_LIST}">seznam pracovišť</a>.'),
-    "booked": ("booked", "booked", "Děkujeme, že jste se objednal(a). Další připomínky Vám už posílat nebudeme."),
+    "interested": ("interested", "interested", "Děkujeme. Sestra z Vaší ordinace se Vám ozve a domluví další postup. "
+                   f'Objednat se můžete i sami u kteréhokoli pneumologa v programu, viz <a href="{PNEU_LIST}">seznam pracovišť</a>.'),
+    "booked": ("booked", "booked", "Děkujeme. Další připomínky Vám už posílat nebudeme."),
     "callback": ("callback", "callback", "Děkujeme. Sestra z Vaší ordinace Vám zavolá."),
-    "not_now": ("not_now", "not_now", "Rozumíme. Ozveme se Vám později. Kdybyste si to rozmyslel(a), stačí se ozvat své ordinaci."),
-    "stop": ("declined", "opt_out", "Rozumíme. Další zprávy o tomto programu Vám posílat nebudeme."),
+    "not_now": ("not_now", "not_now", "Děkujeme. Ozveme se později. Pokud si to rozmyslíte, ozvěte se své ordinaci."),
+    "stop": ("declined", "opt_out", "Další zprávy o tomto programu Vám posílat nebudeme."),
 }
 
 
@@ -288,10 +288,9 @@ def patient_page(token: str):
         return _page("<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na svou ordinaci.</p>")
     gp = PATIENTS.get(pid, {}).get("gp") or ""
     return _page(f"""
-<p class="muted">Vaše ordinace praktického lékaře {gp}</p>
+<p class="muted">Vaše ordinace praktického lékaře</p>
 <h1>Bezplatné preventivní vyšetření plic</h1>
-<p>Lidé, kteří kouří nebo dříve kouřili, mohou v programu <b>Prevence pro plíce</b> absolvovat krátké a nebolestivé vyšetření plic.
-Hradí ho zdravotní pojišťovna.</p>
+<p>Lidé, kteří kouří nebo dříve kouřili, mohou v programu Prevence pro plíce absolvovat krátké vyšetření plic. Nebolí a hradí ho zdravotní pojišťovna.</p>
 <form method="post">
   <button class="primary" name="answer" value="interested">Ano, mám zájem</button>
   <button name="answer" value="booked">Už jsem objednaný/á</button>

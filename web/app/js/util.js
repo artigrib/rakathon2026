@@ -2,7 +2,7 @@ export const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 export const fmtDate = (iso) => {
-  if (!iso) return "—";
+  if (!iso) return "";
   const [y, m, d] = iso.split("-");
   return `${+d}.\u00a0${+m}.\u00a0${y}`; // dates never break across lines
 };
