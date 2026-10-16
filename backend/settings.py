@@ -19,7 +19,9 @@ _env_file()
 @dataclass(frozen=True)
 class Settings:
     account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
-    auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")
+    auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")      # needed to check webhook signatures
+    api_key: str = os.getenv("TWILIO_API_KEY", "")            # SK..., preferred for REST calls
+    api_secret: str = os.getenv("TWILIO_API_SECRET", "")
     from_number: str = os.getenv("TWILIO_FROM", "")          # Twilio number (SMS + voice)
     public_url: str = os.getenv("PUBLIC_URL", "").rstrip("/")  # e.g. https://xxxx.ngrok-free.app – needed for webhooks
     whatsapp_from: str = os.getenv("TWILIO_WHATSAPP_FROM", "+14155238886")  # Twilio sandbox number
@@ -33,7 +35,8 @@ class Settings:
 
     @property
     def live(self) -> bool:
-        return bool(self.account_sid and self.auth_token and self.from_number and self.demo_to and self.public_url)
+        creds = self.auth_token or (self.api_key and self.api_secret)
+        return bool(self.account_sid and creds and self.from_number and self.demo_to and self.public_url)
 
 
 settings = Settings()

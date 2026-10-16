@@ -172,7 +172,8 @@ def reset():
 # ---------- Twilio webhooks ----------
 async def _form(request: Request) -> dict:
     form = dict(await request.form())
-    if settings.live and settings.validate_signature:
+    # Signatures are signed with the Auth Token; with only an API key there is nothing to check against.
+    if settings.live and settings.validate_signature and settings.auth_token:
         from twilio.request_validator import RequestValidator
         url = settings.public_url + request.url.path
         if not RequestValidator(settings.auth_token).validate(url, form, request.headers.get("X-Twilio-Signature", "")):

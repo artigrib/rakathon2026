@@ -8,6 +8,8 @@ from .settings import settings
 
 def _client():
     from twilio.rest import Client  # imported lazily: tests and mock mode need no Twilio
+    if settings.api_key and settings.api_secret:
+        return Client(settings.api_key, settings.api_secret, settings.account_sid)
     return Client(settings.account_sid, settings.auth_token)
 
 
