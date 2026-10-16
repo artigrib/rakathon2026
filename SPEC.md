@@ -157,3 +157,80 @@ EXCLUDED_SMOKING_STATUS 23 · EXCLUDED_RECENT_CT 23 (sanity check pro testy).
 - Hranice systému (najít, oslovit, hlídat; objednání a CT existujícím systémům, FHIR) – potvrzeno.
 - Doktorka uvidí rozhraní zítra jen **online** (přijede až v neděli) → potřebujeme veřejný odkaz.
 - Výzva se v systému jmenuje **„Cesta ke screeningu plic“ (AstraZeneca)**; v Praze ji k 16. 10. odpoledne neměl žádný tým.
+
+## Patient journey: state machine
+Single source: `web/app/content/journey.json`, read by `backend/fsm.py` (server) and `web/app/js/fsm.js` (web app, local mode).
+Every stage change goes through `transition()` in `backend/app.py` (replies by SMS, WhatsApp, link, call; nurse and doctor actions; contact plan; sending).
+An event that is not allowed in the current stage is written to the history with `ignored: true` and changes nothing.
+
+| Stage | Section in Úkoly | Who acts next |
+|---|---|---|
+| new | Pozvat (or Rozhodne lékař if data needs review) | nurse: send |
+| sent | Čekáme na odpověď | system: contact plan, patient: reply |
+| not_now | Čekáme na odpověď | system: new cycle after 90 days |
+| nurse_call, callback, interested | Ozvali se | nurse |
+| booked (01196) | Výsledky | nurse: LDCT done or did not come |
+| ldct | Výsledky | nurse: result |
+| result, declined (01197), excluded | done | nobody (patient may come back from declined) |
+
+Rules that used to be gaps:
+- First "declined" (patient or nurse) is soft: not_now, offer again in 3 months. Second one is 01197. STOP is always hard.
+- Late replies after referral or result are ignored (no going back, no SMS confirmation).
+- Referred patient who did not come: `no_show` → not_now.
+- Doctor exclusion is server side: no sending, no contact plan, until `include`.
+- Patient who refused can still come back by replying "ano".
+
+Regenerate the diagram: `python scripts/fsm_diagram.py`.
+
+```mermaid
+stateDiagram-v2
+  [*] --> new
+  booked --> declined: declined, opt_out
+  booked --> ldct: ldct
+  booked --> not_now: no_show
+  callback --> booked: booked
+  callback --> declined: declined, opt_out
+  callback --> excluded: exclude
+  callback --> interested: interested
+  callback --> not_now: not_now
+  callback --> sent: send
+  declined --> callback: callback
+  declined --> interested: interested
+  excluded --> new: include
+  interested --> booked: booked
+  interested --> callback: callback
+  interested --> declined: declined, opt_out
+  interested --> excluded: exclude
+  interested --> not_now: not_now
+  ldct --> result: result
+  new --> booked: booked
+  new --> callback: callback
+  new --> declined: declined, opt_out
+  new --> excluded: exclude
+  new --> interested: interested
+  new --> not_now: not_now
+  new --> sent: send
+  not_now --> booked: booked
+  not_now --> callback: callback
+  not_now --> declined: declined, opt_out
+  not_now --> excluded: exclude
+  not_now --> interested: interested
+  not_now --> sent: send
+  nurse_call --> booked: booked
+  nurse_call --> callback: callback
+  nurse_call --> declined: declined, opt_out
+  nurse_call --> excluded: exclude
+  nurse_call --> interested: interested
+  nurse_call --> not_now: not_now
+  nurse_call --> sent: send
+  sent --> booked: booked
+  sent --> callback: callback
+  sent --> declined: declined, opt_out
+  sent --> excluded: exclude
+  sent --> interested: interested
+  sent --> not_now: not_now
+  sent --> nurse_call: nurse
+  result --> [*]
+  declined --> [*]
+  excluded --> [*]
+```

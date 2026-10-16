@@ -33,7 +33,9 @@ class Store:
             d = self.data["decisions"].setdefault(pid, {})
             e = {"stage": stage, "date": (day or date.today().isoformat()), **extra}
             d.setdefault("journey", []).append(e)
-            if stage:
+            if stage == "new":  # doctor re-included the patient: back to the start, ready to invite
+                d.pop("stage", None)
+            elif stage:
                 d["stage"] = stage
             if stage == "result":
                 d["result"] = extra.get("result")

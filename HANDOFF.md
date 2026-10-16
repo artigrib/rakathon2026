@@ -39,6 +39,7 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 - UI copy is Czech, plain and short. No dashes (– —), arrows, middle dots, exclamation marks, ellipses, "AI" labels, internal codes (VPL-…) in patient texts. Medical statements only if verifiable (free, covered by insurance, short, painless, low-dose CT). A test enforces this for patient templates.
 - Patient texts live only in `web/app/content/messages.cs.json`.
 - Design: Swiss grid, graphite on #f4f4f2, one accent (petrol #11615d), amber only for data warnings.
+- Patient stage changes only through the state machine (`web/app/content/journey.json`, `backend/fsm.py`, `transition()` in app.py). Add a transition there, never write `store.event(pid, <stage>)` directly.
 - AI never decides inclusion or sending. It only classifies replies; the phone assistant speaks only approved sentences.
 - Run `python -m pytest -q` before pushing.
 

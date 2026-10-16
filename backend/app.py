@@ -15,10 +15,10 @@ from pydantic import BaseModel
 import json
 from datetime import timedelta
 
-from . import channels, messages, tts
+from . import channels, fsm, messages, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
-from .replies import STAGE, understand
+from .replies import understand
 from .settings import settings
 from .store import Store
 
@@ -103,6 +103,8 @@ def send(req: SendRequest):
 
 def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     """One outbound touch. budget[0] = how many may still go out for real in this request."""
+    if not fsm.allowed(fsm.state_of(store.get(pid)), "send"):  # e.g. referred, refused, excluded: never contact
+        return {"id": pid, "sid": None, "live": False, "status": "not_allowed"}
     text = messages.with_link(text, patient_link(pid))
     real = ("sms", "voice", "whatsapp") + (("email",) if settings.email_live else ())
     live = budget[0] > 0 and channel in real
@@ -122,7 +124,7 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     budget[0] -= int(r["live"])
     store.log(patient=pid, channel=channel, text=text, **r)
     extra = {"auto": True, "step": step} if auto else {}
-    store.event(pid, "sent", day, channel=channel, variant=variant, live=r["live"], **extra)
+    transition(pid, "send", day, channel=channel, variant=variant, live=r["live"], **extra)
     return {"id": pid, **r}
 
 
@@ -143,7 +145,7 @@ def tick(req: TickRequest):
             if not n or n["due"].isoformat() > day:
                 continue
             if n["channel"] == "nurse":
-                store.event(pid, "nurse_call", day, auto=True, step=n["step"])
+                transition(pid, "nurse", day, auto=True, step=n["step"])
                 done.append({"id": pid, "channel": "nurse"})
                 continue
             p = PATIENTS.get(pid, {"gp": "", "pneu": None})
@@ -159,10 +161,8 @@ def step(req: StepRequest):
     if req.text is not None:
         return _apply_reply(req.id, req.text, "ui", req.date or today())
     extra = {"result": req.result} if req.result else {}
-    # Doctor: the first "no" is soft (offer again later), only a repeated one is a refusal (01197).
-    if req.stage == "declined" and _refusals(req.id) == 0:
-        return store.event(req.id, "not_now", req.date or today(), via="ui", intent="declined")
-    return store.event(req.id, req.stage, req.date or today(), **extra)
+    # Nurse or doctor action = an event of the state machine (first "declined" is soft, see journey.json).
+    return transition(req.id, req.stage, req.date or today(), via="ui", **extra)
 
 
 @app.get("/api/fhir")
@@ -191,17 +191,31 @@ async def _form(request: Request) -> dict:
 
 
 def _refusals(pid):
-    return sum(1 for e in store.get(pid).get("journey", []) if e.get("intent") in ("declined", "opt_out"))
+    return sum(1 for e in store.get(pid).get("journey", [])
+               if e.get("intent") in ("declined", "opt_out") and not e.get("ignored"))
+
+
+def transition(pid, event, day=None, **extra):
+    """The only way a patient's stage changes: through the state machine in content/journey.json.
+    An event that is not allowed in the current stage is kept in the history but changes nothing."""
+    day = day or today()
+    state = fsm.state_of(store.get(pid))
+    target = fsm.next_state(state, event, _refusals(pid))
+    if target is None:
+        return store.event(pid, None, day, event=event, ignored=True, **extra)
+    if event in ("declined", "opt_out"):
+        extra.setdefault("intent", event)
+    return store.event(pid, target, day, event=event, **extra)
+
+
+def _record_reply(pid, text, understood, via, day=None):
+    c = understood
+    return transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
+                      why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}))
 
 
 def _apply_reply(pid, text, via, day=None):
-    c = understand(text)
-    stage = STAGE[c["intent"]]
-    # Doctor: first "not interested" → try another channel with a motivating text; second → stop.
-    if c["intent"] == "declined" and _refusals(pid) == 0:
-        stage = "not_now"
-    return store.event(pid, stage, day or today(), via=via, text=text, intent=c["intent"], why=c["why"],
-                       source=c["source"], **({"when": c["when"]} if c.get("when") else {}))
+    return _record_reply(pid, text, understand(text), via, day)
 
 
 @app.post("/twilio/sms")
@@ -211,7 +225,8 @@ async def inbound_sms(request: Request):
     reply = ""
     if pid:
         d = _apply_reply(pid, form.get("Body", ""), "sms")
-        reply = messages.sms_reply(d["journey"][-1].get("intent"), d["stage"])
+        last = d["journey"][-1]
+        reply = "" if last.get("ignored") else messages.sms_reply(last.get("intent"), d["stage"])
     body = f"<Message>{escape(reply)}</Message>" if reply else ""
     return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
 
@@ -262,11 +277,7 @@ async def relay(ws: WebSocket, pid: str):
             understood = understand(said)
             reply, done, intent = conv.feed(said, understood)
             if intent:
-                stage = STAGE.get(intent, "callback")
-                if intent == "declined" and _refusals(pid) == 0:
-                    stage = "not_now"
-                store.event(pid, stage, today(), via="voice-ai", text=said, intent=intent,
-                            why=understood["why"], source=understood.get("source", "rules"))
+                _record_reply(pid, said, {**understood, "intent": intent}, "voice-ai")
             await ws.send_json({"type": "text", "token": reply, "last": True})
             if done:
                 await ws.send_json({"type": "end"})
@@ -333,8 +344,8 @@ def patient_answer(token: str, answer: str = Form(...)):
     pid = store.patient_by_token(token)
     if not pid or answer not in ANSWERS:
         return _page("<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na svou ordinaci.</p>")
-    stage, intent, thanks = ANSWERS[answer]
-    store.event(pid, stage, today(), via="link", intent=intent)
+    event, intent, thanks = ANSWERS[answer]
+    transition(pid, "opt_out" if intent == "opt_out" else event, today(), via="link", intent=intent)
     return _page(f'<h1>Děkujeme</h1><div class="box"><p>{thanks}</p></div>')
 
 

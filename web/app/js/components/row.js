@@ -4,17 +4,20 @@ import { T } from "../i18n/cs.js";
 import { cap, esc, fmtDate } from "../util.js";
 import { addDays, lastEvent, nextScreening, plannedContact, stageOf, taskOf } from "../domain.js";
 import { store } from "../state.js";
+import { allowed } from "../fsm.js";
 import { compose } from "./compose.js";
 import { detail } from "./detail.js";
 
 const S = T.state;
 const A = T.actions;
 const btn = (label, attrs, kind = "") => `<button type="button" class="btn${kind ? ` btn--${kind}` : ""}" ${attrs}>${esc(label)}</button>`;
-const step = (id, stage, label, kind = "", extra = "") => btn(label, `data-action="step" data-stage="${stage}" data-id="${id}" ${extra}`, kind);
+let current = null; // stage of the row being drawn: only events the state machine allows get a button
+const step = (id, ev, label, kind = "", extra = "") =>
+  allowed(current, ev) ? btn(label, `data-action="step" data-stage="${ev}" data-id="${id}" ${extra}`, kind) : "";
 
 /** {title, sub}: what is going on with the patient, in plain words. */
 function describe(p, d, plan) {
-  if (d.override === "EXCLUDED") return { title: S.excluded };
+  if (stageOf(p) === "excluded") return { title: S.excluded };
   const stage = stageOf(p);
   const ev = lastEvent(p, stage);
   const answered = ev?.date ? S.replied(fmtDate(ev.date), S.via[ev.via]) : "";
@@ -30,7 +33,8 @@ function describe(p, d, plan) {
     case "nurse_call": return { title: S.nurse_call };
     case "not_now": {
       const again = fmtDate(addDays(ev?.date, 90));
-      return { title: ev?.intent === "declined" ? S.softDeclined(again) : S.not_now(again), sub: answered };
+      const title = ev?.event === "no_show" ? S.noShow(again) : ev?.intent === "declined" ? S.softDeclined(again) : S.not_now(again);
+      return { title, sub: answered };
     }
     case "declined": return { title: S.declined, sub: answered };
     case "booked": return { title: S.booked, sub: S.bookedNext };
@@ -47,8 +51,9 @@ function describe(p, d, plan) {
 
 function actions(p, d) {
   const id = p.id;
-  if (d.override === "EXCLUDED") return "";
   const stage = stageOf(p);
+  if (stage === "excluded") return btn(A.include, `data-action="include" data-id="${id}"`, "link");
+  current = stage;
   switch (stage) {
     case "interested":
       return step(id, "booked", A.booked, "primary") + step(id, "declined", A.declined);
@@ -56,7 +61,7 @@ function actions(p, d) {
     case "nurse_call":
       return step(id, "interested", A.interested, "primary") + step(id, "declined", A.declined) + step(id, "not_now", A.unreachable, "link");
     case "booked":
-      return step(id, "ldct", A.ldct, "primary");
+      return step(id, "ldct", A.ldct, "primary") + step(id, "no_show", A.noShow, "link");
     case "ldct":
       return Object.entries(A.result).map(([k, label]) => step(id, "result", label, "", `data-result="${k}"`)).join("");
   }

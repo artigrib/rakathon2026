@@ -46,6 +46,7 @@ export const T = {
     booked: "Předán k pneumologovi (01196)",
     bookedNext: "Čekáme na výsledek",
     softDeclined: (d) => `Odmítl poprvé, nabídneme znovu ${d}`,
+    noShow: (d) => `Nepřišel k pneumologovi, nabídneme znovu ${d}`,
     ldct: "Zapište výsledek LDCT",
     result: {
       negative: (d) => `Negativní, další LDCT ${d}`,
@@ -71,6 +72,7 @@ export const T = {
     skip: "Vynechat",
     unskip: "Vrátit do dávky",
     booked: "Předán k pneumologovi",
+    noShow: "Nepřišel",
     declined: "Odmítá",
     unreachable: "Nezastižen",
     interested: "Má zájem",
@@ -113,7 +115,7 @@ export const T = {
     tick: (n) => (n ? `Další den: systém sám provedl ${n} ${pl(n, "krok", "kroky", "kroků")} plánu kontaktů.` : "Další den: dnes systém nic neodesílá."),
     reply: (r) => `Odpověď pacienta: ${r}.`,
     step: {
-      interested: "Zapsáno: má zájem.", not_now: "Zapsáno: nezastižen, systém to zkusí za 3 měsíce.", booked: "Zapsáno: předán k pneumologovi (01196).",
+      interested: "Zapsáno: má zájem.", not_now: "Zapsáno: nezastižen, systém to zkusí za 3 měsíce.", booked: "Zapsáno: předán k pneumologovi (01196).", no_show: "Zapsáno: nepřišel. Nabídneme znovu za 3 měsíce.", ignored: "Tento krok teď nejde, nic se nezměnilo.",
       declined: "Zapsáno: odmítá účast (01197).", softDeclined: "Zapsáno: první odmítnutí. Nabídneme znovu za 3 měsíce.", ldct: "Zapsáno: LDCT proběhlo.", result: "Výsledek zapsán, další termín je naplánován.",
     },
     exception: "Přesto zařazen. Rozhodnutí je zaznamenáno.",

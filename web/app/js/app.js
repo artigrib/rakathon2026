@@ -5,6 +5,7 @@ import { store } from "./state.js";
 import { api } from "./api.js";
 import { batchOf, plannedContact, practices } from "./domain.js";
 import { loadMessages, message } from "./content/messages.cs.js";
+import { loadJourney, refusals } from "./fsm.js";
 import { tasks, taskCount } from "./views/tasks.js";
 import { patients } from "./views/patients.js";
 import { overview } from "./views/overview.js";
@@ -56,7 +57,7 @@ async function send(items) {
 /** Journey step or patient reply: the backend runs the same logic as a real webhook. */
 async function step(id, body) {
   if (!backend) {
-    return body.text ? store.step(id, body.reply, today()) : store.step(id, body.stage, today(), body.result ? { result: body.result } : {});
+    return body.text ? store.step(id, body.reply, today(), { via: "ui" }) : store.step(id, body.stage, today(), body.result ? { result: body.result, via: "ui" } : { via: "ui" });
   }
   await api.step({ id, date: today(), ...body });
   await pull();
@@ -102,13 +103,16 @@ const actions = {
   step: async (el) => {
     const { id, stage, result } = el.dataset;
     // Doctor: the first "no" is soft (offer again in 3 months), a repeated one is the refusal 01197.
-    const soft = stage === "declined" && !(store.get(id).journey || []).some((e) => e.intent === "declined" || e.stage === "declined");
-    if (soft && !backend) store.step(id, "not_now", today(), { intent: "declined" });
-    else await step(id, { stage, result });
+    const soft = stage === "declined" && refusals(store.get(id).journey) === 0;
+    await step(id, { stage, result }); // the state machine decides (first "declined" is soft)
     toast(T.toast.step[soft ? "softDeclined" : stage], { undo: !backend });
   },
-  include: (el) => { store.include(el.dataset.id); toast(el.dataset.exception ? T.toast.exception : T.toast.included); },
-  exclude: (el) => { store.exclude(el.dataset.id); toast(T.toast.excluded); },
+  include: async (el) => {
+    const id = el.dataset.id;
+    if (store.get(id).override === "EXCLUDED" || store.get(id).stage === "excluded") await step(id, { stage: "include" });
+    store.include(id); toast(el.dataset.exception ? T.toast.exception : T.toast.included);
+  },
+  exclude: async (el) => { await step(el.dataset.id, { stage: "exclude" }); store.exclude(el.dataset.id); toast(T.toast.excluded); },
   "toggle-replies": (el) => { ui.demoReplies = el.checked; },
   tick: async () => {
     const r = await api.tick(1);
@@ -149,6 +153,7 @@ async function init() {
   }
   backend = await api.health();
   await loadMessages({ withLink: !!backend, trial: !!backend?.trial });
+  await loadJourney();
   const gps = practices(data.patients);
   if (!gps.includes(ui.gp)) ui.gp = gps[0];
   $("gp").innerHTML = gps.map((g) => `<option>${g}</option>`).join("");

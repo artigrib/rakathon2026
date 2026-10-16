@@ -2,6 +2,7 @@
 import { SECTIONS } from "../config.js";
 import { T } from "../i18n/cs.js";
 import { batchOf, stageOf, taskOf } from "../domain.js";
+import { sectionOf } from "../fsm.js";
 import { row } from "../components/row.js";
 import { store } from "../state.js";
 
@@ -35,8 +36,8 @@ export function tasks(ui, data, rowCtx) {
   }).join("");
 
   // Invited, no reply yet: nothing to do, the contact plan runs by itself. Shown so the nurse sees where they went.
-  const waiting = mine.filter((p) => stageOf(p) === "sent")
-    .sort((a, b) => (store.get(b.id).sent?.date || "").localeCompare(store.get(a.id).sent?.date || ""));
+  const waiting = mine.filter((p) => stageOf(p) && sectionOf(stageOf(p)) === "waiting")
+    .sort((a, b) => (store.get(b.id).journey?.at(-1)?.date || "").localeCompare(store.get(a.id).journey?.at(-1)?.date || ""));
   const W = T.sections.waiting;
   const waitingBlock = `<section class="section grid section--quiet" aria-labelledby="h-waiting">
       <div class="section__aside"><span class="count">${waiting.length}</span><h2 id="h-waiting">${W.title}</h2></div>

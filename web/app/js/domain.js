@@ -1,12 +1,14 @@
 // What the practice has to do about each patient. Pure functions over engine output + recorded decisions.
 import { JOURNEY, RESULTS } from "./config.js";
 import { store } from "./state.js";
+import { isFinal, sectionOf } from "./fsm.js";
 
 const effectiveStatus = (p, d) => (d.override === "ELIGIBLE" ? "ELIGIBLE" : p.status);
 
 /** Current journey stage; a patient who replied "interested" in the source data starts at "interested". */
 export function stageOf(p) {
   const d = store.get(p.id);
+  if (d.override === "EXCLUDED") return "excluded";
   if (d.stage) return d.stage;
   return effectiveStatus(p, d) === "ELIGIBLE" && p.next === "GP_REFERRAL" ? "interested" : null;
 }
@@ -16,9 +18,10 @@ export function taskOf(p) {
   const d = store.get(p.id);
   if (d.override === "EXCLUDED") return null;
   const stage = stageOf(p);
-  if (["interested", "callback", "nurse_call"].includes(stage)) return "replied";
-  if (["booked", "ldct"].includes(stage)) return "results";
-  if (stage) return null; // sent, not_now, declined, result: the system or the patient is on the move
+  if (stage) { // section comes from the state machine; "waiting" is the system's work, not a task
+    const s = sectionOf(stage);
+    return s === "replied" || s === "results" ? s : null;
+  }
   const status = effectiveStatus(p, d);
   if (status === "NEEDS_REVIEW") return "doctor";
   if (status !== "ELIGIBLE" || p.next === "WAIT" || p.next === "DO_NOT_CONTACT") return null;
@@ -31,7 +34,7 @@ export function phaseOf(p) {
   if (taskOf(p)) return "todo";
   if (d.override === "EXCLUDED") return "done";
   const stage = stageOf(p);
-  if (["result", "declined"].includes(stage)) return "done";
+  if (stage && isFinal(stage)) return "done";
   if (stage || p.next === "WAIT") return "running";
   return effectiveStatus(p, d) === "ELIGIBLE" ? "running" : "excluded";
 }

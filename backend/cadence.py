@@ -32,7 +32,7 @@ class Plan:
 
 
 PLAN = Plan()
-REPLY_STAGES = {"interested", "callback", "booked", "ldct", "result", "declined"}
+REPLY_STAGES = {"interested", "callback", "booked", "ldct", "result", "declined", "excluded", "new"}
 
 
 def _d(s):
