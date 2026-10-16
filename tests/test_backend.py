@@ -262,3 +262,10 @@ def test_email_is_simulated_without_sendgrid(client):
     c, store = client
     r = c.post("/api/send", json={"items": [{"id": "P7", "channel": "email", "text": "Dobrý den."}]}).json()
     assert store.get("P7")["stage"] == "sent" and store.data["outbox"][-1]["channel"] == "email"
+
+
+def test_patient_messages_hide_phone_and_link_token(client):
+    c, store = client
+    store.log(patient="P9", channel="sms", text="Ahoj https://x/p/SECRETtok", to="+420777", live=True, status="delivered", day="2026-10-16")
+    o = c.get("/api/patient/P9").json()["outbox"][0]
+    assert "to" not in o and "SECRETtok" not in o["text"] and o["ts"] and o["status"] == "delivered"

@@ -157,6 +157,28 @@ export const T = {
     },
   },
 
+  // Communication timeline of one patient (components/comm.js).
+  comm: {
+    title: "Komunikace",
+    actor: { record: "Z kartotéky", system: "Systém", nurse: "Ordinace", patient: "Pacient", doctor: "Lékař" },
+    sent: "Pozvánka odeslána",
+    autoSent: (n) => `Připomínka podle plánu, ${n + 1}. pokus`,
+    planned: (c) => `Naplánováno: ${c}`,
+    replied: (via) => `Odpověděl${via ? `, ${via}` : ""}`,
+    via: { sms: "SMS", link: "přes odkaz", voice: "v hovoru", "voice-ai": "v hovoru s asistentem", ui: "zapsáno v ordinaci", whatsapp: "WhatsApp" },
+    understood: "Systém zapsal:",
+    ignored: "Bez změny stavu, krok už neplatí.",
+    simulated: "simulováno",
+    showText: "Text zprávy",
+    showScript: "Co asistent řekl",
+    duration: (s) => `${s} s`,
+    status: { queued: "ve frontě", sent: "odesláno", delivered: "doručeno", read: "přečteno", failed: "nedoručeno", undelivered: "nedoručeno",
+      completed: "hovor proběhl", "no-answer": "nezvedl", busy: "obsazeno", ringing: "vyzvání", initiated: "vytáčí", "in-progress": "probíhá" },
+    event: { interested: "Má zájem", callback: "Prosí o zavolání", not_now: "Teď ne", nurse: "Úkol pro sestru: zavolat osobně",
+      booked: "Předán k pneumologovi (01196)", declined: "Odmítá účast (01197)", opt_out: "Nechce další zprávy (STOP)", no_show: "Nepřišel k pneumologovi",
+      ldct: "LDCT proběhlo", result: "Výsledek zapsán", exclude: "Vyřazen lékařem", include: "Znovu zařazen lékařem" },
+  },
+
   overview: {
     title: "Přehled programu",
     sub: (n, gps, date) => `${n} pacientů, ${gps} ordinací, ${date}`,

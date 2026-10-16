@@ -52,6 +52,9 @@ class Store:
 
     def log(self, **msg):
         """Outbox record: who we contacted, through what, Twilio SID, delivery status."""
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        msg.setdefault("ts", datetime.now(ZoneInfo("Europe/Prague")).strftime("%Y-%m-%d %H:%M"))
         with _lock:
             self.data["outbox"].append(msg)
             self._save()

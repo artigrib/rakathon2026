@@ -22,6 +22,7 @@ const rowCtx = {
   of: (p) => ({
     composing: ui.composing === p.id, chosenChannel: ui.chosenChannel,
     plan: data.live?.plans[p.id], link: data.live?.links[p.id], demo: ui.demoReplies, open: ui.open === p.id,
+    outbox: ui.open === p.id && backend ? outboxCache[p.id] || [] : null,
   }),
 };
 
@@ -36,6 +37,12 @@ function render() {
 }
 
 const find = (id) => data.patients.find((p) => p.id === id);
+const outboxCache = {}; // messages we sent to the open patient (text, delivery), loaded on demand
+
+async function loadOutbox(id) {
+  if (!backend || !id) return;
+  try { outboxCache[id] = (await api.patient(id)).outbox; } catch { /* keep what we had */ }
+}
 const today = () => data.live?.clock || data.refDate;
 
 async function pull() {
@@ -44,6 +51,7 @@ async function pull() {
   seen = s.version;
   store.merge(s.decisions);
   data.live = { clock: s.clock, plans: s.plans || {}, links: s.links || {} };
+  if (ui.open) await loadOutbox(ui.open); // delivery and replies of the open patient stay current
   return true;
 }
 
@@ -67,7 +75,7 @@ const actions = {
   "pick-view": (el) => { ui.view = el.dataset.view; ui.composing = null; window.scrollTo(0, 0); },
   "pick-filter": (el) => { ui.filter = el.dataset.filter; ui.composing = null; },
   "open-compose": (el) => { ui.composing = el.dataset.id; ui.chosenChannel = null; },
-  "toggle-detail": (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; },
+  "toggle-detail": async (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; render(); await loadOutbox(ui.open); },
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
   "save-draft": (el) => {

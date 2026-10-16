@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import json
+import re
 from datetime import timedelta
 
 from . import channels, fsm, messages, tts
@@ -122,7 +123,7 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     except Exception as e:  # a failed send is a delivery fact, not a crash
         r = {"sid": None, "live": live, "to": settings.demo_to, "status": "failed", "error": str(e)}
     budget[0] -= int(r["live"])
-    store.log(patient=pid, channel=channel, text=text, **r)
+    store.log(patient=pid, channel=channel, text=text, day=day, variant=variant, auto=auto, step=step, **r)
     extra = {"auto": True, "step": step} if auto else {}
     transition(pid, "send", day, channel=channel, variant=variant, live=r["live"], **extra)
     return {"id": pid, **r}
@@ -163,6 +164,23 @@ def step(req: StepRequest):
     extra = {"result": req.result} if req.result else {}
     # Nurse or doctor action = an event of the state machine (first "declined" is soft, see journey.json).
     return transition(req.id, req.stage, req.date or today(), via="ui", **extra)
+
+
+@app.get("/api/patient/{pid}")
+def patient_messages(pid: str):
+    """Everything we sent to one patient, for the communication timeline. No phone number, no link token."""
+    keep = ("day", "ts", "channel", "text", "live", "status", "error", "auto", "step", "variant", "duration")
+    out = []
+    for m in store.data["outbox"]:
+        if m.get("patient") != pid:
+            continue
+        item = {k: m.get(k) for k in keep if m.get(k) is not None}
+        if "text" in item:
+            item["text"] = re.sub(r"/p/[A-Za-z0-9_-]+", "/p/…", item["text"])
+        if "error" in item:
+            item["error"] = str(item["error"])[:120]
+        out.append(item)
+    return {"outbox": out}
 
 
 @app.get("/api/fhir")
@@ -290,7 +308,7 @@ async def relay(ws: WebSocket, pid: str):
 async def call_status(pid: str, request: Request):
     form = await _form(request)
     st = form.get("CallStatus")
-    store.outbox_update(form.get("CallSid"), status=st)
+    store.outbox_update(form.get("CallSid"), status=st, duration=form.get("CallDuration"))
     if st in ("no-answer", "busy", "failed"):
         store.event(pid, None, today(), delivery="failed", channel="voice", note=st)
     return Response(status_code=204)

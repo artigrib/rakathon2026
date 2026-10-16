@@ -156,3 +156,26 @@ main.wrap { padding-bottom: 140px; }
 /* Presenter panel sits under the header on the right, small when closed, so it never covers row buttons or the editor. */
 .demo:not([open]) { width: auto; }
 @media (min-width: 900px) { .demo { top: 82px; bottom: auto; } .demo:not([open]) > summary { min-height: 36px; font-size: var(--t-s); gap: 10px; } }
+/* Communication timeline: one line per touch, newest first. Mark shape tells who acted, without relying on colour:
+   hollow circle = system, filled = practice, diamond = patient, square = doctor, dashed = planned. */
+.detail__comm { grid-column: 1 / -1; }
+.comm { list-style: none; margin: 0; padding: 0; }
+.comm__i { display: grid; grid-template-columns: 5.5rem 20px minmax(0, 1fr); column-gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); font-size: var(--t-s); }
+.comm__i:first-child { border-top: 0; }
+.comm__i time { color: var(--ink-2); font-variant-numeric: tabular-nums; line-height: 1.35; }
+.comm__i time small { display: block; font-size: inherit; }
+.comm__mark { width: 12px; height: 12px; margin-top: 4px; border: 2px solid var(--ink); border-radius: 50%; box-sizing: border-box; }
+.comm--nurse .comm__mark { background: var(--ink); }
+.comm--patient .comm__mark { border-radius: 0; transform: rotate(45deg); background: var(--accent); border-color: var(--accent); }
+.comm--doctor .comm__mark { border-radius: 0; background: var(--ink); }
+.comm--record .comm__mark { border-color: var(--ink-2); }
+.is-planned .comm__mark { border-style: dashed; border-color: var(--ink-2); }
+.is-fail .comm__mark { border-color: var(--warn); }
+.is-fail .comm__st { color: var(--warn); font-weight: 600; }
+.is-muted { color: var(--ink-2); }
+.comm__head { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.comm__head span { color: var(--ink-2); }
+.comm__body q { display: block; margin-top: 4px; font-size: var(--t-m); quotes: "„" "“"; }
+.comm__body details { margin-top: 4px; }
+.comm__body summary { cursor: pointer; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.comm__body details p { margin: 6px 0 0; padding: 10px 12px; background: var(--field); white-space: pre-wrap; max-width: 70ch; }

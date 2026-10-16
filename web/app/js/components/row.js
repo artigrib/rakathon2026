@@ -82,7 +82,7 @@ function demoReplies(p, link) {
     link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${T.demo.openLink}</a>` : ""}</div>`;
 }
 
-export function row(p, { composing, chosenChannel, plan, link, demo, open }) {
+export function row(p, { composing, chosenChannel, plan, link, demo, open, outbox }) {
   const d = store.get(p.id);
   const { title, sub } = describe(p, d, plan);
   const showDemo = demo && stageOf(p) === "sent";
@@ -93,6 +93,6 @@ export function row(p, { composing, chosenChannel, plan, link, demo, open }) {
       <div class="actions">${actions(p, d)}</div>
     </div>
     ${composing ? compose(p, chosenChannel) : ""}
-    ${open ? detail(p, d) : ""}
+    ${open ? detail(p, d, { plan, outbox }) : ""}
   </article>`;
 }

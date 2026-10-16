@@ -2,6 +2,7 @@ import { T } from "../i18n/cs.js";
 import { esc, fmtDate, html } from "../util.js";
 import { stageOf } from "../domain.js";
 import { journey } from "./journey.js";
+import { comm } from "./comm.js";
 
 const D = T.detail;
 
@@ -22,35 +23,25 @@ function ct(list) {
   </span></li>`)}</ul>`;
 }
 
-function contacts(p, decision) {
-  const rows = p.history.map((h) => html`<li><time>${fmtDate(h.date)}</time><span>
-    ${T.channel[h.channel] || h.channel}: ${D.msgType[h.type] || h.type}, ${D.delivery[h.delivery]}${h.response ? `, ${D.response[h.response]}` : ""}
-  </span></li>`);
-  for (const e of decision.journey || []) {
-    const text = !e.stage ? `${T.channel[e.channel] || e.channel}: ${D.delivery[e.delivery] || e.delivery}`
-      : e.stage === "sent" ? (e.auto ? D.sentAuto(T.channel[e.channel], e.step) : D.sentByPractice(T.channel[e.channel]))
-      : D.event[e.stage] + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : "");
-    const said = e.text && e.stage !== "sent" ? `<br><span class="muted">${esc(D.said(e.text))}${e.source === "ai" ? `. ${esc(D.byAi(e.why, e.when))}` : ""}</span>` : "";
-    rows.push(`<li><time>${fmtDate(e.date)}</time><span>${esc(text)}${said}</span></li>`);
-  }
-  return html`${rows.length ? `<ul class="timeline">${rows.join("")}</ul>` : `<p>${D.noContacts}</p>`}
-    <dl class="kv" style="margin-top:10px">
+function contacts(p) {
+  return html`<dl class="kv">
       <dt>${D.portal}</dt><dd>${p.portal ? D.portalYes : D.portalNo}</dd>
       <dt>${D.prefers}</dt><dd>${T.channel[p.pref] || p.pref || D.unknown}</dd>
       ${p.pneu ? `<dt>${D.pneumologist}</dt><dd>${p.pneu}</dd>` : ""}
     </dl>`;
 }
 
-export function detail(p, decision) {
+export function detail(p, decision, { plan = null, outbox = null } = {}) {
   const warnings = p.flags.filter((f) => f.sev === "warning");
   const info = p.flags.filter((f) => f.sev !== "warning");
   const path = journey(stageOf(p));
   return html`<div class="detail">
+    <section class="detail__comm"><h3>${T.comm.title}</h3>${comm(p, decision, plan, outbox)}</section>
     <section><h3>${D.evaluation} <span class="muted" style="font-weight:400">${p.id}</span></h3><ul class="timeline">${p.reasons.map((r) => `<li style="grid-template-columns:1fr">${esc(r)}</li>`)}${
       info.map((f) => `<li style="grid-template-columns:1fr" class="muted">${esc(f.text)}</li>`)}</ul>
       ${warnings.length ? html`<h3 style="margin-top:16px">${D.warnings}</h3><ul class="warn">${warnings.map((f) => `<li>${esc(f.text)}</li>`)}</ul>` : ""}</section>
     ${path ? html`<section><h3>${D.journey}</h3>${path}</section>` : ""}
-    <section><h3>${D.contacts}</h3>${contacts(p, decision)}</section>
+    <section><h3>${D.contacts}</h3>${contacts(p)}</section>
     <section><h3>${D.smoking}</h3>${smoking(p.smoking)}</section>
     <section><h3>${D.ct}</h3>${ct(p.ct)}</section>
   </div>`;
