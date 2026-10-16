@@ -66,3 +66,9 @@ def test_marker_from_web_app_is_replaced_or_dropped():
 def test_never_three_same_channels_in_a_row():
     j = [sent("2026-10-16", "voice"), sent("2026-10-19", "voice")]
     assert next_touch(j)["channel"] == "sms"
+
+
+def test_trial_sms_fits_one_segment():
+    from backend.messages import sms_trial
+    t = sms_trial()
+    assert t.isascii() and 38 + len(t) <= 160

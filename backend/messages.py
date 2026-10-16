@@ -33,3 +33,14 @@ def with_link(text: str, url: str) -> str:
     for part in ("link", "link_short"):  # no public URL (mock mode): drop the whole link sentence
         text = text.replace(_fill(M["parts"][part], {"url": MARKER}), "")
     return text
+
+
+def to_gsm(text: str) -> str:
+    """Strip diacritics so the SMS uses the GSM alphabet (160 chars per segment, not 70)."""
+    import unicodedata
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+
+
+def sms_trial() -> str:
+    """Short invite for a Twilio trial account: 38 chars of trial prefix + this must fit 160."""
+    return to_gsm(M["sms"]["TRIAL"])

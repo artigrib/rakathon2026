@@ -28,6 +28,8 @@ class Settings:
     demo_to: str = os.getenv("DEMO_TO", "")                  # all real messages go to this verified phone (synthetic data has fake numbers)
     live_limit: int = int(os.getenv("LIVE_LIMIT", "1"))      # max real messages per send request; the rest is simulated
     validate_signature: bool = os.getenv("VALIDATE_SIGNATURE", "1") == "1"
+    # Twilio trial: an SMS must fit one segment after the trial prefix, so a short text without diacritics is sent.
+    trial: bool = os.getenv("TWILIO_TRIAL", "1") == "1"
     voice_name: str = os.getenv("VOICE_NAME", "Google.cs-CZ-Standard-A")
     voice_mode: str = os.getenv("VOICE_MODE", "gather")       # gather = read script + keys 1/2; relay = AI conversation
     voice_lang: str = os.getenv("VOICE_LANG", "cs-CZ")

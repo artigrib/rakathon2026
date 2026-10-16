@@ -16,7 +16,8 @@
   "sms": {
     "FIRST_INVITE": "Dobrý den, Vaše ordinace Vám nabízí bezplatné preventivní vyšetření plic v programu Prevence pro plíce. Máte-li zájem, odpovězte ANO, nebo se nám ozvěte{call_us}.{link_short}",
     "REMINDER": "Dobrý den, připomínáme nabídku bezplatného preventivního vyšetření plic. Máte-li zájem, odpovězte ANO, nebo se ozvěte své ordinaci{call_us}.{link_short}",
-    "MOTIVATION": "Dobrý den, nabídka bezplatného preventivního vyšetření plic stále platí. Vyšetření je krátké a nebolí. Pokud si to rozmyslíte, odpovězte ANO.{link_short}"
+    "MOTIVATION": "Dobrý den, nabídka bezplatného preventivního vyšetření plic stále platí. Vyšetření je krátké a nebolí. Pokud si to rozmyslíte, odpovězte ANO.{link_short}",
+    "TRIAL": "Dobrý den, Vaše ordinace Vám nabízí bezplatné preventivní vyšetření plic. Máte zájem? Odpovězte ANO."
   },
   "voice": {
     "FIRST_INVITE": "Dobrý den, tady hlasový asistent ordinace Vašeho praktického lékaře. Jsem automatický asistent, nejsem lékař.\n\nVolám kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké a bezplatné vyšetření plic.\n\nPokud chcete, aby se Vám ozvala ordinace, stiskněte 1 nebo řekněte ano. Pokud teď ne, stiskněte 2. Děkuji, na shledanou.",

@@ -16,6 +16,9 @@ def _client():
 def send_sms(body: str, live: bool) -> dict:
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
+    if settings.trial:  # trial accounts reject multi-segment SMS (error 30044)
+        from .messages import sms_trial
+        body = sms_trial()
     m = _client().messages.create(
         to=settings.demo_to, from_=settings.from_number, body=body,
         status_callback=f"{settings.public_url}/twilio/status",
