@@ -26,9 +26,9 @@ export function compose(p, chosenChannel) {
     <textarea id="msg-${p.id}" ${fixedText(channel) ? "readonly" : ""}>${esc(text)}</textarea>
     <div class="compose__foot">
       <p>${fixedText(channel) ? T.compose.trial : T.compose.note}</p>
-      <button type="button" class="btn btn--link" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.sendNow}</button>
-      <button type="button" class="btn" data-action="close-compose">${T.actions.cancel}</button>
-      <button type="button" class="btn btn--primary" data-action="save-draft" data-id="${p.id}" data-channel="${channel}">${T.actions.saveDraft}</button>
+      <button type="button" class="btn btn--link" data-action="close-compose">${T.actions.cancel}</button>
+      <button type="button" class="btn" data-action="save-draft" data-id="${p.id}" data-channel="${channel}">${T.actions.saveDraft}</button>
+      <button type="button" class="btn btn--primary" data-action="confirm-send" data-id="${p.id}" data-channel="${channel}">${T.actions.sendNow(channel)}</button>
     </div>
   </div>`;
 }

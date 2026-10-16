@@ -6,7 +6,7 @@ export const DEFAULT_GP = "VPL-0142";
 export const NO_RESPONSE_DAYS = 14;
 export const STORAGE_KEY = "plice-vcas:v2";
 
-export const CHANNELS = ["portal", "sms", "voice", "email", "letter"];
+export const CHANNELS = ["sms", "voice", "whatsapp", "email", "portal", "letter"];
 
 // Work queue of the practice, in order of urgency. One section = one kind of work.
 export const SECTIONS = ["invite", "replied", "doctor", "results"];

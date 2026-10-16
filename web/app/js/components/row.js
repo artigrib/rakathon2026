@@ -28,7 +28,10 @@ function describe(p, d, plan) {
     case "callback":
       return { title: S[stage] + (ev?.when ? `, ${ev.when}` : ""), sub: answered };
     case "nurse_call": return { title: S.nurse_call };
-    case "not_now": return { title: S.not_now(fmtDate(addDays(ev?.date, 90))), sub: answered };
+    case "not_now": {
+      const again = fmtDate(addDays(ev?.date, 90));
+      return { title: ev?.intent === "declined" ? S.softDeclined(again) : S.not_now(again), sub: answered };
+    }
     case "declined": return { title: S.declined, sub: answered };
     case "booked": return { title: S.booked, sub: S.bookedNext };
     case "ldct": return { title: S.ldct };
@@ -61,7 +64,7 @@ function actions(p, d) {
   switch (taskOf(p)) {
     case "invite":
       return d.skipped ? btn(A.unskip, `data-action="unskip" data-id="${id}"`, "link")
-        : btn(A.edit, `data-action="open-compose" data-id="${id}"`, "link") + btn(A.skip, `data-action="skip" data-id="${id}"`, "link");
+        : btn(A.edit, `data-action="open-compose" data-id="${id}"`) + btn(A.skip, `data-action="skip" data-id="${id}"`, "link");
     case "doctor":
       return btn(A.include, `data-action="include" data-id="${id}"`) + btn(A.exclude, `data-action="exclude" data-id="${id}"`);
   }

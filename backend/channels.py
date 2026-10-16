@@ -90,3 +90,24 @@ def _relay_voice() -> str:
     import os
     vid = os.getenv("ELEVENLABS_VOICE_ID")
     return f' ttsProvider="ElevenLabs" voice="{escape(vid)}"' if vid else ""
+
+
+EMAIL_SUBJECT = "Preventivní vyšetření plic"
+
+
+def send_email(body: str, live: bool) -> dict:
+    """Plain-text e-mail through the SendGrid v3 API (Twilio SendGrid). Replies come back through the patient link."""
+    if not live:
+        return {"sid": None, "live": False, "to": None, "status": "simulated"}
+    import json
+    import urllib.request
+    payload = {
+        "personalizations": [{"to": [{"email": settings.demo_email}]}],
+        "from": {"email": settings.email_from, "name": "Vaše ordinace"},
+        "subject": EMAIL_SUBJECT,
+        "content": [{"type": "text/plain", "value": body}],
+    }
+    req = urllib.request.Request("https://api.sendgrid.com/v3/mail/send", data=json.dumps(payload).encode(),
+                                 headers={"Authorization": f"Bearer {settings.sendgrid_key}", "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": settings.demo_email, "status": "queued" if r.status == 202 else str(r.status)}

@@ -69,7 +69,8 @@ def health():
     from . import llm
     return {"ok": True, "mode": "live" if settings.live else "mock", "liveLimit": settings.live_limit,
             "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio",
-            "trial": settings.live and settings.trial}
+            "trial": settings.live and settings.trial,
+            "email": settings.email_live}
 
 
 @app.get("/audio/{name}")
@@ -103,7 +104,8 @@ def send(req: SendRequest):
 def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     """One outbound touch. budget[0] = how many may still go out for real in this request."""
     text = messages.with_link(text, patient_link(pid))
-    live = budget[0] > 0 and channel in ("sms", "voice", "whatsapp")
+    real = ("sms", "voice", "whatsapp") + (("email",) if settings.email_live else ())
+    live = budget[0] > 0 and channel in real
     try:
         if channel == "voice":
             if live:  # generate the Czech audio before dialling, so the call starts without a pause
@@ -111,6 +113,8 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
             r = channels.start_call(pid, live)
         elif channel == "whatsapp":
             r = channels.send_whatsapp(text, live)
+        elif channel == "email":
+            r = channels.send_email(text, live)
         else:
             r = channels.send_sms(text, live)
     except Exception as e:  # a failed send is a delivery fact, not a crash
@@ -129,7 +133,7 @@ class TickRequest(BaseModel):
 @app.post("/api/tick")
 def tick(req: TickRequest):
     """Advance the demo clock and run every automatic touch that is due (what a cron does every 15 min)."""
-    budget = [settings.live_limit if settings.live else 0]
+    budget = [settings.live_limit if settings.live and settings.tick_live else 0]
     done = []
     for _ in range(max(1, req.days)):
         day = (date.fromisoformat(today()) + timedelta(days=1)).isoformat()
@@ -155,6 +159,9 @@ def step(req: StepRequest):
     if req.text is not None:
         return _apply_reply(req.id, req.text, "ui", req.date or today())
     extra = {"result": req.result} if req.result else {}
+    # Doctor: the first "no" is soft (offer again later), only a repeated one is a refusal (01197).
+    if req.stage == "declined" and _refusals(req.id) == 0:
+        return store.event(req.id, "not_now", req.date or today(), via="ui", intent="declined")
     return store.event(req.id, req.stage, req.date or today(), **extra)
 
 

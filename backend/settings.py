@@ -30,10 +30,20 @@ class Settings:
     validate_signature: bool = os.getenv("VALIDATE_SIGNATURE", "1") == "1"
     # Twilio trial: an SMS must fit one segment after the trial prefix, so a short text without diacritics is sent.
     trial: bool = os.getenv("TWILIO_TRIAL", "1") == "1"
+    # E-mail via Twilio SendGrid (verified single sender). All real e-mail goes to demo_email.
+    sendgrid_key: str = os.getenv("SENDGRID_API_KEY", "")
+    email_from: str = os.getenv("EMAIL_FROM", "")
+    demo_email: str = os.getenv("DEMO_EMAIL", "")
+    # The demo clock ("Další den") simulates by default; TICK_LIVE=1 lets automatic touches go out for real.
+    tick_live: bool = os.getenv("TICK_LIVE", "0") == "1"
     voice_name: str = os.getenv("VOICE_NAME", "Google.cs-CZ-Standard-A")
     voice_mode: str = os.getenv("VOICE_MODE", "gather")       # gather = read script + keys 1/2; relay = AI conversation
     voice_lang: str = os.getenv("VOICE_LANG", "cs-CZ")
     state_file: Path = Path(os.getenv("STATE_FILE", str(Path(__file__).with_name("state.json"))))
+
+    @property
+    def email_live(self) -> bool:
+        return bool(self.sendgrid_key and self.email_from and self.demo_email)
 
     @property
     def live(self) -> bool:

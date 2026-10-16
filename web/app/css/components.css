@@ -151,3 +151,8 @@ tbody tr:hover td, tbody tr:focus-visible td { background: var(--field); }
 .note { color: var(--ink-2); font-size: var(--t-s); max-width: 60ch; margin-top: 12px; }
 .batch p { margin: 10px 0 0; color: var(--ink-2); font-size: var(--t-s); }
 .section--quiet .count { color: var(--ink-2); }
+body[aria-busy="true"] [data-action] { pointer-events: none; opacity: .6; }
+main.wrap { padding-bottom: 140px; }
+/* Presenter panel sits under the header on the right, small when closed, so it never covers row buttons or the editor. */
+.demo:not([open]) { width: auto; }
+@media (min-width: 900px) { .demo { top: 82px; bottom: auto; } .demo:not([open]) > summary { min-height: 36px; font-size: var(--t-s); gap: 10px; } }

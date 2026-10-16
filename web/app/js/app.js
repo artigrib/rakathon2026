@@ -50,7 +50,7 @@ async function pull() {
 async function send(items) {
   if (!backend) return store.send(items, today());
   await api.send(items, today());
-  await pull();
+  await pull().catch(() => {}); // sent is sent: a failed refresh must not look like a failed send
 }
 
 /** Journey step or patient reply: the backend runs the same logic as a real webhook. */
@@ -101,12 +101,15 @@ const actions = {
   },
   step: async (el) => {
     const { id, stage, result } = el.dataset;
-    await step(id, { stage, result });
-    toast(T.toast.step[stage], { undo: !backend });
+    // Doctor: the first "no" is soft (offer again in 3 months), a repeated one is the refusal 01197.
+    const soft = stage === "declined" && !(store.get(id).journey || []).some((e) => e.intent === "declined" || e.stage === "declined");
+    if (soft && !backend) store.step(id, "not_now", today(), { intent: "declined" });
+    else await step(id, { stage, result });
+    toast(T.toast.step[soft ? "softDeclined" : stage], { undo: !backend });
   },
   include: (el) => { store.include(el.dataset.id); toast(el.dataset.exception ? T.toast.exception : T.toast.included); },
   exclude: (el) => { store.exclude(el.dataset.id); toast(T.toast.excluded); },
-  "toggle-replies": (el) => { ui.demoReplies = el.checked; if (ui.demoReplies && ui.view === "tasks") { ui.view = "patients"; ui.filter = "running"; } },
+  "toggle-replies": (el) => { ui.demoReplies = el.checked; },
   tick: async () => {
     const r = await api.tick(1);
     await pull();
@@ -117,16 +120,22 @@ const actions = {
   "open-practice": (el) => { ui.gp = el.dataset.gp; ui.view = "tasks"; window.scrollTo(0, 0); },
 };
 
+let busy = false; // one real send at a time: a double click must never send twice
+
 async function dispatch(e) {
   const el = e.target.closest("[data-action]");
-  if (!el || el.disabled) return;
+  if (!el || el.disabled || busy) return;
   const fn = actions[el.dataset.action];
   if (!fn) return;
   try {
     const pending = fn(el);
+    if (pending instanceof Promise) {
+      busy = true; document.body.setAttribute("aria-busy", "true");
+      try { await pending; } finally { busy = false; document.body.removeAttribute("aria-busy"); }
+    }
     render();
-    if (pending instanceof Promise) { await pending; render(); }
   } catch {
+    busy = false; document.body.removeAttribute("aria-busy");
     toast(T.apiError, { undo: false });
   }
 }
@@ -152,7 +161,7 @@ async function init() {
   if (backend) {
     await pull().catch(() => {});
     // Replies arrive by webhook at any time: refresh, but never while the nurse is editing a message.
-    setInterval(() => pull().then((changed) => changed && !ui.composing && render()).catch(() => {}), POLL_MS);
+    setInterval(() => pull().then((changed) => changed && !ui.composing && !busy && render()).catch(() => {}), POLL_MS);
   }
   render();
 }

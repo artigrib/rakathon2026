@@ -37,7 +37,8 @@ export function phaseOf(p) {
 }
 
 /** This week's batch = invite section minus rows the practice skipped. */
-export const batchOf = (patients) => patients.filter((p) => taskOf(p) === "invite" && !store.get(p.id).skipped);
+export const batchOf = (patients) => patients.filter((p) => taskOf(p) === "invite" && !store.get(p.id).skipped)
+  .sort((a, b) => !!store.get(b.id).draft - !!store.get(a.id).draft);
 
 /** Index of the reached journey step (-1 = not invited yet). */
 export const journeyIndex = (stage) => JOURNEY.findIndex((j) => j.stages.includes(stage));

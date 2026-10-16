@@ -248,3 +248,17 @@ def test_inbound_sms_gets_a_confirmation(client):
     assert "<Message>" in x and "ozve" in x and store.get("P5")["stage"] == "interested"
     y = c.post("/twilio/sms", data={"From": "+420111", "Body": "STOP"}).text
     assert "<Message>" not in y
+
+
+def test_nurse_first_refusal_is_soft(client):
+    c, store = client
+    c.post("/api/step", json={"id": "P6", "stage": "declined"})
+    assert store.get("P6")["stage"] == "not_now"
+    c.post("/api/step", json={"id": "P6", "stage": "declined"})
+    assert store.get("P6")["stage"] == "declined"
+
+
+def test_email_is_simulated_without_sendgrid(client):
+    c, store = client
+    r = c.post("/api/send", json={"items": [{"id": "P7", "channel": "email", "text": "Dobrý den."}]}).json()
+    assert store.get("P7")["stage"] == "sent" and store.data["outbox"][-1]["channel"] == "email"

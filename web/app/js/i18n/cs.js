@@ -43,8 +43,9 @@ export const T = {
     nurse_call: "Neozval se, zavolejte mu",
     not_now: (d) => `Teď ne, znovu ${d}`,
     declined: "Odmítl (01197)",
-    booked: "Objednán u pneumologa",
-    bookedNext: "",
+    booked: "Předán k pneumologovi (01196)",
+    bookedNext: "Čekáme na výsledek",
+    softDeclined: (d) => `Odmítl poprvé, nabídneme znovu ${d}`,
     ldct: "Zapište výsledek LDCT",
     result: {
       negative: (d) => `Negativní, další LDCT ${d}`,
@@ -66,10 +67,10 @@ export const T = {
   channelNoPortal: "Pacient nemá aktivní portál se souhlasem se zprávami",
 
   actions: {
-    edit: "Upravit",
+    edit: "Kontaktovat",
     skip: "Vynechat",
     unskip: "Vrátit do dávky",
-    booked: "Objednán",
+    booked: "Předán k pneumologovi",
     declined: "Odmítá",
     unreachable: "Nezastižen",
     interested: "Má zájem",
@@ -80,14 +81,14 @@ export const T = {
     exception: "Přesto zařadit",
     open: "Zobrazit podrobnosti",
     confirmSend: () => "Odeslat",
-    saveDraft: "Uložit",
-    sendNow: "Odeslat hned jen jemu",
+    saveDraft: "Uložit do dávky",
+    sendNow: (ch) => ({ voice: "Zavolat teď", sms: "Poslat SMS teď", whatsapp: "Poslat WhatsApp teď", email: "Poslat e-mail teď" }[ch] || "Odeslat teď"),
     cancel: "Zrušit",
     details: "Podrobnosti",
     undo: "Vrátit",
   },
 
-  journey: { steps: { sent: "Pozván", replied: "Odpověděl", booked: "Objednán", ldct: "LDCT", result: "Výsledek" } },
+  journey: { steps: { sent: "Pozván", replied: "Odpověděl", booked: "Předán", ldct: "LDCT", result: "Výsledek" } },
 
   demo: {
     title: "Ukázka",
@@ -105,15 +106,15 @@ export const T = {
 
   toast: {
     sent: (ch) => `Odesláno: ${ch}.`,
-    draftSaved: "Uloženo. Odejde s ostatními pozvánkami.",
+    draftSaved: "Uloženo do dávky.",
     approved: (n) => `Odesláno jménem lékaře: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,
     skipped: "Vynecháno z této dávky.",
     unskipped: "Vráceno do dávky.",
     tick: (n) => (n ? `Další den: systém sám provedl ${n} ${pl(n, "krok", "kroky", "kroků")} plánu kontaktů.` : "Další den: dnes systém nic neodesílá."),
     reply: (r) => `Odpověď pacienta: ${r}.`,
     step: {
-      interested: "Zapsáno: má zájem.", not_now: "Zapsáno: nezastižen, systém to zkusí za 3 měsíce.", booked: "Zapsáno: objednán u pneumologa.",
-      declined: "Zapsáno: odmítá účast (01197).", ldct: "Zapsáno: LDCT proběhlo.", result: "Výsledek zapsán, další termín je naplánován.",
+      interested: "Zapsáno: má zájem.", not_now: "Zapsáno: nezastižen, systém to zkusí za 3 měsíce.", booked: "Zapsáno: předán k pneumologovi (01196).",
+      declined: "Zapsáno: odmítá účast (01197).", softDeclined: "Zapsáno: první odmítnutí. Nabídneme znovu za 3 měsíce.", ldct: "Zapsáno: LDCT proběhlo.", result: "Výsledek zapsán, další termín je naplánován.",
     },
     exception: "Přesto zařazen. Rozhodnutí je zaznamenáno.",
     included: "Zařazen k pozvání.",
@@ -149,7 +150,7 @@ export const T = {
     byAi: (why, when) => `Rozpoznáno: ${why}${when ? ` Kdy: ${when}.` : ""}`,
     event: {
       interested: "Odpověděl: má zájem", callback: "Prosí o zavolání", not_now: "Teď ne", nurse_call: "Úkol pro sestru: zavolat osobně",
-      booked: "Objednán u pneumologa", declined: "Odmítá účast (01197)", ldct: "LDCT proběhlo", result: "Výsledek zapsán",
+      booked: "Předán k pneumologovi (01196)", declined: "Odmítá účast (01197)", ldct: "LDCT proběhlo", result: "Výsledek zapsán",
     },
   },
 
@@ -161,7 +162,7 @@ export const T = {
     impactRows: ["Oslovení pacienti", "Odesláni k pneumologovi na LDCT"],
     impactNote: (e) => `Odhad pro ${e} pacientů, kteří splňují kritéria. Dnes program osloví 18 % cílové populace, k pneumologovi odešle 54 % oslovených. Stejný podíl odeslaných předpokládáme i u nás.`,
     funnel: "Od dat k výsledku",
-    funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Objednáni u pneumologa", "Výsledek zapsán"],
+    funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Předáni k pneumologovi", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
     exclusionRows: [
       ["EXCLUDED_AGE", "Mimo věk 55 až 74 let"], ["EXCLUDED_PACK_YEARS", "Méně než 20 balíčkoroků"],
