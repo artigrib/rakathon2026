@@ -30,7 +30,7 @@ def enabled() -> bool:
 
 
 def _voice():
-    return os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+    return os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")  # Sarah, premade, works on the free plan and in Czech
 
 
 def _model():
