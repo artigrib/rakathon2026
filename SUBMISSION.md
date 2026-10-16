@@ -37,9 +37,9 @@ Ano. Data výzvy i naše vyhodnocení exportujeme jako FHIR R4 transaction Bundl
 
 ## 4. Odkazy a obrázek
 - Titulní obrázek 16:9: `submission/title.png`
-- GitHub: _doplnit po vytvoření repozitáře_
-- Demo: _veřejná adresa po nasazení_
-- Video: `submission/demo.webm` (záložní záznam ukázky)
+- GitHub: https://github.com/artigrib/rakathon2026
+- Demo: https://watched-intermediate-perth-dns.trycloudflare.com (ověřit před odevzdáním, adresa se mění po restartu tunelu)
+- Video: `submission/demo.mp4` (záložní záznam ukázky)
 
 ---
 

@@ -43,8 +43,8 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 - Run `python -m pytest -q` before pushing.
 
 ## Open tasks (owner)
-1. VPS: run live, set Twilio webhook, test SMS round trip + call with key 1 (VPS session).
-2. GitHub secrets for auto-deploy (VPS_HOST, VPS_USER, VPS_SSH_KEY, APP_ENV) (Artem).
+1. Done 17. 10. 00:04: live SMS round trip with confirmation, call with key 1 and with spoken "ano". Quick tunnel URL in SUBMISSION.md.
+2. Optional: Twilio upgrade (no trial prefix / key press, full SMS text), then `TWILIO_TRIAL=0` (Artem + VPS).
 3. Choose accent colour, then remove the palette switch (designer).
 4. Optional: e-mail channel via Twilio/SendGrid; WhatsApp sandbox join on demo phone.
 5. Saturday: fill the submit form from SUBMISSION.md, record backup video if UI changes (`submission/`).
