@@ -3,7 +3,7 @@ All real traffic goes to recipient.phone(): the challenge data has synthetic pho
 from xml.sax.saxutils import escape
 
 from . import tts
-from . import recipient
+from . import ctx, recipient
 from .settings import settings
 
 
@@ -22,7 +22,7 @@ def send_sms(body: str, live: bool) -> dict:
         body = sms_trial()
     m = _client().messages.create(
         to=recipient.phone(), from_=settings.from_number, body=body,
-        status_callback=f"{settings.public_url}/twilio/status",
+        status_callback=ctx.url("/twilio/status"),
     )
     return {"sid": m.sid, "live": True, "to": recipient.phone(), "status": m.status}
 
@@ -33,7 +33,7 @@ def send_whatsapp(body: str, live: bool) -> dict:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     m = _client().messages.create(
         to=f"whatsapp:{recipient.phone()}", from_=f"whatsapp:{settings.whatsapp_from}", body=body,
-        status_callback=f"{settings.public_url}/twilio/status",
+        status_callback=ctx.url("/twilio/status"),
     )
     return {"sid": m.sid, "live": True, "to": recipient.phone(), "status": m.status}
 
@@ -43,8 +43,8 @@ def start_call(patient_id: str, live: bool) -> dict:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     c = _client().calls.create(
         to=recipient.phone(), from_=settings.from_number,
-        url=f"{settings.public_url}/twilio/voice/{patient_id}",
-        status_callback=f"{settings.public_url}/twilio/call-status/{patient_id}",
+        url=ctx.url(f"/twilio/voice/{patient_id}"),
+        status_callback=ctx.url(f"/twilio/call-status/{patient_id}"),
         status_callback_event=["completed"],
     )
     return {"sid": c.sid, "live": True, "to": recipient.phone(), "status": c.status}
@@ -66,7 +66,7 @@ def voice_twiml(patient_id: str, script: str) -> str:
     return (
         '<?xml version="1.0" encoding="UTF-8"?><Response>'
         f'<Gather input="dtmf speech" numDigits="1" language="{settings.voice_lang}" timeout="8" '
-        f'action="{settings.public_url}/twilio/voice/{patient_id}/answer" method="POST">'
+        f'action="{escape(ctx.url(f"/twilio/voice/{patient_id}/answer"))}" method="POST">'
         + speak(script.strip()) +
         "</Gather>"
         + speak(NO_ANSWER)

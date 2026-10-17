@@ -8,17 +8,19 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import asyncio
+from contextvars import ContextVar
+from urllib.parse import quote
 import json
 import logging
 import re
 from datetime import timedelta
 
-from . import agent_call, channels, fhir_sink, fsm, messages, recipient, tts
+from . import agent_call, channels, ctx, fhir_sink, fsm, messages, recipient, sessions, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import understand
@@ -32,28 +34,72 @@ WEB = ROOT / "web" / "app"
 app = FastAPI(title="Jsem včas")
 
 OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/")  # Twilio, ElevenLabs and patients need these without a password
-OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4"}  # public pages at the domain root (exact paths: "/" as a prefix would open everything)
+OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout"}  # public pages (exact: "/" as a prefix would open everything)
+
+# ---------- demo state per visitor ----------
+# A signed-in visitor (/login: access code + own phone and e-mail) gets their own demo: their own patient journeys,
+# outbox and demo clock, and every live message goes to their own contacts. Without a session (scripts with Basic
+# auth, webhooks of the shared demo) the shared state is used, as before.
+_default_store = Store(settings.state_file)
+_stores: dict = {}
+_current: ContextVar = ContextVar("store", default=None)
+
+
+def _store_for(session_id: str) -> Store:
+    if session_id not in _stores:
+        path = Path(settings.state_file).with_name("sessions") / f"{session_id}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _stores[session_id] = Store(path)
+    return _stores[session_id]
+
+
+class _CurrentStore:
+    """`store` in this module = the demo state of the current visitor, else the shared one."""
+    def __getattr__(self, name):
+        return getattr(_current.get() or _default_store, name)
+
+
+store = _CurrentStore()
+
+
+def _enter(token: str, sess: dict):
+    """Run the rest of this request in the visitor's demo: their state, recipient and callback tag."""
+    sid = sessions.sid(token)
+    _current.set(_store_for(sid))
+    ctx.session_id.set(sid)
+    recipient.use({"phone": sess["phone"], "email": sess["email"], "token": token})
+
+
+def _basic_ok(request: Request) -> bool:
+    """Basic auth stays for scripts (auto-deploy FHIR sync, monitoring); browsers use /login."""
+    import base64
+    import secrets
+    h = request.headers.get("authorization", "")
+    if not h.lower().startswith("basic "):
+        return False
+    try:
+        user, _, pw = base64.b64decode(h[6:]).decode().partition(":")
+        return secrets.compare_digest(user, settings.demo_user) and secrets.compare_digest(pw, settings.demo_password)
+    except Exception:  # noqa: BLE001 – malformed header = not authorised
+        return False
 
 
 @app.middleware("http")
-async def password(request: Request, call_next):
-    """Basic auth in front of the app and the API when DEMO_PASSWORD is set."""
-    if not settings.demo_password or request.url.path in OPEN_EXACT or request.url.path.startswith(OPEN):
+async def access(request: Request, call_next):
+    """Who is this: a signed-in visitor (cookie), a Twilio callback / patient link of a visitor's demo (?s=…),
+    a script with Basic auth, or nobody (→ /login). No browser password dialog any more."""
+    path = request.url.path
+    token = request.cookies.get(sessions.COOKIE)
+    sess = sessions.get(token)
+    if not sess and path.startswith(("/twilio/", "/p/")) and request.query_params.get("s"):
+        token, sess = sessions.by_sid(request.query_params["s"])
+    if sess:
+        _enter(token, sess)
+    if not settings.demo_password or sess or path in OPEN_EXACT or path.startswith(OPEN) or _basic_ok(request):
         return await call_next(request)
-    import base64
-    import secrets
-    ok = False
-    h = request.headers.get("authorization", "")
-    if h.lower().startswith("basic "):
-        try:
-            user, _, pw = base64.b64decode(h[6:]).decode().partition(":")
-            ok = secrets.compare_digest(user, settings.demo_user) and secrets.compare_digest(pw, settings.demo_password)
-        except Exception:  # noqa: BLE001 – malformed header = not authorised
-            ok = False
-    if ok:
-        return await call_next(request)
-    return Response("Přihlášení vyžadováno", status_code=401, headers={"WWW-Authenticate": 'Basic realm="Jsem vcas", charset="UTF-8"'})
-store = Store(settings.state_file)
+    if request.method == "GET" and not path.startswith("/api/"):
+        return RedirectResponse("/login?next=" + quote(path))
+    return JSONResponse({"detail": "Přihlášení vyžadováno"}, status_code=401)
 PATIENTS: dict = {}
 REF_DATE = "2026-10-16"
 
@@ -77,7 +123,7 @@ def today() -> str:
 
 def patient_link(pid: str) -> str:
     token = store.token(pid)  # created on first contact; the page works on any host
-    return f"{settings.public_url}/p/{token}" if settings.public_url else ""
+    return ctx.url(f"/p/{token}")  # tagged with the visitor's session, so the answer lands in their demo
 VOICE_NO_DIGIT = "Děkujeme. Pokud budete chtít, ozvěte se prosím své ordinaci. Na shledanou."
 VOICE_THANKS = {"interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
                 "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."}
@@ -170,8 +216,8 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     text = messages.with_link(text, patient_link(pid), channel)
     real = ("sms", "voice", "whatsapp") + (("email",) if settings.email_live else ())
     live = budget[0] > 0 and channel in real
-    if live and _sent_today(channel, day) >= recipient.daily_limit():  # guard: anyone with the password can set a number
-        return {"id": pid, "sid": None, "live": False, "status": "daily_limit"}
+    if live and not recipient.take(recipient.email() if channel == "email" else recipient.phone(), day):
+        return {"id": pid, "sid": None, "live": False, "status": "daily_limit"}   # guard: anyone with the code can set a number
     try:
         if channel == "voice":
             if live:  # generate the Czech audio before dialling, so the call starts without a pause
@@ -191,12 +237,6 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     extra = {"auto": True, "step": step} if auto else {}
     transition(pid, "send", day, channel=channel, variant=variant, live=r["live"], **extra)
     return {"id": pid, **r}
-
-
-def _sent_today(channel, day) -> int:
-    """Live sends today to the current demo recipient (phone channels count together; e-mail separately)."""
-    to = recipient.email() if channel == "email" else recipient.phone()
-    return sum(1 for m in store.data["outbox"] if m.get("live") and m.get("to") == to and m.get("day") == day)
 
 
 class RecipientRequest(BaseModel):
@@ -335,7 +375,7 @@ async def _form(request: Request) -> dict:
     # Signatures are signed with the Auth Token; with only an API key there is nothing to check against.
     if settings.live and settings.validate_signature and settings.auth_token:
         from twilio.request_validator import RequestValidator
-        url = settings.public_url + request.url.path
+        url = settings.public_url + request.url.path + (f"?{request.url.query}" if request.url.query else "")
         if not RequestValidator(settings.auth_token).validate(url, form, request.headers.get("X-Twilio-Signature", "")):
             raise HTTPException(403, "invalid Twilio signature")
     return form
@@ -357,7 +397,8 @@ def transition(pid, event, day=None, **extra):
     if event in ("declined", "opt_out"):
         extra.setdefault("intent", event)
     d = store.event(pid, target, day, event=event, **extra)
-    fhir_sink.push(settings, pid, event, d, PATIENTS.get(pid, {}).get("gp"))  # write-back to the FHIR server, async
+    if _current.get() is None:  # only the shared demo writes back; visitors' demos would overwrite each other in IRIS
+        fhir_sink.push(settings, pid, event, d, PATIENTS.get(pid, {}).get("gp"))  # write-back to the FHIR server, async
     return d
 
 
@@ -376,6 +417,10 @@ async def inbound_sms(request: Request):
     form = await _form(request)
     sender = form.get("From") or ""
     via = "whatsapp" if sender.startswith("whatsapp:") else "sms"  # SMS and WhatsApp share this webhook
+    if _current.get() is None:  # a reply from a visitor's phone belongs to their demo
+        token, sess = sessions.by_phone(sender.replace("whatsapp:", ""))
+        if sess:
+            _enter(token, sess)
     pid = store.last_contacted(sender.replace("whatsapp:", ""), via)
     reply = ""
     if pid:
@@ -527,6 +572,51 @@ def patient_answer(token: str, answer: str = Form(...)):
 
 
 # ---------- web app (same origin → no CORS) ----------
+# ---------- sign-in: access code + the visitor's own phone and e-mail ----------
+LOGIN = Template((Path(__file__).with_name("templates") / "login.html").read_text(encoding="utf-8"))
+
+
+def _safe_next(n: str) -> str:
+    return n if n.startswith("/") and not n.startswith("//") else "/app/"
+
+
+def _login_page(nxt="/app/", error="", code="", phone="", email="", status=200):
+    from html import escape as h
+    return HTMLResponse(LOGIN.safe_substitute(next=h(_safe_next(nxt)), code=h(code), phone=h(phone), email=h(email),
+                                              error=f'<p class="err" role="alert">{h(error)}</p>' if error else ""), status_code=status)
+
+
+@app.get("/login")
+def login_form(next: str = "/app/"):
+    return _login_page(next)
+
+
+@app.post("/login")
+async def login(request: Request):
+    import secrets
+    f = await request.form()
+    code, phone, email, nxt = (str(f.get(k, "")).strip() for k in ("code", "phone", "email", "next"))
+    if not settings.demo_password or not secrets.compare_digest(code.lower(), settings.demo_password.lower()):
+        return _login_page(nxt, "Nesprávný přístupový kód.", "", phone, email, 401)
+    try:
+        p, e = recipient.validate(phone, email, required=True)
+    except ValueError as err:
+        return _login_page(nxt, str(err), code, phone, email, 400)
+    token = sessions.create(p, e)
+    r = RedirectResponse(_safe_next(nxt), status_code=303)
+    https = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
+    r.set_cookie(sessions.COOKIE, token, max_age=sessions.MAX_AGE_DAYS * 86400, httponly=True, samesite="lax", secure=https)
+    return r
+
+
+@app.get("/logout")
+def logout(request: Request):
+    sessions.delete(request.cookies.get(sessions.COOKIE))
+    r = RedirectResponse("/", status_code=303)
+    r.delete_cookie(sessions.COOKIE)
+    return r
+
+
 @app.get("/")
 def root():
     """jsemvcas.cz: the public project landing; the app itself is at /app (password)."""

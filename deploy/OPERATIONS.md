@@ -1,6 +1,13 @@
 # Jsem včas – running the VPS long-term
 
-https://jsemvcas.cz – `/` landing (public), `/rakathon` (public), `/app` the app (password `DEMO_USER`/`DEMO_PASSWORD`).
+https://jsemvcas.cz – `/` landing (public), `/rakathon` (public), `/app` the app.
+
+Access: `/login` asks for the access code (`DEMO_PASSWORD`) and the visitor's own phone (+420 only) and e-mail.
+Each visitor gets their own demo (state in `/data/sessions/<id>.json`), and every live SMS, call, WhatsApp and e-mail
+of that demo goes to their contacts, at most `DEMO_DAILY_LIMIT` a day per number. Replies are matched by the phone,
+Twilio callbacks and patient links by `?s=<id>`. Sessions and contacts expire after 30 days (`/data/sessions.json`).
+Basic auth (`DEMO_USER`/`DEMO_PASSWORD`) still works for scripts and uses the shared demo (`/data/state.json`),
+which is the only one that writes back to IRIS.
 
 ## What runs
 

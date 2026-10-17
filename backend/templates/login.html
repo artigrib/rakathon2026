@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Přihlášení do ukázky Jsem včas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;700&display=swap">
+<style>
+  :root { --paper:#f4f4f2; --surface:#fff; --ink:#1d1d1b; --ink-2:#5a5a56; --hair:#d6d6d2; --accent:#0b5c6b; --warn:#8a4b00; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#121211; --surface:#1d1d1b; --ink:#f4f4f2; --ink-2:#b3b3ad; --hair:#3a3a37; --accent:#5fb3c2; --warn:#f0b35a; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font: 18px/1.5 "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 32px 16px 48px; }
+  .brand { font-weight: 700; border-top: 6px solid var(--ink); padding-top: 14px; display: inline-block; }
+  h1 { font-size: 30px; line-height: 1.15; margin: 24px 0 10px; letter-spacing: -0.01em; }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--ink-2); font-size: 16px; }
+  form { display: grid; gap: 16px; margin: 24px 0; }
+  label { display: grid; gap: 6px; font-weight: 600; font-size: 16px; }
+  input { min-height: 48px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 0; background: var(--surface); color: var(--ink); font: inherit; font-weight: 400; }
+  input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button { min-height: 52px; font: inherit; font-weight: 700; border: 2px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  .err { border-left: 6px solid var(--warn); padding: 4px 0 4px 14px; color: var(--warn); font-weight: 600; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+<span class="brand">Jsem včas</span>
+<h1>Ukázka aplikace</h1>
+<p>Zadejte přístupový kód a svůj telefon a e-mail. Ukázkové SMS, hovor, WhatsApp a e-mail z aplikace půjdou jen na ně, každý návštěvník má svou vlastní ukázku.</p>
+$error
+<form method="post" action="/login">
+  <input type="hidden" name="next" value="$next">
+  <label>Přístupový kód<input name="code" autocomplete="off" autocapitalize="none" required value="$code"></label>
+  <label>Telefon<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+420 601 234 567" required value="$phone"></label>
+  <label>E-mail<input name="email" type="email" autocomplete="email" required value="$email"></label>
+  <button type="submit">Vstoupit do ukázky</button>
+</form>
+<p class="muted">Povolená jsou česká čísla. Kontakty použijeme jen k odeslání ukázkových zpráv a po 30 dnech je smažeme. Pacienti v ukázce jsou smyšlení.</p>
+<p class="muted"><a href="/">Zpět na stránku projektu</a></p>
+</main>
+</body>
+</html>

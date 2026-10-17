@@ -5,6 +5,7 @@ async function call(path, body) {
   const r = await fetch(API_BASE + path, body
     ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
     : undefined);
+  if (r.status === 401 && path !== "/api/health") location.href = "/login?next=/app/"; // session expired: sign in again
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
 }

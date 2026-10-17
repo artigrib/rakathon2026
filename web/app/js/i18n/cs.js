@@ -151,6 +151,7 @@ export const T = {
       email: "E-mail",
       save: "Uložit",
       reset: "Výchozí kontakt",
+      logout: "Odhlásit",
       hint: (r) => `Skutečné zprávy z ukázky jdou jen sem, nejvýše ${r.dailyLimit} za den. Povolená čísla: ${r.prefixes.join(", ")}.`
         + (r.whatsappJoin ? ` Pro WhatsApp nejdřív pošlete zprávu „${r.whatsappJoin}“ na číslo ${r.whatsappFrom}.` : " Pro WhatsApp se číslo musí nejdřív připojit do sandboxu Twilio."),
     },

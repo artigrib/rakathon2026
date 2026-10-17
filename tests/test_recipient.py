@@ -30,8 +30,10 @@ def test_default_is_masked_and_empty_resets(rec, monkeypatch):
     assert rec.phone() == "+420602000879"
 
 
-def test_live_send_goes_to_the_panel_number_and_stops_at_the_daily_limit(client, rec, monkeypatch):
+def test_live_send_goes_to_the_panel_number_and_stops_at_the_daily_limit(client, rec, monkeypatch, tmp_path):
     c, store = client
+    from dataclasses import replace as _r
+    monkeypatch.setattr(rec, "settings", _r(rec.settings, state_file=tmp_path / "state.json"))   # fresh day counter
     import backend.app as m
     from dataclasses import replace
     monkeypatch.setattr(m, "settings", replace(m.settings, account_sid="AC1", auth_token="t", from_number="+1",

@@ -348,7 +348,7 @@ def test_password_protects_app_but_not_webhooks(client, monkeypatch):
     c, _ = client
     monkeypatch.setattr(m, "settings", replace(m.settings, demo_password="tajne"))
     assert c.get("/api/state").status_code == 401
-    assert c.get("/app/index.html").status_code == 401
+    assert c.get("/app/index.html", follow_redirects=False).status_code == 307   # → /login
     assert c.get("/api/health").status_code == 200
     assert c.post("/twilio/sms", data={"From": "+420000", "Body": "ano"}).status_code == 200
     good = {"Authorization": "Basic " + base64.b64encode(b"plice:tajne").decode()}

@@ -13,7 +13,8 @@ function recipientForm(r, error) {
       ${error ? `<p class="demo__err" role="alert">${esc(error)}</p>` : ""}
       <p class="demo__hint">${D.hint(r)}</p>
       <div class="demo__row"><button type="button" class="btn" data-action="recipient-save">${D.save}</button>
-        ${r.customPhone || r.customEmail ? `<button type="button" class="btn btn--link" data-action="recipient-reset">${D.reset}</button>` : ""}</div>
+        ${!r.session && (r.customPhone || r.customEmail) ? `<button type="button" class="btn btn--link" data-action="recipient-reset">${D.reset}</button>` : ""}
+        ${r.session ? `<a class="btn btn--link" href="/logout">${D.logout}</a>` : ""}</div>
     </div>`;
 }
 

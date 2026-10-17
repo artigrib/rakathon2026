@@ -11,7 +11,8 @@ def test_landing_open_without_password(monkeypatch):
     assert r.status_code == 200 and "Plíce včas" in r.text and r.text.startswith("<!doctype html>")
     assert c.get("/projekt/img/ukoly.jpg").status_code == 200
     assert c.get("/projekt/demo.mp4", headers={"Range": "bytes=0-99"}).status_code in (200, 206)
-    assert c.get("/app/index.html").status_code == 401
+    r = c.get("/app/index.html", follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"].startswith("/login")
 
 
 def test_domain_root_is_the_landing_and_only_exact_public_paths_open(monkeypatch):
@@ -25,6 +26,8 @@ def test_domain_root_is_the_landing_and_only_exact_public_paths_open(monkeypatch
     assert c.get("/demo.mp4", headers={"Range": "bytes=0-9"}).status_code in (200, 206)
     assert c.get("/rakathon", follow_redirects=False).status_code in (200, 307)
     # "/" is public only as an exact path: the app and its data stay behind the password
-    for path in ("/app/", "/app/index.html", "/app/data/patients.json", "/api/state"):
-        assert c.get(path).status_code == 401, path
+    for path in ("/app/", "/app/index.html", "/app/data/patients.json"):
+        assert c.get(path, follow_redirects=False).status_code == 307, path      # → /login, no browser dialog
+    r = c.get("/api/state")
+    assert r.status_code == 401 and "www-authenticate" not in r.headers
     assert c.get("/app/", auth=("plice", "x")).status_code == 200
