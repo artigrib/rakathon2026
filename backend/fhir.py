@@ -10,10 +10,10 @@ from zoneinfo import ZoneInfo
 from engine.loader import load
 from engine.rules import run
 
-LOCAL = "https://plicevcas.cz/fhir/CodeSystem"
+LOCAL = "https://jsemvcas.cz/fhir/CodeSystem"
 # Every original NIS column is kept as an extension, so the data can be read back from the FHIR server without loss
 # (backend/fhir_source.py). The standard FHIR fields carry the same facts for any other system.
-NIS = "https://plicevcas.cz/fhir/StructureDefinition/nis"
+NIS = "https://jsemvcas.cz/fhir/StructureDefinition/nis"
 SNOMED = "http://snomed.info/sct"
 LOINC = "http://loinc.org"
 SMOKING = {"current": ("77176002", "Smoker"), "former": ("8517006", "Ex-smoker"), "never": ("266919005", "Never smoked tobacco")}

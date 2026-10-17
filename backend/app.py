@@ -29,7 +29,7 @@ _rlog = logging.getLogger("uvicorn.error")  # voice turns and agent outcomes in 
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
-app = FastAPI(title="Plíce včas")
+app = FastAPI(title="Jsem včas")
 
 OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/")  # Twilio, ElevenLabs and patients need these without a password
 OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4"}  # public pages at the domain root (exact paths: "/" as a prefix would open everything)
@@ -52,7 +52,7 @@ async def password(request: Request, call_next):
             ok = False
     if ok:
         return await call_next(request)
-    return Response("Přihlášení vyžadováno", status_code=401, headers={"WWW-Authenticate": 'Basic realm="Plice vcas", charset="UTF-8"'})
+    return Response("Přihlášení vyžadováno", status_code=401, headers={"WWW-Authenticate": 'Basic realm="Jsem vcas", charset="UTF-8"'})
 store = Store(settings.state_file)
 PATIENTS: dict = {}
 REF_DATE = "2026-10-16"

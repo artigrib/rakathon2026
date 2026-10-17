@@ -123,7 +123,7 @@ def _smtp(body: str) -> dict:
     m["Subject"] = EMAIL_SUBJECT
     m["From"] = formataddr(("Vaše ordinace", settings.email_from or settings.smtp_user))
     m["To"] = settings.demo_email
-    m["Message-ID"] = make_msgid(domain="plicevcas.cz")
+    m["Message-ID"] = make_msgid(domain="jsemvcas.cz")
     m.set_content(body)
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as s:
         s.starttls()

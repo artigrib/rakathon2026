@@ -66,7 +66,7 @@ Schválené závěrečné věty:
 
 def config() -> dict:
     return {
-        "name": "Plíce včas – hlasový asistent ordinace",
+        "name": "Jsem včas – hlasový asistent ordinace",
         "conversation_config": {
             "agent": {
                 "first_message": GREETING,
