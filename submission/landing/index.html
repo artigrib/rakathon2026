@@ -281,6 +281,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
       <dl class="branches">
         <div><dt>Teď ne</dt><dd>Nabídka se vrátí za tři měsíce. „Ano, ale až po Vánocích“ systém zapíše jako teď ne.</dd></div>
         <div><dt>Nechce</dt><dd>První odmítnutí je měkké a nabídka se zopakuje. Kód <span class="mono">01197</span> až napodruhé. STOP odhlásí vždy a hned.</dd></div>
+        <div><dt>Objednal se sám</dt><dd>Pacient se může objednat přímo u pneumologa i bez doporučení praktika, pozvánka mu to řekne. Systém to zapíše a dál nepřipomíná.</dd></div>
         <div><dt>Zavolat sestře</dt><dd>Otázka nebo nejistá odpověď jde k sestře, systém sám nerozhoduje.</dd></div>
         <div class="lost"><dt>Ztrácí se</dt><dd>Předán bez LDCT po 6 týdnech, LDCT bez výsledku po 3 týdnech, odpověď bez reakce, plán kontaktů skončil.</dd></div>
       </dl>
@@ -400,7 +401,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
     <div class="aside"><p class="label">Další krok</p><h2 id="h-dal">Co dál</h2></div>
     <div class="body">
       <ol class="next">
-        <li>Žádanka k pneumologovi předvyplněná z údajů, které už máme, a výsledek LDCT zpět z centra přes FHIR. Tím zmizí ruční značka i největší místo, kde se pacienti dnes ztrácejí.</li>
+        <li>Výsledek LDCT zpět z centra přes FHIR, aby sestra nemusela nic značit ručně a bylo vidět, kdo k vyšetření opravdu došel. Od 1. 7. 2027, až to praktikům umožní pravidla, i předvyplněná žádanka z údajů, které už máme.</li>
         <li>Pravidla programu od roku 2027 jedním přepínačem v konfiguraci.</li>
         <li>Napojení na další systémy praktiků přes FHIR a pilot v několika ordinacích.</li>
       </ol>
