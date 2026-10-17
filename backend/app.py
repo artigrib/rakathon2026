@@ -31,13 +31,14 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title="Plíce včas")
 
-OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt")  # Twilio, ElevenLabs and patients need these without a password
+OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/")  # Twilio, ElevenLabs and patients need these without a password
+OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4"}  # public pages at the domain root (exact paths: "/" as a prefix would open everything)
 
 
 @app.middleware("http")
 async def password(request: Request, call_next):
     """Basic auth in front of the app and the API when DEMO_PASSWORD is set."""
-    if not settings.demo_password or request.url.path.startswith(OPEN):
+    if not settings.demo_password or request.url.path in OPEN_EXACT or request.url.path.startswith(OPEN):
         return await call_next(request)
     import base64
     import secrets
@@ -499,7 +500,13 @@ def patient_answer(token: str, answer: str = Form(...)):
 # ---------- web app (same origin → no CORS) ----------
 @app.get("/")
 def root():
-    return RedirectResponse("/app/index.html")
+    """jsemvcas.cz: the public project landing; the app itself is at /app (password)."""
+    return projekt()
+
+
+@app.get("/app")
+def app_redirect():
+    return RedirectResponse("/app/")
 
 
 # Public project page (no password): the landing from submission/landing and the demo video.
@@ -520,6 +527,22 @@ def projekt():
     return HTMLResponse(LANDING_HEAD + body + "</body></html>")
 
 
+@app.get("/rakathon")
+def rakathon():
+    """How the project came about at Rakathon: its own page when submission/landing/rakathon.html exists, else the landing section.
+    Served without a trailing slash so the page's relative img/… links resolve to /img/…"""
+    page = LANDING / "rakathon.html"
+    if not page.exists():
+        return RedirectResponse("/#vznik")
+    return HTMLResponse(LANDING_HEAD + page.read_text(encoding="utf-8") + "</body></html>")
+
+
+@app.get("/rakathon/")
+def rakathon_slash():
+    return RedirectResponse("/rakathon")
+
+
+@app.get("/demo.mp4")
 @app.get("/projekt/demo.mp4")
 def projekt_video():
     from fastapi.responses import FileResponse
@@ -528,4 +551,5 @@ def projekt_video():
 
 if LANDING.exists():
     app.mount("/projekt", StaticFiles(directory=LANDING), name="landing")
+    app.mount("/img", StaticFiles(directory=LANDING / "img"), name="landing-img")  # landing images at the domain root
 app.mount("/app", StaticFiles(directory=WEB, html=True), name="web")
