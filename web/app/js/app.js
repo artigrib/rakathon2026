@@ -10,6 +10,8 @@ import { tasks, taskCount } from "./views/tasks.js";
 import { patients } from "./views/patients.js";
 import { overview } from "./views/overview.js";
 import { doctor, doctorCount } from "./views/doctor.js";
+import { card } from "./components/card.js";
+import { lostOf, ownerOf } from "./domain.js";
 import { demoPanel } from "./components/demo.js";
 import { toast, hideToast } from "./components/toast.js";
 
@@ -38,7 +40,24 @@ function render() {
     : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
   $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir });
   $("gp").value = ui.gp;
+  const open = ui.open && find(ui.open);
+  const a = document.activeElement; // keep keyboard focus inside the card across re-renders (polling, outbox load)
+  const keep = a && a.closest && a.closest("#card") ? a.id || "card-title" : ui.focusCard ? "card-title" : null;
+  ui.focusCard = false;
+  $("card").innerHTML = open ? card(open, { ...rowCtx.of(open), owner: ownerOf(open, today(), data.live?.plans), lost: lostOf(open, today(), data.live?.plans) }) : "";
+  document.body.classList.toggle("has-card", !!open);
+  if (open && keep) document.getElementById(keep)?.focus();
   footer();
+}
+
+/** Close the patient card and give focus back to the row that opened it. */
+function closeCard(fromHistory = false) {
+  const id = ui.open;
+  if (!id) return;
+  ui.open = null; ui.composing = null;
+  if (!fromHistory && history.state?.card) { try { history.back(); } catch { /* ignore */ } }
+  render();
+  document.querySelector(`#pt-${CSS.escape(id)} .who`)?.focus();
 }
 let footer = () => {};
 
@@ -87,7 +106,12 @@ const actions = {
   "pick-view": (el) => { ui.view = el.dataset.view; ui.composing = null; window.scrollTo(0, 0); },
   "pick-filter": (el) => { ui.filter = el.dataset.filter; ui.composing = null; },
   "open-compose": (el) => { ui.composing = el.dataset.id; ui.chosenChannel = null; },
-  "toggle-detail": async (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; render(); await loadOutbox(ui.open); },
+  "open-card": async (el) => {
+    ui.open = el.dataset.id; ui.composing = null;
+    try { history.pushState({ card: ui.open }, ""); } catch { /* sandboxed preview */ }
+    ui.focusCard = true; render(); await loadOutbox(ui.open);
+  },
+  "close-card": (el, e) => closeCard(),
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
   "save-draft": async (el) => {
@@ -153,6 +177,7 @@ let busy = false; // one real send at a time: a double click must never send twi
 async function dispatch(e) {
   const el = e.target.closest("[data-action]");
   if (!el || el.disabled || busy) return;
+  if (el.classList.contains("card-wrap") && e.target.closest("[data-stop]")) return; // click inside the card, not the backdrop
   const fn = actions[el.dataset.action];
   if (!fn) return;
   try {
@@ -183,6 +208,8 @@ async function init() {
   $("gp").innerHTML = gps.map((g) => `<option>${g}</option>`).join("");
   $("gp").addEventListener("change", (e) => { ui.gp = e.target.value; ui.composing = null; render(); });
   document.addEventListener("click", dispatch);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && ui.open) closeCard(); });
+  window.addEventListener("popstate", () => { if (ui.open) closeCard(true); });
   document.addEventListener("input", (e) => { // registry search: re-render and keep typing
     if (e.target.id !== "q") return;
     ui.query = e.target.value; render();

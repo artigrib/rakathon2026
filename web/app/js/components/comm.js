@@ -40,7 +40,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
     if (e.event === "booked" && !e.text && e.via === "ui") label = T.state.booked(p);
     items.push({
       date: e.date, actor, channel: reply ? VIA[e.via] : null,
-      title: reply ? C.replied(C.via[e.via] || "") : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
+      title: reply ? C.replied(C.via[e.via] || "", p) : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
       quote: reply ? e.text : null,
       note: reply ? (e.ignored ? C.ignored : `${C.understood} ${label.toLowerCase()}${e.source === "ai" && e.why ? `. ${e.why}` : ""}`)
         : e.ignored ? C.ignored : "",

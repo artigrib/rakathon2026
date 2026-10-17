@@ -199,6 +199,16 @@ export const T = {
     },
   },
 
+  // Patient card (components/card.js).
+  card: {
+    close: "Zavřít",
+    why: "Proč do programu",
+    age: "Věk",
+    lastCt: "Poslední CT hrudníku",
+    more: "Všechny důvody a CT vyšetření",
+    owner: { lost: "Ztrácí se, je na řadě sestra", nurse: "Je na řadě sestra", doctor: "Je na řadě lékař", system: "Hlídá systém", done: "Uzavřeno", out: "Mimo program" },
+  },
+
   // Communication timeline of one patient (components/comm.js).
   comm: {
     title: "Komunikace",
@@ -206,7 +216,7 @@ export const T = {
     sent: "Pozvánka odeslána",
     autoSent: (n) => `Připomínka podle plánu, ${n + 1}. pokus`,
     planned: (c) => `Naplánováno: ${c}`,
-    replied: (via) => `Odpověděl${via ? `, ${via}` : ""}`,
+    replied: (via, p) => `${g(p, "Odpověděl", "Odpověděla")}${via ? `, ${via}` : ""}`,
     via: { sms: "SMS", link: "přes odkaz", voice: "v hovoru", "voice-ai": "v hovoru s asistentem", ui: "zapsáno v ordinaci", whatsapp: "WhatsApp" },
     understood: "Systém zapsal:",
     softDeclined: "První odmítnutí, nabídneme znovu za 3 měsíce",

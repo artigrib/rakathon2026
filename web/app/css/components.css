@@ -46,8 +46,7 @@ main { padding-block: 40px 120px; }
 .row__main { display: grid; grid-template-columns: 11rem minmax(0, 1fr) auto; gap: 6px 20px; padding: 16px 0; align-items: start; }
 .who { border: 0; background: none; padding: 0; min-height: 32px; text-align: left; font-weight: 700; color: var(--ink);
   display: inline-flex; align-items: baseline; gap: 8px; }
-.who::after { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: translateY(-3px) rotate(45deg); }
-.who[aria-expanded="true"]::after { transform: translateY(1px) rotate(-135deg); }
+.who::after { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(-45deg); }
 .who:hover { text-decoration: underline; text-underline-offset: 4px; }
 .what b { display: block; font-weight: 600; }
 .what span { display: block; color: var(--ink-2); font-size: var(--t-s); margin-top: 2px; }
@@ -193,3 +192,29 @@ main.wrap { padding-bottom: 140px; }
 .search { display: flex; flex-direction: column; gap: 6px; max-width: 32rem; margin: 0 0 16px; font-size: var(--t-s); font-weight: 600; }
 .search input { min-height: var(--target); padding: 0 12px; border: 2px solid var(--ink); border-radius: 0; background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-m); font-weight: 400; }
 .search input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* ---------- patient card: side panel on desktop, full screen on a phone ---------- */
+.card-wrap { position: fixed; inset: 0; z-index: 30; background: rgba(20, 22, 24, .35); display: flex; justify-content: flex-end; }
+.card { width: min(680px, 100%); height: 100%; overflow-y: auto; background: var(--paper); border-left: 2px solid var(--rule);
+  padding: 0 28px 48px; box-shadow: -12px 0 32px rgba(0, 0, 0, .12); }
+.card__head { position: sticky; top: 0; z-index: 1; background: var(--paper); display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; padding: 22px 0 14px; border-bottom: 2px solid var(--rule); }
+.card__head h2 { font-size: var(--t-xl); line-height: 1.1; outline: none; }
+.card__owner { margin-top: 6px; color: var(--ink-2); font-size: var(--t-s); }
+.card__close { min-width: var(--target); min-height: var(--target); border: 2px solid var(--ink); background: var(--surface); font-size: var(--t-l); line-height: 1; cursor: pointer; }
+.card__now { padding: 18px 0 20px; border-bottom: 1px solid var(--hair); display: grid; gap: 6px; }
+.card__now b { font-size: var(--t-l); }
+.card__now > span { color: var(--ink-2); }
+.card__now .actions { justify-content: flex-start; margin-top: 10px; }
+.card__block { padding: 18px 0; border-bottom: 1px solid var(--hair); }
+.card__block h3 { font-size: var(--t-s); font-weight: 700; margin-bottom: 10px; text-transform: none; }
+.card .warn { margin: 14px 0 0; }
+.kv--wide { grid-template-columns: 11rem minmax(0, 1fr); }
+.card__more { padding: 16px 0; }
+.card__more summary { cursor: pointer; font-weight: 600; min-height: var(--target); display: flex; align-items: center; }
+.card__more h3 { font-size: var(--t-s); margin: 14px 0 6px; }
+.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+body.has-card { overflow: hidden; }
+@media (max-width: 860px) {
+  .card { width: 100%; border-left: 0; padding: 0 16px 40px; }
+  .kv--wide { grid-template-columns: 8.5rem minmax(0, 1fr); }
+}

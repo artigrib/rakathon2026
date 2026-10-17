@@ -16,7 +16,7 @@ const step = (id, ev, label, kind = "", extra = "") =>
   allowed(current, ev) ? btn(label, `data-action="step" data-stage="${ev}" data-id="${id}" ${extra}`, kind) : "";
 
 /** {title, sub}: what is going on with the patient, in plain words. */
-function describe(p, d, plan) {
+export function describe(p, d, plan) {
   if (stageOf(p) === "excluded") return { title: S.excluded(p) };
   const stage = stageOf(p);
   const ev = lastEvent(p, stage);
@@ -54,7 +54,7 @@ function describe(p, d, plan) {
   return { title: T.status[p.status] };
 }
 
-function actions(p, d) {
+export function actions(p, d) {
   const id = p.id;
   const stage = stageOf(p);
   if (stage === "excluded") return btn(A.include, `data-action="include" data-id="${id}"`, "link");
@@ -101,11 +101,10 @@ export function row(p, { composing, chosenChannel, plan, link, demo, open, outbo
   const showDemo = demo && stageOf(p) === "sent";
   return `<article class="row${d.skipped && taskOf(p) === "invite" ? " row--skipped" : ""}" id="pt-${p.id}">
     <div class="row__main">
-      <button type="button" class="who" data-action="toggle-detail" data-id="${p.id}" aria-expanded="${!!open}" title="${A.open}">${esc(T.who(p))}</button>
+      <button type="button" class="who" data-action="open-card" data-id="${p.id}" aria-haspopup="dialog" title="${A.open}">${esc(T.who(p))}</button>
       <div class="what">${why ? `<em class="lostwhy">${esc(why)}</em>` : ""}<b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}${showDemo ? demoReplies(p, link) : ""}</div>
       <div class="actions">${actions(p, d)}</div>
     </div>
-    ${composing ? compose(p, chosenChannel) : ""}
-    ${open ? detail(p, d, { plan, outbox }) : ""}
+    ${composing && !open ? compose(p, chosenChannel) : ""}
   </article>`;
 }
