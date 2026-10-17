@@ -19,5 +19,12 @@ export const api = {
   tick: (days = 1) => call("/api/tick", { days }),
   mark: (id, field, value) => call("/api/mark", { id, field, value }),
   fhirSync: () => call("/api/fhir/sync", {}),
+  recipient: () => call("/api/recipient"),
+  /** {ok:true, ...recipient} or {ok:false, error} with the server's Czech message (validation). */
+  setRecipient: async (phone, email) => {
+    const r = await fetch(API_BASE + "/api/recipient", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone, email }) });
+    const j = await r.json().catch(() => ({}));
+    return r.ok ? { ok: true, ...j } : { ok: false, error: j.detail || String(r.status) };
+  },
   patient: (id) => call(`/api/patient/${encodeURIComponent(id)}`),
 };

@@ -18,7 +18,7 @@ import logging
 import re
 from datetime import timedelta
 
-from . import agent_call, channels, fhir_sink, fsm, messages, tts
+from . import agent_call, channels, fhir_sink, fsm, messages, recipient, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import understand
@@ -170,6 +170,8 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
     text = messages.with_link(text, patient_link(pid), channel)
     real = ("sms", "voice", "whatsapp") + (("email",) if settings.email_live else ())
     live = budget[0] > 0 and channel in real
+    if live and _sent_today(channel, day) >= recipient.daily_limit():  # guard: anyone with the password can set a number
+        return {"id": pid, "sid": None, "live": False, "status": "daily_limit"}
     try:
         if channel == "voice":
             if live:  # generate the Czech audio before dialling, so the call starts without a pause
@@ -182,12 +184,39 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
         else:
             r = channels.send_sms(text, live)
     except Exception as e:  # a failed send is a delivery fact, not a crash
-        r = {"sid": None, "live": live, "to": settings.demo_to, "status": "failed", "error": str(e)}
+        r = {"sid": None, "live": live, "to": recipient.email() if channel == "email" else recipient.phone(),
+             "status": "failed", "error": str(e)}
     budget[0] -= int(r["live"])
     store.log(patient=pid, channel=channel, text=text, day=day, variant=variant, auto=auto, step=step, **r)
     extra = {"auto": True, "step": step} if auto else {}
     transition(pid, "send", day, channel=channel, variant=variant, live=r["live"], **extra)
     return {"id": pid, **r}
+
+
+def _sent_today(channel, day) -> int:
+    """Live sends today to the current demo recipient (phone channels count together; e-mail separately)."""
+    to = recipient.email() if channel == "email" else recipient.phone()
+    return sum(1 for m in store.data["outbox"] if m.get("live") and m.get("to") == to and m.get("day") == day)
+
+
+class RecipientRequest(BaseModel):
+    phone: str = ""
+    email: str = ""
+
+
+@app.get("/api/recipient")
+def get_recipient():
+    """Where live demo messages go (default recipient masked)."""
+    return recipient.public()
+
+
+@app.post("/api/recipient")
+def set_recipient(req: RecipientRequest):
+    """Presenter sets the test phone and e-mail in the demo panel; empty = default from .env."""
+    try:
+        return recipient.save(req.phone, req.email)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 class TickRequest(BaseModel):

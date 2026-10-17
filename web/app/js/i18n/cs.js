@@ -145,9 +145,20 @@ export const T = {
     replyText: { interested: "Ano, mám zájem", booked: "Už jsem objednaný", callback: "Zavolejte mi prosím", not_now: "Teď ne, děkuji" },
     openLink: "Stránka pacienta",
     reset: "Obnovit ukázková data",
+    to: {
+      title: "Kam posílat ukázku",
+      phone: "Telefon pro SMS, hovor a WhatsApp",
+      email: "E-mail",
+      save: "Uložit",
+      reset: "Výchozí kontakt",
+      hint: (r) => `Skutečné zprávy z ukázky jdou jen sem, nejvýše ${r.dailyLimit} za den. Povolená čísla: ${r.prefixes.join(", ")}.`
+        + (r.whatsappJoin ? ` Pro WhatsApp nejdřív pošlete zprávu „${r.whatsappJoin}“ na číslo ${r.whatsappFrom}.` : " Pro WhatsApp se číslo musí nejdřív připojit do sandboxu Twilio."),
+    },
   },
 
   toast: {
+    recipientSaved: "Uloženo. Ukázka teď posílá na zadaný kontakt.",
+    recipientReset: "Ukázka posílá zase na výchozí kontakt.",
     sent: (ch) => `Odesláno: ${ch}.`,
     draftSaved: "Uloženo do dávky.",
     approved: (n) => `Odesláno jménem ordinace: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,

@@ -1,8 +1,9 @@
 """Outbound channels. LIVE → Twilio REST; otherwise MOCK (recorded in the outbox, nothing is sent).
-All real traffic goes to settings.demo_to: the challenge data has synthetic phone numbers."""
+All real traffic goes to recipient.phone(): the challenge data has synthetic phone numbers."""
 from xml.sax.saxutils import escape
 
 from . import tts
+from . import recipient
 from .settings import settings
 
 
@@ -20,10 +21,10 @@ def send_sms(body: str, live: bool) -> dict:
         from .messages import sms_trial
         body = sms_trial()
     m = _client().messages.create(
-        to=settings.demo_to, from_=settings.from_number, body=body,
+        to=recipient.phone(), from_=settings.from_number, body=body,
         status_callback=f"{settings.public_url}/twilio/status",
     )
-    return {"sid": m.sid, "live": True, "to": settings.demo_to, "status": m.status}
+    return {"sid": m.sid, "live": True, "to": recipient.phone(), "status": m.status}
 
 
 def send_whatsapp(body: str, live: bool) -> dict:
@@ -31,22 +32,22 @@ def send_whatsapp(body: str, live: bool) -> dict:
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     m = _client().messages.create(
-        to=f"whatsapp:{settings.demo_to}", from_=f"whatsapp:{settings.whatsapp_from}", body=body,
+        to=f"whatsapp:{recipient.phone()}", from_=f"whatsapp:{settings.whatsapp_from}", body=body,
         status_callback=f"{settings.public_url}/twilio/status",
     )
-    return {"sid": m.sid, "live": True, "to": settings.demo_to, "status": m.status}
+    return {"sid": m.sid, "live": True, "to": recipient.phone(), "status": m.status}
 
 
 def start_call(patient_id: str, live: bool) -> dict:
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     c = _client().calls.create(
-        to=settings.demo_to, from_=settings.from_number,
+        to=recipient.phone(), from_=settings.from_number,
         url=f"{settings.public_url}/twilio/voice/{patient_id}",
         status_callback=f"{settings.public_url}/twilio/call-status/{patient_id}",
         status_callback_event=["completed"],
     )
-    return {"sid": c.sid, "live": True, "to": settings.demo_to, "status": c.status}
+    return {"sid": c.sid, "live": True, "to": recipient.phone(), "status": c.status}
 
 
 NO_ANSWER = "Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou."
@@ -104,7 +105,7 @@ def send_email(body: str, live: bool) -> dict:
     import json
     import urllib.request
     payload = {
-        "personalizations": [{"to": [{"email": settings.demo_email}]}],
+        "personalizations": [{"to": [{"email": recipient.email()}]}],
         "from": {"email": settings.email_from, "name": "Vaše ordinace"},
         "subject": EMAIL_SUBJECT,
         "content": [{"type": "text/plain", "value": body}],
@@ -112,7 +113,7 @@ def send_email(body: str, live: bool) -> dict:
     req = urllib.request.Request("https://api.sendgrid.com/v3/mail/send", data=json.dumps(payload).encode(),
                                  headers={"Authorization": f"Bearer {settings.sendgrid_key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as r:
-        return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": settings.demo_email, "status": "queued" if r.status == 202 else str(r.status)}
+        return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": recipient.email(), "status": "queued" if r.status == 202 else str(r.status)}
 
 
 def _smtp(body: str) -> dict:
@@ -122,11 +123,11 @@ def _smtp(body: str) -> dict:
     m = EmailMessage()
     m["Subject"] = EMAIL_SUBJECT
     m["From"] = formataddr(("Vaše ordinace", settings.email_from or settings.smtp_user))
-    m["To"] = settings.demo_email
+    m["To"] = recipient.email()
     m["Message-ID"] = make_msgid(domain="jsemvcas.cz")
     m.set_content(body)
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as s:
         s.starttls()
         s.login(settings.smtp_user, settings.smtp_password)
         s.send_message(m)
-    return {"sid": m["Message-ID"], "live": True, "to": settings.demo_email, "status": "sent"}
+    return {"sid": m["Message-ID"], "live": True, "to": recipient.email(), "status": "sent"}

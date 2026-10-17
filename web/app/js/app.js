@@ -18,6 +18,7 @@ import { toast, hideToast } from "./components/toast.js";
 const ui = { view: "tasks", gp: DEFAULT_GP, filter: "all", composing: null, chosenChannel: null, demoReplies: false, open: null };
 let data;
 let backend = null; // {mode, ai} when served by the backend; null = static page with local simulation
+let recipient = null; // demo recipient from /api/recipient (phone and e-mail for live sends)
 let seen = -1;
 const $ = (id) => document.getElementById(id);
 
@@ -39,7 +40,8 @@ function render() {
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${badge[v] ? ` <span class="due">${badge[v]}</span>` : ""}</button>`).join("");
   $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "doctor" ? doctor(ui, data, rowCtx)
     : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
-  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir });
+  const typing = document.activeElement?.closest?.("#demo") && document.activeElement.matches("input[type=tel], input[type=email]");
+  if (!typing) $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir, recipient, recipientError: ui.recipientError }); // keep what is being typed
   $("gp").value = ui.gp;
   const open = ui.open && find(ui.open);
   const a = document.activeElement; // keep keyboard focus inside the card across re-renders (polling, outbox load)
@@ -163,6 +165,15 @@ const actions = {
   exclude: async (el) => { await step(el.dataset.id, { stage: "exclude" }); await mark(el.dataset.id, "override", "EXCLUDED"); toast(T.toast.excluded, { undo: !backend }); },
   "toggle-replies": (el) => { ui.demoReplies = el.checked; },
   "fhir-sync": async () => { await api.fhirSync(); location.reload(); },
+  "recipient-save": async () => {
+    const r = await api.setRecipient($("rcp-phone").value, $("rcp-email").value);
+    ui.recipientError = r.ok ? "" : r.error;
+    if (r.ok) { recipient = r; toast(T.toast.recipientSaved, { undo: false }); }
+  },
+  "recipient-reset": async () => {
+    const r = await api.setRecipient("", "");
+    if (r.ok) { recipient = r; ui.recipientError = ""; toast(T.toast.recipientReset, { undo: false }); }
+  },
   tick: async () => {
     const r = await api.tick(1);
     await pull();
@@ -202,6 +213,7 @@ async function init() {
     return;
   }
   backend = await api.health();
+  if (backend) recipient = await api.recipient().catch(() => null); // where live demo messages go
   await loadMessages({ withLink: !!backend, trial: !!backend?.trial });
   await loadJourney();
   const gps = practices(data.patients);

@@ -271,8 +271,9 @@ def test_patient_messages_hide_phone_and_link_token(client):
     assert "to" not in o and "SECRETtok" not in o["text"] and o["ts"] and o["status"] == "delivered"
 
 
-def test_email_via_smtp(monkeypatch):
+def test_email_via_smtp(monkeypatch, tmp_path):
     import backend.channels as ch
+    from backend import recipient
     sent = {}
 
     class S:
@@ -285,7 +286,9 @@ def test_email_via_smtp(monkeypatch):
     import smtplib
     monkeypatch.setattr(smtplib, "SMTP", S)
     from dataclasses import replace
-    monkeypatch.setattr(ch, "settings", replace(ch.settings, smtp_host="smtp.gmail.com", smtp_user="a@gmail.com", smtp_password="x", demo_email="b@x.cz"))
+    monkeypatch.setattr(ch, "settings", replace(ch.settings, smtp_host="smtp.gmail.com", smtp_user="a@gmail.com", smtp_password="x"))
+    monkeypatch.setattr(recipient, "settings", replace(recipient.settings, demo_email="b@x.cz"))  # default recipient
+    monkeypatch.setattr(recipient, "_file", lambda: tmp_path / "recipient.json")
     r = ch.send_email("Dobrý den.", True)
     assert r["live"] and sent["to"] == "b@x.cz" and "Dobrý den." in sent["body"]
 
