@@ -21,7 +21,8 @@ state = {"sent": 0, "errors": 0, "last_error": None, "last": None}
 
 def _put(base, user, password, res):
     url = f"{base.rstrip('/')}/{res['resourceType']}/{res['id']}"
-    req = urllib.request.Request(url, data=json.dumps(res).encode(), method="PUT", headers={"Content-Type": "application/fhir+json"})
+    req = urllib.request.Request(url, data=json.dumps(res).encode(), method="PUT",
+                                 headers={"Content-Type": "application/fhir+json", "Accept": "application/fhir+json"})  # IRIS: 406 without Accept
     if user:
         req.add_header("Authorization", "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode())
     with urllib.request.urlopen(req, timeout=15) as r:

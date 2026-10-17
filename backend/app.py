@@ -208,6 +208,8 @@ def fhir_sync():
     res = fetch(settings.fhir_base, settings.fhir_user, settings.fhir_password)
     t = tables_from(res)
     out = build(write(t, ROOT / "data_fhir"), REF_DATE)
+    if not out["patients"]:  # an empty or unreachable server must not wipe the practice's patient list
+        raise HTTPException(409, f"FHIR server returned no patients ({len(res)} resources); run /api/fhir/push first")
     (WEB / "data/patients.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     load_patients()
     info = {"at": datetime_now(), "resources": len(res), "patients": len(out["patients"])}
@@ -226,7 +228,7 @@ def fhir_push():
     from .fhir import bundle
     b = bundle(ROOT / "data", REF_DATE, store.decisions())
     req = urllib.request.Request(settings.fhir_base, data=json.dumps(b).encode(), method="POST",
-                                 headers={"Content-Type": "application/fhir+json"})
+                                 headers={"Content-Type": "application/fhir+json", "Accept": "application/fhir+json"})  # IRIS: 406 without Accept
     if settings.fhir_user:
         req.add_header("Authorization", "Basic " + base64.b64encode(f"{settings.fhir_user}:{settings.fhir_password}".encode()).decode())
     with urllib.request.urlopen(req, timeout=120) as r:
