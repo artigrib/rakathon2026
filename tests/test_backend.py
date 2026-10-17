@@ -328,3 +328,11 @@ def test_delivery_status_keeps_the_message_channel(client):
     c.post("/twilio/status", data={"MessageSid": "SM_wa", "MessageStatus": "delivered"})
     e = store.get("P14")["journey"][-1]
     assert e["delivery"] == "delivered" and e["channel"] == "whatsapp"
+
+
+def test_marks_are_stored_on_the_server(client):
+    c, store = client
+    assert c.post("/api/mark", json={"id": "M1", "field": "skipped", "value": True}).status_code == 200
+    c.post("/api/mark", json={"id": "M1", "field": "draft", "value": {"channel": "sms", "text": "Ahoj"}})
+    assert store.get("M1")["skipped"] is True and store.get("M1")["draft"]["text"] == "Ahoj"
+    assert c.post("/api/mark", json={"id": "M1", "field": "stage", "value": "result"}).status_code == 400
