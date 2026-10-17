@@ -288,3 +288,35 @@ def test_email_via_smtp(monkeypatch):
     monkeypatch.setattr(ch, "settings", replace(ch.settings, smtp_host="smtp.gmail.com", smtp_user="a@gmail.com", smtp_password="x", demo_email="b@x.cz"))
     r = ch.send_email("Dobrý den.", True)
     assert r["live"] and sent["to"] == "b@x.cz" and "Dobrý den." in sent["body"]
+
+
+def test_agent_call_registers_with_elevenlabs_and_records_outcome(monkeypatch, client):
+    c, store = client
+    import backend.app as m
+    from dataclasses import replace
+    monkeypatch.setattr(m, "settings", replace(m.settings, voice_mode="agent"))
+    monkeypatch.setenv("ELEVENLABS_AGENT_ID", "agent_test")
+    seen = {}
+    monkeypatch.setattr(m.agent_call, "register", lambda pid, f, t: seen.update(pid=pid, f=f, t=t) or "<Response><Connect/></Response>")
+    monkeypatch.setattr(m.agent_call, "outcome", lambda sid, **k: {"intent": "interested", "text": "Ano, klidně", "when": "odpoledne",
+                                                                  "conversation_id": "conv_1"})
+    c.post("/api/send", json={"items": [{"id": "P12", "channel": "voice", "text": "Dobrý den."}]})
+    x = c.post("/twilio/voice/P12", data={"From": "+1980", "To": "+420111"}).text
+    assert "<Connect/>" in x and seen == {"pid": "P12", "f": "+1980", "t": "+420111"}
+    c.post("/twilio/call-status/P12", data={"CallSid": "CA1", "CallStatus": "completed", "CallDuration": "40"})
+    d = store.get("P12")
+    assert d["stage"] == "interested" and d["journey"][-1]["when"] == "odpoledne" and d["journey"][-1]["via"] == "voice-agent"
+
+
+def test_agent_unreachable_falls_back_to_scripted_call(monkeypatch, client):
+    c, _ = client
+    import backend.app as m
+    from dataclasses import replace
+    monkeypatch.setattr(m, "settings", replace(m.settings, voice_mode="agent"))
+    monkeypatch.setenv("ELEVENLABS_AGENT_ID", "agent_test")
+
+    def boom(*a):
+        raise OSError("down")
+    monkeypatch.setattr(m.agent_call, "register", boom)
+    c.post("/api/send", json={"items": [{"id": "P13", "channel": "voice", "text": "Dobrý den."}]})
+    assert "<Gather" in c.post("/twilio/voice/P13", data={"From": "+1", "To": "+2"}).text

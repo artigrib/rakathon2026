@@ -12,16 +12,20 @@ from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+import asyncio
 import json
+import logging
 import re
 from datetime import timedelta
 
-from . import channels, fhir_sink, fsm, messages, tts
+from . import agent_call, channels, fhir_sink, fsm, messages, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import understand
 from .settings import settings
 from .store import Store
+
+_rlog = logging.getLogger("uvicorn.error")  # voice turns and agent outcomes in the container log (no phone numbers)
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
@@ -320,7 +324,13 @@ async def sms_status(request: Request):
 
 @app.post("/twilio/voice/{pid}")
 async def voice(pid: str, request: Request):
-    await _form(request)
+    form = await _form(request)
+    if settings.voice_mode == "agent" and agent_call.agent_id():
+        try:  # outbound call: Twilio's From is our number, To is the patient
+            twiml = await asyncio.to_thread(agent_call.register, pid, form.get("From", ""), form.get("To", ""))
+            return Response(twiml, media_type="application/xml")
+        except Exception as e:  # noqa: BLE001 – agent unreachable: fall back to the scripted call below
+            _rlog.warning("agent %s register failed, scripted call instead: %s", pid, str(e)[:200])
     if settings.voice_mode == "relay" and settings.public_url:
         from .voice_ai import GREETING
         ws = settings.public_url.replace("https://", "wss://").replace("http://", "ws://") + f"/ws/relay/{pid}"
@@ -343,10 +353,13 @@ async def relay(ws: WebSocket, pid: str):
     """ConversationRelay: Twilio sends what the patient said, we answer with approved sentences."""
     from .voice_ai import Conversation
     await ws.accept()
+    _rlog.info("relay %s open", pid)
     conv = Conversation()
     try:
         while True:
             msg = await ws.receive_json()
+            _rlog.info("relay %s in %s %s", pid, msg.get("type"),
+                       {k: msg.get(k) for k in ("voicePrompt", "last", "digit", "utteranceUntilInterrupt", "durationUntilInterruptMs", "description") if k in msg})
             if msg.get("type") == "dtmf":
                 msg = {"type": "prompt", "voicePrompt": {"1": "ano", "2": "teď ne"}.get(msg.get("digit"), "")}
             if msg.get("type") != "prompt":
@@ -356,6 +369,7 @@ async def relay(ws: WebSocket, pid: str):
             reply, done, intent = conv.feed(said, understood)
             if intent:
                 _record_reply(pid, said, {**understood, "intent": intent}, "voice-ai")
+            _rlog.info("relay %s out intent=%s done=%s %r", pid, intent, done, reply)
             await ws.send_json({"type": "text", "token": reply, "last": True})
             if done:
                 await ws.send_json({"type": "end"})
@@ -371,7 +385,19 @@ async def call_status(pid: str, request: Request):
     store.outbox_update(form.get("CallSid"), status=st, duration=form.get("CallDuration"))
     if st in ("no-answer", "busy", "failed"):
         store.event(pid, None, today(), delivery="failed", channel="voice", note=st)
+    if st == "completed" and settings.voice_mode == "agent" and agent_call.agent_id():
+        asyncio.get_running_loop().create_task(_agent_outcome(pid, form.get("CallSid", "")))
     return Response(status_code=204)
+
+
+async def _agent_outcome(pid: str, call_sid: str):
+    """After an agent call: its decision → the same journey event as a reply (state machine, FHIR write-back)."""
+    o = await asyncio.to_thread(agent_call.outcome, call_sid)
+    _rlog.info("agent %s outcome %s", pid, {k: v for k, v in (o or {}).items() if k != "text"})
+    if not o:
+        return
+    _record_reply(pid, o["text"], {"intent": o["intent"], "why": f"hlasový asistent: {o['intent']}", "source": "elevenlabs-agent",
+                                   **({"when": o["when"]} if o["when"] else {})}, "voice-agent")
 
 
 # ---------- patient page (personal link from SMS / e-mail) ----------

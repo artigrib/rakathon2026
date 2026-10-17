@@ -46,7 +46,7 @@ class Settings:
     # The demo clock ("Další den") simulates by default; TICK_LIVE=1 lets automatic touches go out for real.
     tick_live: bool = os.getenv("TICK_LIVE", "0") == "1"
     voice_name: str = os.getenv("VOICE_NAME", "Google.cs-CZ-Standard-A")
-    voice_mode: str = os.getenv("VOICE_MODE", "gather")       # gather = read script + keys 1/2; relay = AI conversation
+    voice_mode: str = os.getenv("VOICE_MODE", "gather")       # gather = script + keys 1/2; relay = rules over ConversationRelay; agent = ElevenLabs voice agent
     voice_lang: str = os.getenv("VOICE_LANG", "cs-CZ")
     state_file: Path = Path(os.getenv("STATE_FILE", str(Path(__file__).with_name("state.json"))))
 
