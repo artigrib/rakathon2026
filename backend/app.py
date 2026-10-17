@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title="Plíce včas")
 
-OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health")  # Twilio, ElevenLabs and patients need these without a password
+OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt")  # Twilio, ElevenLabs and patients need these without a password
 
 
 @app.middleware("http")
@@ -502,4 +502,30 @@ def root():
     return RedirectResponse("/app/index.html")
 
 
+# Public project page (no password): the landing from submission/landing and the demo video.
+LANDING = ROOT / "submission" / "landing"
+LANDING_HEAD = ('<!doctype html><html lang="cs"><head><meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
+                '<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>')
+
+
+@app.get("/projekt")
+def projekt_redirect():
+    return RedirectResponse("/projekt/")
+
+
+@app.get("/projekt/")
+def projekt():
+    body = (LANDING / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(LANDING_HEAD + body + "</body></html>")
+
+
+@app.get("/projekt/demo.mp4")
+def projekt_video():
+    from fastapi.responses import FileResponse
+    return FileResponse(ROOT / "submission" / "demo.mp4", media_type="video/mp4")
+
+
+if LANDING.exists():
+    app.mount("/projekt", StaticFiles(directory=LANDING), name="landing")
 app.mount("/app", StaticFiles(directory=WEB, html=True), name="web")

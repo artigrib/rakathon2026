@@ -6,6 +6,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY engine engine
 COPY backend backend
 COPY web/app web/app
+COPY submission/landing submission/landing
+COPY submission/demo.mp4 submission/demo.mp4
 COPY data data
 ENV PORT=8000 STATE_FILE=/data/state.json TTS_CACHE=/data/audio
 VOLUME /data
