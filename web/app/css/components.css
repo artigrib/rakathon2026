@@ -189,3 +189,7 @@ main.wrap { padding-bottom: 140px; }
 .codes { list-style: none; margin: 6px 0 0; padding: 0; color: var(--ink-2); }
 .codes li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--hair); }
 .stats li.is-lost b, .stats li.is-lost div { color: var(--warn); }
+/* Patient search (Pacienti) */
+.search { display: flex; flex-direction: column; gap: 6px; max-width: 32rem; margin: 0 0 16px; font-size: var(--t-s); font-weight: 600; }
+.search input { min-height: var(--target); padding: 0 12px; border: 2px solid var(--ink); border-radius: 0; background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-m); font-weight: 400; }
+.search input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
