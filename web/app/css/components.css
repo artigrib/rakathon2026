@@ -1,15 +1,15 @@
 /* ---------- header: wordmark · navigation · practice ---------- */
 .top { border-bottom: 2px solid var(--rule); background: var(--paper); position: sticky; top: 0; z-index: 5; }
 .top .grid { align-items: end; padding-block: 18px 0; row-gap: 8px; }
-.mark { grid-column: span 4; padding-bottom: 14px; }
+.mark { grid-column: span 3; padding-bottom: 14px; }
 .mark b { display: block; font-size: var(--t-l); font-weight: 700; letter-spacing: -0.01em; }
 .mark span { font-size: var(--t-s); color: var(--ink-2); }
-.nav { grid-column: span 5; display: flex; gap: 28px; }
+.nav { grid-column: span 7; display: flex; gap: 24px; white-space: nowrap; }
 .nav button { border: 0; background: none; padding: 0 0 14px; min-height: var(--target); font-weight: 500; color: var(--ink-2);
   border-bottom: 4px solid transparent; margin-bottom: -2px; display: flex; align-items: flex-end; gap: 6px; }
 .nav button[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 700; }
 .nav .due { color: var(--accent); font-weight: 700; }
-.practice { grid-column: span 3; justify-self: end; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: var(--t-s); color: var(--ink-2); }
+.practice { grid-column: span 2; justify-self: end; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: var(--t-s); color: var(--ink-2); }
 .practice select { min-height: 40px; border: 0; border-bottom: 2px solid var(--ink); background: transparent; color: var(--ink); font-weight: 600; font-size: var(--t-m); padding: 0 4px; border-radius: 0; }
 
 main { padding-block: 40px 120px; }
@@ -185,3 +185,7 @@ main.wrap { padding-bottom: 140px; }
 .summary .is-lost { color: var(--warn); }
 .section--lost .count.is-due { color: var(--warn); }
 .lostwhy { display: block; font-style: normal; font-weight: 600; color: var(--warn); margin-bottom: 2px; }
+.kv--codes dd b { font-size: var(--t-l); }
+.codes { list-style: none; margin: 6px 0 0; padding: 0; color: var(--ink-2); }
+.codes li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--hair); }
+.stats li.is-lost b, .stats li.is-lost div { color: var(--warn); }

@@ -32,13 +32,20 @@ export function tasks(ui, data, rowCtx) {
   const inProgramme = mine.filter((p) => stageOf(p) || taskOf(p));
   const sys = mine.filter((p) => stageOf(p) && sectionOf(stageOf(p)) === "waiting" && !lost.has(p.id)).length;
   const done = mine.filter((p) => stageOf(p) && phaseOf(p) === "done").length;
-  const yours = inProgramme.length - sys - done - lost.size;
-  const summary = `<p class="summary">${T.summary(inProgramme.length, yours, sys, done, lost.size)}</p>`;
+  const doc = mine.filter((p) => taskOf(p) === "doctor" && !lost.has(p.id)).length;
+  const yours = inProgramme.length - sys - done - lost.size - doc;
+  const summary = `<p class="summary">${T.summary(inProgramme.length, yours, doc, sys, done, lost.size)}</p>`;
 
   const sections = SECTIONS.map((s) => {
     const rows = by[s].sort((a, b) => (ORDER[stageOf(a)] ?? 9) - (ORDER[stageOf(b)] ?? 9));
     const due = s === "invite" ? batchOf(rows).length : rows.length;
     const S = T.sections[s];
+    if (s === "doctor") { // the doctor's decisions live on their own screen; the nurse sees only that they wait
+      return rows.length ? `<section class="section grid section--quiet" aria-labelledby="h-doctor">
+        <div class="section__aside"><span class="count">${rows.length}</span><h2 id="h-doctor">${S.title}</h2></div>
+        <div class="section__body"><p class="empty">${T.doctor.waiting(rows.length)} <button type="button" class="btn btn--link" data-action="pick-view" data-view="doctor">${T.nav.doctor}</button></p></div>
+      </section>` : "";
+    }
     return `<section class="section grid" aria-labelledby="h-${s}">
       <div class="section__aside">
         <span class="count${due ? " is-due" : ""}">${due}</span>
@@ -66,4 +73,5 @@ export function tasks(ui, data, rowCtx) {
 }
 
 /** Number of things waiting for the practice (shown in the navigation). */
-export const taskCount = (mine, clock, plans) => mine.filter((p) => (taskOf(p) && taskOf(p) !== "invite") || (!taskOf(p) && lostOf(p, clock, plans))).length + batchOf(mine).length;
+export const taskCount = (mine, clock, plans) => mine.filter((p) => (taskOf(p) && taskOf(p) !== "invite" && taskOf(p) !== "doctor")
+  || (!taskOf(p) && lostOf(p, clock, plans))).length + batchOf(mine).length;

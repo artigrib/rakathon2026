@@ -9,6 +9,7 @@ import { loadJourney, refusals } from "./fsm.js";
 import { tasks, taskCount } from "./views/tasks.js";
 import { patients } from "./views/patients.js";
 import { overview } from "./views/overview.js";
+import { doctor, doctorCount } from "./views/doctor.js";
 import { demoPanel } from "./components/demo.js";
 import { toast, hideToast } from "./components/toast.js";
 
@@ -29,9 +30,12 @@ const rowCtx = {
 function render() {
   const mine = data.patients.filter((p) => p.gp === ui.gp);
   const due = taskCount(mine, today(), data.live?.plans);
-  $("nav").innerHTML = ["tasks", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
-    ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${v === "tasks" && due ? ` <span class="due">${due}</span>` : ""}</button>`).join("");
-  $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
+  const docDue = doctorCount(mine);
+  const badge = { tasks: due, doctor: docDue };
+  $("nav").innerHTML = ["tasks", "doctor", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
+    ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${badge[v] ? ` <span class="due">${badge[v]}</span>` : ""}</button>`).join("");
+  $("view").innerHTML = ui.view === "tasks" ? tasks(ui, data, rowCtx) : ui.view === "doctor" ? doctor(ui, data, rowCtx)
+    : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
   $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir });
   $("gp").value = ui.gp;
 }

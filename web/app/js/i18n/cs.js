@@ -4,7 +4,7 @@ const pl = (n, one, few, many) => (n === 1 ? one : n >= 2 && n <= 4 ? few : many
 export const plural = pl;
 
 export const T = {
-  nav: { tasks: "Úkoly", patients: "Pacienti", overview: "Přehled programu" },
+  nav: { tasks: "Úkoly", doctor: "Pro lékaře", patients: "Pacienti", overview: "Přehled" },
 
   tasks: {
     title: "Tento týden",
@@ -23,8 +23,22 @@ export const T = {
     hint: "U pacienta můžete před odesláním změnit kanál nebo text, nebo ho vynechat.",
   },
 
+  doctor: {
+    title: "Pro lékaře",
+    sub: (from, to) => `Rozhodnutí a výkony za týden ${from} až ${to}`,
+    decide: "Rozhodnout o zařazení",
+    results: "Výsledky k posouzení",
+    codes: "Vykázat tento týden",
+    c96: "01196 předán k pneumologovi",
+    c97: "01197 odmítá účast",
+    programme: "Program v ordinaci",
+    eligible: "Splňují kritéria", invited: "Pozváni", replied: "Ozvali se", referred: "Předáni k pneumologovi", ldct: "LDCT proběhlo", lost: "Ztrácejí se",
+    none: "Nic nečeká.",
+    waiting: (n) => `${n} ${n === 1 ? "pacient čeká" : n < 5 ? "pacienti čekají" : "pacientů čeká"} na rozhodnutí lékaře.`,
+  },
+
   // Above the sections: everyone in the programme has an owner and a next step.
-  summary: (all, yours, sys, done, lost) => `${all} v programu: ${yours} čeká na vás, ${sys} hlídá systém, ${done} uzavřeno, ` +
+  summary: (all, yours, doc, sys, done, lost) => `${all} v programu: ${yours} čeká na vás, ${doc} na lékaře, ${sys} hlídá systém, ${done} uzavřeno, ` +
     (lost ? `<b class="is-lost">${lost} se ztrácí</b>` : "<b>nikdo se neztrácí</b>"),
   lost: {
     booked: (n) => `Předán k pneumologovi před ${n} dny, výsledek LDCT chybí. Zavolejte pacientovi.`,
