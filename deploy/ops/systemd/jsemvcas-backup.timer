@@ -1,0 +1,10 @@
+[Unit]
+Description=Jsem včas: nightly backup of app state and .env (timer)
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+Persistent=true
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target

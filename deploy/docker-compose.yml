@@ -1,5 +1,10 @@
 # VPS: app + Cloudflare Tunnel (HTTPS without opening ports). Set TUNNEL_TOKEN in backend/.env,
 # or delete the tunnel service and put Caddy / nginx in front of :8000.
+# Long-term operation (backups, health alerts, auto-deploy): deploy/OPERATIONS.md
+x-logging: &logging   # json-file logs are unbounded by default; the VPS disk is small
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
 services:
   app:
     build: ..
@@ -7,13 +12,17 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     volumes: ["plice-data:/data"]
     restart: unless-stopped
-    extra_hosts: ["host.docker.internal:host-gateway"]   # FHIR server (IRIS) running on the host: FHIR_BASE=http://host.docker.internal:32783/fhir/r4
+    logging: *logging
+    # FHIR server (IRIS): joins this compose network (deploy_default), FHIR_BASE=http://fhir-template:52773/fhir/r4.
+    # On a host without that, host.docker.internal:32783 works when IRIS publishes on all interfaces.
+    extra_hosts: ["host.docker.internal:host-gateway"]
   tunnel:
     image: cloudflare/cloudflared:2024.12.2
     command: tunnel --no-autoupdate run
     env_file: ../backend/.env   # needs TUNNEL_TOKEN=…
     depends_on: [app]
     restart: unless-stopped
+    logging: *logging
     profiles: ["tunnel"]
 volumes:
   plice-data:

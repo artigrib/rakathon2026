@@ -1,0 +1,9 @@
+[Unit]
+Description=Jsem včas: deploy new commits from origin/main
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=REPO=/root/rakathon2026
+ExecStart=/root/rakathon2026/deploy/ops/autodeploy.sh
