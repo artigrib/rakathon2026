@@ -66,14 +66,14 @@ function actions(p, d) {
     case "not_now": // waiting: the patient may call the practice, or the nurse wants to try again now
       return step(id, "interested", A.interested, "link") + btn(A.again, `data-action="open-compose" data-id="${id}"`, "link");
     case "declined":
-      return step(id, "interested", A.changedMind, "link");
+      return step(id, "interested", A.changedMind(p), "link");
     case "result":
       return d.result !== "negative" && !d.resultAck ? btn(A.ack, `data-action="ack" data-id="${id}"`) : "";
     case "callback":
     case "nurse_call":
       return step(id, "interested", A.interested, "primary") + step(id, "declined", A.declined) + step(id, "not_now", A.unreachable, "link");
     case "booked":
-      return step(id, "ldct", A.ldct, "primary") + step(id, "no_show", A.noShow, "link");
+      return step(id, "ldct", A.ldct, "primary") + step(id, "no_show", A.noShow(p), "link");
     case "ldct":
       return Object.entries(A.result).map(([k, label]) => step(id, "result", label, "", `data-result="${k}"`)).join("");
   }
