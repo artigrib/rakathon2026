@@ -12,3 +12,4 @@ examples/run_result.json
 examples/fhir_bundle.json
 submission/*.webm
 data_fhir/
+*.log
