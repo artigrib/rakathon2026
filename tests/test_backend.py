@@ -320,3 +320,11 @@ def test_agent_unreachable_falls_back_to_scripted_call(monkeypatch, client):
     monkeypatch.setattr(m.agent_call, "register", boom)
     c.post("/api/send", json={"items": [{"id": "P13", "channel": "voice", "text": "Dobrý den."}]})
     assert "<Gather" in c.post("/twilio/voice/P13", data={"From": "+1", "To": "+2"}).text
+
+
+def test_delivery_status_keeps_the_message_channel(client):
+    c, store = client
+    store.data["outbox"].append({"patient": "P14", "channel": "whatsapp", "sid": "SM_wa", "text": "x"})
+    c.post("/twilio/status", data={"MessageSid": "SM_wa", "MessageStatus": "delivered"})
+    e = store.get("P14")["journey"][-1]
+    assert e["delivery"] == "delivered" and e["channel"] == "whatsapp"

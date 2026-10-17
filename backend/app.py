@@ -318,7 +318,7 @@ async def sms_status(request: Request):
     form = await _form(request)
     m = store.outbox_update(form.get("MessageSid"), status=form.get("MessageStatus"))
     if m and form.get("MessageStatus") in ("delivered", "failed", "undelivered"):
-        store.event(m["patient"], None, today(), delivery=form["MessageStatus"], channel="sms")
+        store.event(m["patient"], None, today(), delivery=form["MessageStatus"], channel=m.get("channel") or "sms")  # SMS and WhatsApp share this callback
     return Response(status_code=204)
 
 
