@@ -1,6 +1,6 @@
-<title>Plíce včas</title>
+<title>Jsem včas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Plíce včas najde pacienty pro screening plic, osloví je jménem praktického lékaře a pohlídá, aby došli až k výsledku LDCT. Rakathon 2026.">
+<meta name="description" content="Jsem včas najde pacienty pro screening plic, osloví je jménem praktického lékaře a pohlídá, aby došli až k výsledku LDCT. Rakathon 2026.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -55,6 +55,8 @@ a:focus-visible, video:focus-visible, button:focus-visible { outline: 3px solid 
 /* hero */
 .hero .wrap { padding-block: 56px 48px; display: grid; gap: 40px; }
 .hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.12; max-width: 22ch; }
+.hero .origin { font-size: var(--t-s); line-height: 1.5; max-width: 62ch; color: var(--ink-2); margin: 8px 0 20px; }
+.hero .origin a, .hero .label a { color: inherit; }
 .hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 46ch; color: var(--ink-2); }
 .versus { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; border-top: 1px solid var(--hair); padding-top: 20px; }
 .versus div { display: grid; gap: 4px; min-width: 0; }
@@ -174,7 +176,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
 
 <header class="top">
   <div class="wrap">
-    <span class="brand">Plíce včas</span>
+    <span class="brand">Jsem včas</span>
     <nav aria-label="Obsah">
       <a href="#co-dela">Co dělá</a>
       <a href="#ukazka">Ukázka</a>
@@ -189,12 +191,13 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
 <main>
 <section class="hero" aria-labelledby="h-hero">
   <div class="wrap">
-    <p class="label">Rakathon 2026 · výzva Cesta ke screeningu plic · AstraZeneca</p>
+    <p class="label"><a href="https://www.rakathon.cz/">Rakathon 2026</a> · výzva Plíce včas · AstraZeneca</p>
+    <p class="origin">Jsem včas vznikl na <a href="https://www.rakathon.cz/">Rakathonu 2026</a> v&nbsp;rámci výzvy č.&nbsp;7 společnosti AstraZeneca „Plíce včas: chytrá cesta k&nbsp;prevenci“: najít v&nbsp;datech pacienty pro program Prevence pro plíce, vyloučit ty, kteří měli v&nbsp;posledním měsíci CT hrudníku, a&nbsp;srozumitelně je informovat, že se mohou obrátit na svého praktického lékaře nebo pneumologa.</p>
     <h1 id="h-hero">Program Prevence pro plíce funguje. Jen se k&nbsp;němu lidé nedostanou.</h1>
-    <p class="lead">Plíce včas najde v datech praktického lékaře pacienty pro screening plic, osloví je jménem ordinace a pohlídá, aby došli až k&nbsp;výsledku LDCT.</p>
+    <p class="lead">Jsem včas najde v datech praktického lékaře pacienty pro screening plic, osloví je jménem ordinace a pohlídá, aby došli až k&nbsp;výsledku LDCT.</p>
     <div class="versus" aria-label="Oslovení vhodní pacienti v datech výzvy">
       <div class="now"><b>18</b><span>vhodných pacientů by dnes oslovila ordinace, odhad podle celostátních 18&nbsp;%</span></div>
-      <div class="us"><b>101</b><span>vhodných pacientů osloví s&nbsp;Plíce&nbsp;včas, tedy všechny</span></div>
+      <div class="us"><b>101</b><span>vhodných pacientů osloví s&nbsp;Jsem&nbsp;včas, tedy všechny</span></div>
     </div>
     <ul class="facts">
       <li><b>51&nbsp;%</b><span>nádorů zachycených screeningem je ve stadiu&nbsp;1</span></li>
@@ -255,7 +258,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
           <figcaption>Pro lékaře. Jen rozhodnutí o zařazení, výsledky k převzetí a kódy 01196 a 01197 k vykázání.</figcaption>
         </figure>
         <figure>
-          <img src="img/program.jpg" alt="Přehled programu: dnes osloveno 18, s&nbsp;Plíce&nbsp;včas 101; odesláno k pneumologovi 10 oproti 55" width="1920" height="1200" loading="lazy">
+          <img src="img/program.jpg" alt="Přehled programu: dnes osloveno 18, s&nbsp;Jsem&nbsp;včas 101; odesláno k pneumologovi 10 oproti 55" width="1920" height="1200" loading="lazy">
           <figcaption>Přehled programu. Dopad v datech výzvy a cesta od dat k výsledku.</figcaption>
         </figure>
       </div>
@@ -308,7 +311,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
   <div class="wrap">
     <div class="aside"><p class="label">InterSystems</p><h2 id="h-data">FHIR a IRIS oběma směry</h2></div>
     <div class="body">
-      <div class="loop" role="img" aria-label="Data ordinace se nahrají do InterSystems IRIS jako FHIR R4, Plíce včas je čte zpět a každý krok zapisuje zpět. Výsledky z pneumologického centra jsou další krok.">
+      <div class="loop" role="img" aria-label="Data ordinace se nahrají do InterSystems IRIS jako FHIR R4, Jsem včas je čte zpět a každý krok zapisuje zpět. Výsledky z pneumologického centra jsou další krok.">
         <div class="node">
           <h3>Systém praktika</h3>
           <ul><li>kartotéka (NIS)</li><li>CSV a XLSX z výzvy</li><li>historie kontaktů</li></ul>
@@ -320,7 +323,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
         </div>
         <div class="arrows" aria-hidden="true"><span><i class="r"></i>čtení</span><span><i class="l"></i>zápis kroků</span></div>
         <div class="node">
-          <h3>Plíce včas</h3>
+          <h3>Jsem včas</h3>
           <ul><li>stejný engine nad daty z FHIR</li><li>každý krok zpět jako Communication a Task</li></ul>
         </div>
       </div>
@@ -412,7 +415,7 @@ footer .wrap { padding-block: 24px 40px; display: flex; flex-wrap: wrap; justify
 
 <footer>
   <div class="wrap">
-    <span>Plíce včas · Rakathon 2026 · data výzvy jsou syntetická, v ukázce bez skutečných pacientů</span>
+    <span>Jsem včas · Rakathon 2026 · data výzvy jsou syntetická, v ukázce bez skutečných pacientů</span>
     <a href="https://github.com/artigrib/rakathon2026">Zdrojový kód na GitHubu</a>
   </div>
 </footer>
