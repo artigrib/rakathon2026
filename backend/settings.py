@@ -6,6 +6,8 @@ from pathlib import Path
 
 def _env_file():
     p = Path(__file__).with_name(".env")
+    if os.getenv("PLICE_SKIP_ENV_FILE") == "1":  # tests: never read the server's real keys, password or FHIR server
+        return
     if p.exists():
         for line in p.read_text(encoding="utf-8").splitlines():
             if line.strip() and not line.lstrip().startswith("#") and "=" in line:

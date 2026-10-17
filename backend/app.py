@@ -344,10 +344,12 @@ def _apply_reply(pid, text, via, day=None):
 @app.post("/twilio/sms")
 async def inbound_sms(request: Request):
     form = await _form(request)
-    pid = store.last_contacted((form.get("From") or "").replace("whatsapp:", ""))  # SMS and WhatsApp share this webhook
+    sender = form.get("From") or ""
+    via = "whatsapp" if sender.startswith("whatsapp:") else "sms"  # SMS and WhatsApp share this webhook
+    pid = store.last_contacted(sender.replace("whatsapp:", ""), via)
     reply = ""
     if pid:
-        d = _apply_reply(pid, form.get("Body", ""), "sms")
+        d = _apply_reply(pid, form.get("Body", ""), via)
         last = d["journey"][-1]
         reply = "" if last.get("ignored") else messages.sms_reply(last.get("intent"), d["stage"])
     body = f"<Message>{escape(reply)}</Message>" if reply else ""

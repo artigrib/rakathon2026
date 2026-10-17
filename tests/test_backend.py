@@ -352,3 +352,18 @@ def test_password_protects_app_but_not_webhooks(client, monkeypatch):
     bad = {"Authorization": "Basic " + base64.b64encode(b"plice:spatne").decode()}
     assert c.get("/api/state", headers=good).status_code == 200
     assert c.get("/api/state", headers=bad).status_code == 401
+
+
+def test_whatsapp_reply_goes_to_the_whatsapp_patient_not_the_last_call(client):
+    c, store = client
+    store.data["outbox"] += [
+        {"patient": "P15", "channel": "whatsapp", "to": "+420777", "live": True, "sid": "SM1"},
+        {"patient": "P16", "channel": "voice", "to": "+420777", "live": True, "sid": "CA1"},
+        {"patient": "P17", "channel": "sms", "to": "+420777", "live": True, "sid": "SM2"},
+    ]
+    for pid in ("P15", "P16", "P17"):
+        c.post("/api/send", json={"items": [{"id": pid, "channel": "sms", "text": "x"}]})
+    c.post("/twilio/sms", data={"From": "whatsapp:+420777", "Body": "Ano"})
+    e = store.get("P15")["journey"][-1]
+    assert store.get("P15")["stage"] == "interested" and e["via"] == "whatsapp"
+    assert store.get("P16")["stage"] != "interested"

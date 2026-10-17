@@ -68,12 +68,14 @@ class Store:
                     return m
         return None
 
-    def last_contacted(self, phone):
-        """Inbound SMS → patient: the latest real message we sent to that number."""
-        for m in reversed(self.data["outbox"]):
-            if m.get("to") == phone and m.get("live"):
+    def last_contacted(self, phone, channel=None):
+        """Inbound SMS / WhatsApp → patient: the latest real message we sent to that number on that channel
+        (in the demo every patient has the same phone, so a WhatsApp reply must not land on the last SMS or call)."""
+        live = [m for m in reversed(self.data["outbox"]) if m.get("to") == phone and m.get("live")]
+        for m in live:
+            if channel is None or m.get("channel") == channel:
                 return m.get("patient")
-        return None
+        return next((m.get("patient") for m in live if m.get("channel") != "voice"), None)
 
     def token(self, pid):
         """Opaque per-patient token for the personal link (no patient id in the URL)."""
