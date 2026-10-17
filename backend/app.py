@@ -20,7 +20,7 @@ import logging
 import re
 from datetime import timedelta
 
-from . import agent_call, channels, ctx, fhir_sink, fsm, messages, recipient, sessions, tts
+from . import agent_call, channels, ctx, fhir_sink, fsm, hall, messages, recipient, sessions, tts
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import next_touch
 from .replies import understand
@@ -33,8 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title="Jsem včas")
 
-OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/")  # Twilio, ElevenLabs and patients need these without a password
-OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout"}  # public pages (exact: "/" as a prefix would open everything)
+OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/", "/j/")  # Twilio, ElevenLabs and patients need these without a password
+OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout", "/centra", "/prevence"}  # public pages (exact: "/" as a prefix would open everything)
 
 # ---------- demo state per visitor ----------
 # A signed-in visitor (/login: access code + own phone and e-mail) gets their own demo: their own patient journeys,
@@ -417,6 +417,10 @@ async def inbound_sms(request: Request):
     form = await _form(request)
     sender = form.get("From") or ""
     via = "whatsapp" if sender.startswith("whatsapp:") else "sms"  # SMS and WhatsApp share this webhook
+    hall_reply = hall.inbound(sender.replace("whatsapp:", ""), form.get("Body", "")) if via == "sms" else None
+    if hall_reply is not None:  # someone from the hall demo answered the SMS after a missed call
+        body = f"<Message>{escape(hall_reply)}</Message>" if hall_reply else ""
+        return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
     if _current.get() is None:  # a reply from a visitor's phone belongs to their demo
         token, sess = sessions.by_phone(sender.replace("whatsapp:", ""))
         if sess:
@@ -572,6 +576,112 @@ def patient_answer(token: str, answer: str = Form(...)):
 
 
 # ---------- web app (same origin → no CORS) ----------
+# ---------- Ukázka v sále: the audience joins by QR code, the presenter calls everybody (hall.py) ----------
+HALL_PAGE = Template((Path(__file__).with_name("templates") / "hall.html").read_text(encoding="utf-8"))
+HALL_JOIN = Template((Path(__file__).with_name("templates") / "hall_join.html").read_text(encoding="utf-8"))
+
+
+@app.get("/centra")
+def short_centres():
+    return RedirectResponse(PNEU_LIST)
+
+
+@app.get("/prevence")
+def short_info():
+    return RedirectResponse("https://www.prevenceproplice.cz")
+
+
+@app.get("/sal")
+def hall_page():
+    from html import escape as h
+    return HTMLResponse(HALL_PAGE.safe_substitute(**{"from": h(settings.from_number)}))
+
+
+@app.get("/api/hall")
+def hall_state():
+    ev = hall.current()
+    return {**hall.public(ev), "qr": hall.qr_svg(hall.public(ev)["joinUrl"])}
+
+
+@app.post("/api/hall/new")
+def hall_new():
+    return hall.public(hall.new_event())
+
+
+@app.post("/api/hall/call")
+def hall_call():
+    if not settings.live:
+        raise HTTPException(409, "Twilio není nastavené, hovory nejdou naostro.")
+    return {"calling": hall.call_all(hall.current()["id"])}
+
+
+def _join_page(content: str, status: int = 200):
+    return HTMLResponse(HALL_JOIN.safe_substitute(content=content), status_code=status)
+
+
+def _join_form(eid: str, error: str = "", phone: str = "", email: str = "", status: int = 200):
+    from html import escape as h
+    err = f'<p class="err" role="alert">{h(error)}</p>' if error else ""
+    return _join_page(f"""
+<h1>Zapojte se do ukázky</h1>
+<p>Představte si, že jste pacient praktického lékaře. Za chvíli Vám zavolá hlasový asistent ordinace z čísla {h(settings.from_number)}.
+Když hovor nevezmete, pošleme SMS s odkazy na pracoviště, kde se dá vyšetření udělat.</p>
+{err}
+<form method="post" action="/j/{h(eid)}">
+  <label>Telefon<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+420 601 234 567" required value="{h(phone)}"></label>
+  <label>E-mail (nepovinné)<input name="email" type="email" autocomplete="email" value="{h(email)}"></label>
+  <label class="check"><input type="checkbox" name="consent" value="1" required>
+    <span>Souhlasím, že mi v rámci ukázky zavoláte a pošlete SMS, případně e-mail. Kontakty smažeme nejpozději do 2 dnů.</span></label>
+  <button type="submit">Zapojit se</button>
+</form>
+<p class="muted">Jen česká čísla. Ukázka je zdarma.</p>""", status)
+
+
+@app.get("/j/{eid}")
+def hall_join_form(eid: str):
+    ev = hall.get(eid)
+    if not hall.is_open(ev) or ev["id"] != hall.current()["id"]:
+        return _join_page("<h1>Tato ukázka už skončila</h1><p>Děkujeme za zájem.</p>", 404)
+    return _join_form(eid)
+
+
+@app.post("/j/{eid}")
+async def hall_join(eid: str, request: Request):
+    from html import escape as h
+    f = await request.form()
+    phone, email = str(f.get("phone", "")).strip(), str(f.get("email", "")).strip()
+    if not f.get("consent"):
+        return _join_form(eid, "Bez souhlasu Vám nemůžeme zavolat.", phone, email, 400)
+    try:
+        p = hall.join(eid, phone, email)
+    except ValueError as e:
+        return _join_form(eid, str(e), phone, email, 400)
+    return _join_page(f"""
+<h1>Hotovo, jste zapojeni</h1>
+<div class="big">{p["n"]}</div>
+<p>Až přednášející spustí hovory, zavolá Vám číslo {h(settings.from_number)}. Zvedněte ho a odpovězte ano nebo ne.</p>
+<p class="muted">Když hovor nevezmete, přijde SMS.</p>""")
+
+
+@app.post("/twilio/hall/voice/{eid}/{n}")
+async def hall_voice(eid: str, n: int, request: Request):
+    await _form(request)
+    return Response(hall.voice_twiml(eid, n), media_type="application/xml")
+
+
+@app.post("/twilio/hall/answer/{eid}/{n}")
+async def hall_answer(eid: str, n: int, request: Request):
+    form = await _form(request)
+    return Response(hall.answer(eid, n, form.get("Digits") or form.get("SpeechResult") or ""), media_type="application/xml")
+
+
+@app.post("/twilio/hall/status/{eid}/{n}")
+async def hall_status(eid: str, n: int, request: Request):
+    form = await _form(request)
+    await asyncio.to_thread(hall.call_status, eid, n, form.get("CallStatus", ""))
+    return Response(status_code=204)
+
+
 # ---------- sign-in: access code + the visitor's own phone and e-mail ----------
 LOGIN = Template((Path(__file__).with_name("templates") / "login.html").read_text(encoding="utf-8"))
 

@@ -145,6 +145,7 @@ export const T = {
     replyText: { interested: "Ano, mám zájem", booked: "Už jsem objednaný", callback: "Zavolejte mi prosím", not_now: "Teď ne, děkuji" },
     openLink: "Stránka pacienta",
     reset: "Obnovit ukázková data",
+    hall: "Ukázka v sále s QR kódem",
     to: {
       title: "Kam posílat ukázku",
       phone: "Telefon pro SMS, hovor a WhatsApp",

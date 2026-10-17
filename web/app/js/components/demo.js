@@ -22,6 +22,7 @@ export function demoPanel({ replies, clock, fhir, recipient, recipientError }) {
   return `<summary>${T.demo.title}</summary>
     <div class="demo__body">
       <p>${T.demo.intro}</p>
+      ${recipient ? `<a class="btn" href="/sal" target="_blank" rel="noopener">${T.demo.hall}</a>` : ""}
       ${recipient ? recipientForm(recipient, recipientError) : ""}
       ${clock ? `<div><b>${T.demo.clock(fmtDate(clock))}</b></div>
         <button type="button" class="btn" data-action="tick">${T.demo.next}</button>` : ""}

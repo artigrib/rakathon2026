@@ -42,5 +42,11 @@
     "callback": "Děkujeme. Sestra z ordinace Vám zavolá.",
     "not_now": "Rozumíme, děkujeme. Ozveme se později.",
     "declined": "Rozumíme, děkujeme za odpověď."
+  },
+  "hall": {
+    "_about": "Ukázka v sále (backend/hall.py): když účastník nezvedne hovor, dostane SMS a případně e-mail. Krátké odkazy jsemvcas.cz/centra (seznam center VZP) a jsemvcas.cz/prevence (prevenceproplice.cz) šetří délku SMS.",
+    "sms": "Dobrý den, volali jsme kvůli bezplatnému vyšetření plic. Objednat se můžete i sami u plicního lékaře, bez doporučení: {centres} Info: {info} Zájem? Odpovězte ANO. Jsem včas",
+    "email_subject": "Bezplatné preventivní vyšetření plic",
+    "email": "Dobrý den,\n\nzkoušeli jsme Vám zavolat kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké a bezplatné vyšetření plic s nízkou dávkou záření.\n\nObjednat se můžete i sami přímo u plicního lékaře, doporučení nepotřebujete.\n\nSeznam pracovišť programu: {centres}\nVíce o programu: {info}\n\nTuto zprávu jste dostali, protože jste se zapojili do ukázky projektu Jsem včas."
   }
 }

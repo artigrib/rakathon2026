@@ -96,16 +96,16 @@ def _relay_voice() -> str:
 EMAIL_SUBJECT = "Preventivní vyšetření plic"
 
 
-def send_email(body: str, live: bool) -> dict:
+def send_email(body: str, live: bool, to: str = "") -> dict:
     """Plain-text e-mail through the SendGrid v3 API (Twilio SendGrid). Replies come back through the patient link."""
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     if settings.smtp_host:
-        return _smtp(body)
+        return _smtp(body, to)
     import json
     import urllib.request
     payload = {
-        "personalizations": [{"to": [{"email": recipient.email()}]}],
+        "personalizations": [{"to": [{"email": to or recipient.email()}]}],
         "from": {"email": settings.email_from, "name": "Vaše ordinace"},
         "subject": EMAIL_SUBJECT,
         "content": [{"type": "text/plain", "value": body}],
@@ -113,21 +113,21 @@ def send_email(body: str, live: bool) -> dict:
     req = urllib.request.Request("https://api.sendgrid.com/v3/mail/send", data=json.dumps(payload).encode(),
                                  headers={"Authorization": f"Bearer {settings.sendgrid_key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=10) as r:
-        return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": recipient.email(), "status": "queued" if r.status == 202 else str(r.status)}
+        return {"sid": r.headers.get("X-Message-Id"), "live": True, "to": to or recipient.email(), "status": "queued" if r.status == 202 else str(r.status)}
 
 
-def _smtp(body: str) -> dict:
+def _smtp(body: str, to: str = "") -> dict:
     import smtplib
     from email.message import EmailMessage
     from email.utils import formataddr, make_msgid
     m = EmailMessage()
     m["Subject"] = EMAIL_SUBJECT
     m["From"] = formataddr(("Vaše ordinace", settings.email_from or settings.smtp_user))
-    m["To"] = recipient.email()
+    m["To"] = to or recipient.email()
     m["Message-ID"] = make_msgid(domain="jsemvcas.cz")
     m.set_content(body)
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as s:
         s.starttls()
         s.login(settings.smtp_user, settings.smtp_password)
         s.send_message(m)
-    return {"sid": m["Message-ID"], "live": True, "to": recipient.email(), "status": "sent"}
+    return {"sid": m["Message-ID"], "live": True, "to": to or recipient.email(), "status": "sent"}
