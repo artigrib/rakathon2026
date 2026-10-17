@@ -18,6 +18,8 @@ from backend.voice_ai import ASK_AGAIN, CLOSING, FAQ, GREETING, NOT_UNDERSTOOD  
 
 API = "https://api.elevenlabs.io/v1/convai"
 VOICE = os.getenv("ELEVENLABS_VOICE_ID") or "EXAVITQu4vr4xnSDxMaL"  # Sarah, premade
+# Doctor's feedback 17.10. (bridge 1000): the patient may book the pneumologist directly, no GP referral needed.
+DIRECT = "Objednat se můžete i sami přímo u plicního lékaře, doporučení nepotřebujete."
 
 DECISIONS = {
     "interested": "chce, aby se ozvala sestra (ano, má zájem)",
@@ -46,17 +48,19 @@ PRAVIDLA, která nesmíš porušit:
 Postup:
 - Úvodní věta už zazněla: "{GREETING}"
 - Když odpoví ano: zeptej se "Kdy se Vám hodí, aby sestra zavolala, spíš dopoledne, nebo odpoledne?"
-  Odpověď si zapamatuj, pak řekni "{CLOSING['interested']}" a ukonči hovor.
+  Odpověď si zapamatuj, pak řekni "{CLOSING['interested'].replace(' Na shledanou.', '')} {DIRECT} Na shledanou." a ukonči hovor.
 - Když řekne, že už má termín nebo byl vyšetřen: "{CLOSING['booked']}" a ukonči hovor.
 - Když chce, aby mu sestra zavolala: "{CLOSING['callback']}" a ukonči hovor.
 - Když řekne teď ne nebo později: "{CLOSING['not_now']}" a ukonči hovor.
 - Když nemá zájem: "{CLOSING['declined']}" a ukonči hovor.
 - Když se ptá na vyšetření, použij jen tyto odpovědi a potom se znovu zeptej: "{ASK_AGAIN}"
 {faq}
+- Když se ptá, kam nebo ke komu jít, nebo jestli potřebuje doporučení: "{DIRECT}"
 - Když nerozumíš: "{NOT_UNDERSTOOD}" Po druhém nedorozumění řekni "{CLOSING['handoff']}" a ukonči hovor.
 
 Schválené závěrečné věty:
 {closing}
+- přímé objednání: {DIRECT}
 """
 
 
