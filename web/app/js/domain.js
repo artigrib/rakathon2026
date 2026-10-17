@@ -3,6 +3,10 @@ import { JOURNEY, LOST, RESULTS } from "./config.js";
 import { store } from "./state.js";
 import { isFinal, sectionOf } from "./fsm.js";
 
+// Demo/real "today" for rules that depend on time (set by the app on every render).
+let CLOCK = null;
+export const setClock = (c) => { CLOCK = c; };
+
 const effectiveStatus = (p, d) => (d.override === "ELIGIBLE" ? "ELIGIBLE" : p.status);
 
 /** Current journey stage; a patient who replied "interested" in the source data starts at "interested". */
@@ -18,6 +22,10 @@ export function taskOf(p) {
   const d = store.get(p.id);
   if (d.override === "EXCLUDED") return null;
   const stage = stageOf(p);
+  if (stage === "result") { // repeat screening: back in the invite batch once the next LDCT is due
+    const due = rescreenDue(p);
+    return due && CLOCK && due <= CLOCK ? "invite" : null;
+  }
   if (stage) { // section comes from the state machine; "waiting" is the system's work, not a task
     const s = sectionOf(stage);
     return s === "replied" || s === "results" ? s : null;
@@ -34,7 +42,7 @@ export function phaseOf(p) {
   if (taskOf(p)) return "todo";
   if (d.override === "EXCLUDED") return "done";
   const stage = stageOf(p);
-  if (stage && isFinal(stage)) return "done";
+  if (stage && (isFinal(stage) || stage === "result")) return "done";
   if (stage || p.next === "WAIT") return "running";
   return effectiveStatus(p, d) === "ELIGIBLE" ? "running" : "excluded";
 }
@@ -55,12 +63,21 @@ export function addDays(date, days) {
 
 export const nextScreening = (result, date) => addDays(date, RESULTS[result]?.nextDays);
 
+/** Date of the next screening LDCT after a recorded result (negative: 2 years), or null. */
+export function rescreenDue(p) {
+  const d = store.get(p.id);
+  if (stageOf(p) !== "result") return null;
+  const ev = [...(d.journey || [])].reverse().find((e) => e.stage === "result" && !e.ignored);
+  return nextScreening(d.result, ev?.date);
+}
+
 /** Last recorded event with the given stage (for "when / how did they answer"). */
 export const lastEvent = (p, stage) => [...(store.get(p.id).journey || [])].reverse().find((e) => !stage || e.stage === stage);
 
 /** Channel and variant to use; an included-by-doctor patient gets the default first invite. */
 export function plannedContact(p) {
   const draft = store.get(p.id).draft;
+  if (stageOf(p) === "result") return { channel: draft?.channel || p.channel || "sms", variant: "RESCREEN" };
   if (draft?.channel) return { channel: draft.channel, variant: p.variant || "FIRST_INVITE" };
   if (p.channel) return { channel: p.channel, variant: p.variant || "FIRST_INVITE" };
   return { channel: p.portal ? "portal" : (p.pref === "letter" ? "letter" : "sms"), variant: "FIRST_INVITE" };
@@ -99,7 +116,10 @@ export function ownerOf(p, clock, plans) {
   const d = store.get(p.id);
   const stage = stageOf(p);
   if (lostOf(p, clock, plans)) return "lost";
-  if (stage === "result") return d.result !== "negative" && !d.resultAck ? "doctor" : "done";
+  if (stage === "result") {
+    if (taskOf(p) === "invite") return d.skipped ? "system" : "nurse";
+    return d.result !== "negative" && !d.resultAck ? "doctor" : "done";
+  }
   if (stage === "declined" || stage === "excluded") return "done";
   const task = taskOf(p);
   if (task === "doctor") return "doctor";

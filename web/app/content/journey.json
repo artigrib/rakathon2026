@@ -1,31 +1,135 @@
 {
-  "_about": "Patient journey as a finite state machine. Read by backend/fsm.py and web/app/js/fsm.js. Only transitions listed here change the stage; any other event is recorded in the history and ignored. 'declined' is soft the first time (becomes not_now with intent declined, offer again in 3 months), see soft_decline. Events: send (invitation sent, manual or automatic), nurse (contact plan hands over to the nurse), interested, callback, booked (patient booked or nurse referred, 01196), not_now (patient: not now; nurse: unreachable), declined, opt_out (STOP, always hard), no_show (referred but did not go), ldct, result, exclude / include (doctor).",
+  "_about": "Patient journey as a finite state machine. Read by backend/fsm.py and web/app/js/fsm.js. Only transitions listed here change the stage; any other event is recorded in the history and ignored. 'declined' is soft the first time (becomes not_now with intent declined, offer again in 3 months), see soft_decline. Events: send (invitation sent, manual or automatic), nurse (contact plan hands over to the nurse), interested, callback, booked (patient booked or nurse referred, 01196), not_now (patient: not now; nurse: unreachable), declined, opt_out (STOP, always hard), no_show (referred but did not go), ldct, result, exclude / include (doctor). result is not final: after a negative result the patient is invited again when the next LDCT is due (2 years).",
   "initial": "new",
-  "soft_decline": { "event": "declined", "first_to": "not_now" },
+  "soft_decline": {
+    "event": "declined",
+    "first_to": "not_now"
+  },
   "states": {
-    "new":        { "section": "invite",  "final": false },
-    "sent":       { "section": "waiting", "final": false },
-    "not_now":    { "section": "waiting", "final": false },
-    "nurse_call": { "section": "replied", "final": false },
-    "callback":   { "section": "replied", "final": false },
-    "interested": { "section": "replied", "final": false },
-    "booked":     { "section": "results", "final": false },
-    "ldct":       { "section": "results", "final": false },
-    "result":     { "section": null,      "final": true },
-    "declined":   { "section": null,      "final": true },
-    "excluded":   { "section": null,      "final": true }
+    "new": {
+      "section": "invite",
+      "final": false
+    },
+    "sent": {
+      "section": "waiting",
+      "final": false
+    },
+    "not_now": {
+      "section": "waiting",
+      "final": false
+    },
+    "nurse_call": {
+      "section": "replied",
+      "final": false
+    },
+    "callback": {
+      "section": "replied",
+      "final": false
+    },
+    "interested": {
+      "section": "replied",
+      "final": false
+    },
+    "booked": {
+      "section": "results",
+      "final": false
+    },
+    "ldct": {
+      "section": "results",
+      "final": false
+    },
+    "result": {
+      "section": null,
+      "final": false
+    },
+    "declined": {
+      "section": null,
+      "final": true
+    },
+    "excluded": {
+      "section": null,
+      "final": true
+    }
   },
   "transitions": {
-    "new":        { "send": "sent", "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "sent":       { "send": "sent", "nurse": "nurse_call", "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "not_now":    { "send": "sent", "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "nurse_call": { "send": "sent", "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "callback":   { "send": "sent", "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "interested": { "interested": "interested", "callback": "callback", "booked": "booked", "not_now": "not_now", "declined": "declined", "opt_out": "declined", "exclude": "excluded" },
-    "booked":     { "ldct": "ldct", "no_show": "not_now", "declined": "declined", "opt_out": "declined" },
-    "ldct":       { "result": "result" },
-    "result":     {},
-    "declined":   { "interested": "interested", "callback": "callback" },
-    "excluded":   { "include": "new" }
+    "new": {
+      "send": "sent",
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "sent": {
+      "send": "sent",
+      "nurse": "nurse_call",
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "not_now": {
+      "send": "sent",
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "nurse_call": {
+      "send": "sent",
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "callback": {
+      "send": "sent",
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "interested": {
+      "interested": "interested",
+      "callback": "callback",
+      "booked": "booked",
+      "not_now": "not_now",
+      "declined": "declined",
+      "opt_out": "declined",
+      "exclude": "excluded"
+    },
+    "booked": {
+      "ldct": "ldct",
+      "no_show": "not_now",
+      "declined": "declined",
+      "opt_out": "declined"
+    },
+    "ldct": {
+      "result": "result"
+    },
+    "result": {
+      "send": "sent"
+    },
+    "declined": {
+      "interested": "interested",
+      "callback": "callback"
+    },
+    "excluded": {
+      "include": "new"
+    }
   }
 }

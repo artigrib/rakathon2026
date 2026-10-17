@@ -16,7 +16,7 @@ Plíce včas pracuje nad daty praktického lékaře a dělá tři věci:
 2. Osloví je jménem praktika. Sestra jednou týdně jedním kliknutím schválí pozvánky, nebo pacienta kontaktuje hned: SMS, hovor hlasového asistenta, WhatsApp nebo e-mail. Kanál doporučí podle historie pacienta.
 3. Hlídá, aby se nikdo neztratil. Když pacient neodpoví, systém ho podle plánu kontaktuje znovu a nakonec předá sestře. Odpověď pacienta rozpozná a zařadí. Kdo se ztrácí (předán k pneumologovi a 6 týdnů bez výsledku, zpráva nedoručena, plán skončil), je nahoře v úkolech. U každého pacienta je celá komunikace na jednom místě.
 Lékař má vlastní jednoduchou obrazovku: rozhodnutí o zařazení, výsledky k převzetí a kódy 01196 a 01197 k vykázání.
-Cesta pacienta je stavový automat: první odmítnutí je měkké a nabídka se zopakuje za 3 měsíce, odmítnutí 01197 až napodruhé, pozdní odpověď nic nevrátí zpět. Výjimky rozhoduje lékař. Data čte a zapisuje přes FHIR R4 (InterSystems IRIS for Health), takže funguje nad různými systémy praktiků.
+Cesta pacienta je stavový automat: první odmítnutí je měkké a nabídka se zopakuje za 3 měsíce, odmítnutí 01197 až napodruhé, pozdní odpověď nic nevrátí zpět. Po negativním výsledku pacienta za dva roky sám znovu zařadí k pozvání na kontrolní LDCT, protože screening funguje jen při pravidelném opakování. Výjimky rozhoduje lékař. Data čte a zapisuje přes FHIR R4 (InterSystems IRIS for Health), takže funguje nad různými systémy praktiků.
 
 **Longer description (EN):**
 The Czech lung screening programme works: 51 % of cancers found by screening are stage 1. In four years it reached only about 18 % of the target population, and almost half of those invited declined.

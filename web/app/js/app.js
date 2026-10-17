@@ -3,7 +3,7 @@ import { T } from "./i18n/cs.js";
 import { fmtDate } from "./util.js";
 import { store } from "./state.js";
 import { api } from "./api.js";
-import { batchOf, plannedContact, practices } from "./domain.js";
+import { batchOf, plannedContact, practices, setClock } from "./domain.js";
 import { loadMessages, message } from "./content/messages.cs.js";
 import { loadJourney, refusals } from "./fsm.js";
 import { tasks, taskCount } from "./views/tasks.js";
@@ -30,6 +30,7 @@ const rowCtx = {
 };
 
 function render() {
+  setClock(today());
   const mine = data.patients.filter((p) => p.gp === ui.gp);
   const due = taskCount(mine, today(), data.live?.plans);
   const docDue = doctorCount(mine, today(), data.live?.plans);

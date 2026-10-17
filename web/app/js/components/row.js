@@ -68,6 +68,8 @@ export function actions(p, d) {
     case "declined":
       return step(id, "interested", A.changedMind(p), "link");
     case "result":
+      if (taskOf(p) === "invite") return d.skipped ? btn(A.unskip, `data-action="unskip" data-id="${id}"`, "link") // repeat screening is due
+        : btn(A.edit, `data-action="open-compose" data-id="${id}"`) + btn(A.skip, `data-action="skip" data-id="${id}"`, "link");
       return d.result !== "negative" && !d.resultAck ? btn(A.ack, `data-action="ack" data-id="${id}"`) : "";
     case "callback":
     case "nurse_call":

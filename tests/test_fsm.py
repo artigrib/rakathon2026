@@ -66,3 +66,9 @@ def test_patient_can_change_mind_after_refusal(client):
     assert store.get("F5")["stage"] == "declined"
     c.post("/api/step", json={"id": "F5", "text": "Ano, mám zájem"})
     assert store.get("F5")["stage"] == "interested"
+
+
+def test_result_can_be_reinvited_for_repeat_screening():
+    from backend import fsm
+    assert fsm.next_state("result", "send") == "sent"
+    assert fsm.next_state("result", "interested") is None
