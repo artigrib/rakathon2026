@@ -39,6 +39,10 @@ class Settings:
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
     smtp_user: str = os.getenv("SMTP_USER", "")
     smtp_password: str = os.getenv("SMTP_PASSWORD", "")
+    # Password for the web app and its API (the challenge data must not be public). Webhooks, the patient link page,
+    # call audio and /api/health stay open. Empty = no password (local development).
+    demo_user: str = os.getenv("DEMO_USER", "plice")
+    demo_password: str = os.getenv("DEMO_PASSWORD", "")
     # FHIR server (InterSystems IRIS for Health): source of patients and target of the journey write-back
     fhir_base: str = os.getenv("FHIR_BASE", "").rstrip("/")
     fhir_user: str = os.getenv("FHIR_USER", "")

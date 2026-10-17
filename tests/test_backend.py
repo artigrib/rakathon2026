@@ -336,3 +336,19 @@ def test_marks_are_stored_on_the_server(client):
     c.post("/api/mark", json={"id": "M1", "field": "draft", "value": {"channel": "sms", "text": "Ahoj"}})
     assert store.get("M1")["skipped"] is True and store.get("M1")["draft"]["text"] == "Ahoj"
     assert c.post("/api/mark", json={"id": "M1", "field": "stage", "value": "result"}).status_code == 400
+
+
+def test_password_protects_app_but_not_webhooks(client, monkeypatch):
+    import base64
+    from dataclasses import replace
+    import backend.app as m
+    c, _ = client
+    monkeypatch.setattr(m, "settings", replace(m.settings, demo_password="tajne"))
+    assert c.get("/api/state").status_code == 401
+    assert c.get("/app/index.html").status_code == 401
+    assert c.get("/api/health").status_code == 200
+    assert c.post("/twilio/sms", data={"From": "+420000", "Body": "ano"}).status_code == 200
+    good = {"Authorization": "Basic " + base64.b64encode(b"plice:tajne").decode()}
+    bad = {"Authorization": "Basic " + base64.b64encode(b"plice:spatne").decode()}
+    assert c.get("/api/state", headers=good).status_code == 200
+    assert c.get("/api/state", headers=bad).status_code == 401

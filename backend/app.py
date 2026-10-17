@@ -30,6 +30,28 @@ _rlog = logging.getLogger("uvicorn.error")  # voice turns and agent outcomes in 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title="Plíce včas")
+
+OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health")  # Twilio, ElevenLabs and patients need these without a password
+
+
+@app.middleware("http")
+async def password(request: Request, call_next):
+    """Basic auth in front of the app and the API when DEMO_PASSWORD is set."""
+    if not settings.demo_password or request.url.path.startswith(OPEN):
+        return await call_next(request)
+    import base64
+    import secrets
+    ok = False
+    h = request.headers.get("authorization", "")
+    if h.lower().startswith("basic "):
+        try:
+            user, _, pw = base64.b64decode(h[6:]).decode().partition(":")
+            ok = secrets.compare_digest(user, settings.demo_user) and secrets.compare_digest(pw, settings.demo_password)
+        except Exception:  # noqa: BLE001 – malformed header = not authorised
+            ok = False
+    if ok:
+        return await call_next(request)
+    return Response("Přihlášení vyžadováno", status_code=401, headers={"WWW-Authenticate": 'Basic realm="Plice vcas", charset="UTF-8"'})
 store = Store(settings.state_file)
 PATIENTS: dict = {}
 REF_DATE = "2026-10-16"
