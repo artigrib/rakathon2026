@@ -85,9 +85,26 @@ export function lostOf(p, clock, plans) {
   const failed = journey.some((e) => !e.stage && e.delivery === "failed" && lastSend && e.date >= lastSend.date);
   if (stage === "booked" && since >= LOST.booked) return { code: "booked", days: since, sev: since >= LOST.bookedLate ? "late" : "warn" };
   if (stage === "ldct" && since >= LOST.ldct) return { code: "ldct", days: since, sev: "warn" };
-  if (["interested", "callback", "nurse_call"].includes(stage) && since >= LOST.replied) return { code: "replied", days: since, sev: "warn" };
+  if (stage === "nurse_call" && since >= LOST.replied) return { code: "nurse", days: since, sev: "warn" };
+  if (["interested", "callback"].includes(stage) && since >= LOST.replied) return { code: "replied", days: since, sev: "warn" };
   if (stage === "sent" && failed) return { code: "failed", days: since, sev: "warn" };
   if (plans && stage === "sent" && !plans[p.id]) return { code: "exhausted", days: since, sev: "warn" };
   if (stage === "not_now" && since > LOST.pause && plans && !plans[p.id]) return { code: "pause", days: since, sev: "warn" };
   return null;
+}
+
+/** Who is responsible for the patient right now. One answer for every counter, badge, summary and filter:
+ *  lost (getting lost, nurse must act) | nurse | doctor | system (the contact plan or a pause runs) | done | out (not in the programme). */
+export function ownerOf(p, clock, plans) {
+  const d = store.get(p.id);
+  const stage = stageOf(p);
+  if (lostOf(p, clock, plans)) return "lost";
+  if (stage === "result") return d.result !== "negative" && !d.resultAck ? "doctor" : "done";
+  if (stage === "declined" || stage === "excluded") return "done";
+  const task = taskOf(p);
+  if (task === "doctor") return "doctor";
+  if (task === "invite") return d.skipped ? "system" : "nurse";
+  if (task) return "nurse";
+  if (stage) return "system";
+  return effectiveStatus(p, d) === "ELIGIBLE" ? "system" : "out";
 }

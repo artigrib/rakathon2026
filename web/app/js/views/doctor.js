@@ -1,7 +1,7 @@
 // The doctor's screen: only what the doctor decides or signs, once a week, nothing else.
 // (Mentor: simplicity for GPs, who are often older; the doctor decides exceptions.)
 import { T } from "../i18n/cs.js";
-import { addDays, lostOf, stageOf, taskOf } from "../domain.js";
+import { addDays, lostOf, ownerOf, stageOf, taskOf } from "../domain.js";
 import { row } from "../components/row.js";
 import { store } from "../state.js";
 import { esc, fmtDate } from "../util.js";
@@ -13,8 +13,7 @@ const section = (id, count, title, body, due = false) => `<section class="sectio
   <div class="section__body">${body}</div></section>`;
 
 /** Patients that the doctor has to decide on now (shown as a count in the navigation). */
-export const doctorCount = (mine) => mine.filter((p) => taskOf(p) === "doctor").length
-  + mine.filter((p) => stageOf(p) === "result" && store.get(p.id).result !== "negative").length;
+export const doctorCount = (mine, clock, plans) => mine.filter((p) => ownerOf(p, clock, plans) === "doctor").length;
 
 export function doctor(ui, data, rowCtx) {
   const mine = data.patients.filter((p) => p.gp === ui.gp);
@@ -22,11 +21,12 @@ export function doctor(ui, data, rowCtx) {
   const weekAgo = addDays(clock, -7);
 
   const decide = mine.filter((p) => taskOf(p) === "doctor");
-  const results = mine.filter((p) => stageOf(p) === "result" && store.get(p.id).result !== "negative");
+  const results = mine.filter((p) => stageOf(p) === "result" && store.get(p.id).result !== "negative" && !store.get(p.id).resultAck);
 
   // Codes to report this week: 01196 = referred to the pneumologist, 01197 = the patient refuses (second refusal).
   const coded = (stage) => mine.flatMap((p) => (store.get(p.id).journey || [])
-    .filter((e) => e.stage === stage && !e.ignored && e.date >= weekAgo && e.date <= clock).map((e) => ({ p, date: e.date })));
+    .filter((e) => e.stage === stage && !e.ignored && e.date >= weekAgo && e.date <= clock)
+    .filter((e) => (stage === "booked" ? e.via === "ui" && !e.text : e.intent !== "opt_out")).map((e) => ({ p, date: e.date })));
   const c96 = coded("booked"), c97 = coded("declined");
   const codeList = (items) => items.length
     ? `<ul class="codes">${items.map(({ p, date }) => `<li><span>${esc(T.who(p))}, ${esc(p.id)}</span><time>${fmtDate(date)}</time></li>`).join("")}</ul>` : "";

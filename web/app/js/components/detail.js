@@ -24,7 +24,8 @@ function ct(list) {
 }
 
 function contacts(p) {
-  return html`<dl class="kv">
+  const tel = p.phone ? `<dt>${D.phone}</dt><dd><a href="tel:${esc(p.phone.replace(/\s/g, ""))}">${esc(p.phone)}</a></dd>` : "";
+  return html`<dl class="kv">${tel}
       <dt>${D.portal}</dt><dd>${p.portal ? D.portalYes : D.portalNo}</dd>
       <dt>${D.prefers}</dt><dd>${T.channel[p.pref] || p.pref || D.unknown}</dd>
       ${p.pneu ? `<dt>${D.pneumologist}</dt><dd>${p.pneu}</dd>` : ""}

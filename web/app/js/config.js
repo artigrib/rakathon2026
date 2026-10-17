@@ -11,7 +11,7 @@ export const CHANNELS = ["sms", "voice", "whatsapp", "email", "portal", "letter"
 // Work queue of the practice, in order of urgency. One section = one kind of work.
 export const SECTIONS = ["invite", "replied", "doctor", "results"];
 // Patients view filters.
-export const FILTERS = ["all", "todo", "running", "done", "excluded"];
+export const FILTERS = ["all", "nurse", "doctor", "system", "done", "out"];
 
 // Patient journey after the invitation (doctor 16.10.: patient books any pneumologist himself; result comes on paper).
 export const JOURNEY = [

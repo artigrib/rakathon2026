@@ -33,7 +33,11 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
     const doctor = e.event === "exclude" || e.event === "include";
     const reply = !!e.text;
     const actor = reply ? "patient" : doctor ? "doctor" : e.auto ? "system" : "nurse";
-    const label = C.event[e.event] || D.event[e.stage] || e.event || e.stage;
+    let label = C.event[e.event] || D.event[e.stage] || e.event || e.stage;
+    if (e.event === "declined" && e.stage === "not_now") label = C.softDeclined; // first refusal is soft, not 01197
+    if (e.event === "not_now" && e.via === "ui" && !e.text) label = C.unreachable;
+    if (e.event === "booked" && (e.text || (e.via && e.via !== "ui"))) label = T.state.selfBooked(p);
+    if (e.event === "booked" && !e.text && e.via === "ui") label = T.state.booked(p);
     items.push({
       date: e.date, actor, channel: reply ? VIA[e.via] : null,
       title: reply ? C.replied(C.via[e.via] || "") : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),

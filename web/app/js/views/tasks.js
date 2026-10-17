@@ -1,7 +1,7 @@
 // Default screen: what the practice has to do this week, most urgent first.
 import { SECTIONS } from "../config.js";
 import { T } from "../i18n/cs.js";
-import { batchOf, lostOf, phaseOf, stageOf, taskOf } from "../domain.js";
+import { batchOf, lostOf, ownerOf, stageOf, taskOf } from "../domain.js";
 import { sectionOf } from "../fsm.js";
 import { row } from "../components/row.js";
 import { store } from "../state.js";
@@ -29,12 +29,10 @@ export function tasks(ui, data, rowCtx) {
     </section>` : "";
 
   // One line that answers "is anybody lost?": everyone in the programme has an owner and a next step.
-  const inProgramme = mine.filter((p) => stageOf(p) || taskOf(p));
-  const sys = mine.filter((p) => stageOf(p) && sectionOf(stageOf(p)) === "waiting" && !lost.has(p.id)).length;
-  const done = mine.filter((p) => stageOf(p) && phaseOf(p) === "done").length;
-  const doc = mine.filter((p) => taskOf(p) === "doctor" && !lost.has(p.id)).length;
-  const yours = inProgramme.length - sys - done - lost.size - doc;
-  const summary = `<p class="summary">${T.summary(inProgramme.length, yours, doc, sys, done, lost.size)}</p>`;
+  const own = {};
+  for (const p of mine) { const o = ownerOf(p, clock, data.live?.plans); own[o] = (own[o] || 0) + 1; }
+  const all = mine.length - (own.out || 0);
+  const summary = `<p class="summary">${T.summary(all, own.nurse || 0, own.doctor || 0, own.system || 0, own.done || 0, own.lost || 0)}</p>`;
 
   const sections = SECTIONS.map((s) => {
     const rows = by[s].sort((a, b) => (ORDER[stageOf(a)] ?? 9) - (ORDER[stageOf(b)] ?? 9));
@@ -73,5 +71,4 @@ export function tasks(ui, data, rowCtx) {
 }
 
 /** Number of things waiting for the practice (shown in the navigation). */
-export const taskCount = (mine, clock, plans) => mine.filter((p) => (taskOf(p) && taskOf(p) !== "invite" && taskOf(p) !== "doctor")
-  || (!taskOf(p) && lostOf(p, clock, plans))).length + batchOf(mine).length;
+export const taskCount = (mine, clock, plans) => mine.filter((p) => ["nurse", "lost"].includes(ownerOf(p, clock, plans))).length;

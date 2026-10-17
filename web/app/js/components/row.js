@@ -17,7 +17,7 @@ const step = (id, ev, label, kind = "", extra = "") =>
 
 /** {title, sub}: what is going on with the patient, in plain words. */
 function describe(p, d, plan) {
-  if (stageOf(p) === "excluded") return { title: S.excluded };
+  if (stageOf(p) === "excluded") return { title: S.excluded(p) };
   const stage = stageOf(p);
   const ev = lastEvent(p, stage);
   const answered = ev?.date ? S.replied(fmtDate(ev.date), S.via[ev.via]) : "";
@@ -30,16 +30,21 @@ function describe(p, d, plan) {
     case "interested":
     case "callback":
       return { title: S[stage] + (ev?.when ? `, ${ev.when}` : ""), sub: answered };
-    case "nurse_call": return { title: S.nurse_call };
+    case "nurse_call": return { title: S.nurse_call(p) };
     case "not_now": {
       const again = fmtDate(addDays(ev?.date, 90));
-      const title = ev?.event === "no_show" ? S.noShow(again) : ev?.intent === "declined" ? S.softDeclined(again) : S.not_now(again);
+      const unreachable = ev?.via === "ui" && ev?.event === "not_now" && !ev?.text;
+      const title = ev?.event === "no_show" ? S.noShow(p, again) : ev?.intent === "declined" ? S.softDeclined(p, again)
+        : unreachable ? S.unreachable(p, again) : S.not_now(again);
       return { title, sub: answered };
     }
-    case "declined": return { title: S.declined, sub: answered };
-    case "booked": return { title: S.booked, sub: S.bookedNext };
+    case "declined": return { title: S.declined(p), sub: answered };
+    case "booked": { // the nurse referred (01196) or the patient booked by themselves (reply)
+      const self = ev?.text || (ev?.via && ev.via !== "ui");
+      return { title: self ? S.selfBooked(p) : S.booked(p), sub: S.bookedNext };
+    }
     case "ldct": return { title: S.ldct };
-    case "result": return { title: S.result[d.result](fmtDate(nextScreening(d.result, ev?.date))) };
+    case "result": return { title: S.result[d.result](fmtDate(nextScreening(d.result, ev?.date))), sub: d.resultAck ? S.resultAck : "" };
   }
   const task = taskOf(p);
   if (task === "invite") return d.skipped ? { title: S.skipped }
@@ -56,7 +61,14 @@ function actions(p, d) {
   current = stage;
   switch (stage) {
     case "interested":
-      return step(id, "booked", A.booked, "primary") + step(id, "declined", A.declined);
+      return step(id, "booked", A.booked, "primary") + step(id, "declined", A.declined) + step(id, "not_now", A.unreachable, "link");
+    case "sent":
+    case "not_now": // waiting: the patient may call the practice, or the nurse wants to try again now
+      return step(id, "interested", A.interested, "link") + btn(A.again, `data-action="open-compose" data-id="${id}"`, "link");
+    case "declined":
+      return step(id, "interested", A.changedMind, "link");
+    case "result":
+      return d.result !== "negative" && !d.resultAck ? btn(A.ack, `data-action="ack" data-id="${id}"`) : "";
     case "callback":
     case "nurse_call":
       return step(id, "interested", A.interested, "primary") + step(id, "declined", A.declined) + step(id, "not_now", A.unreachable, "link");
@@ -85,7 +97,7 @@ function demoReplies(p, link) {
 export function row(p, { composing, chosenChannel, plan, link, demo, open, outbox, lost }) {
   const d = store.get(p.id);
   const { title, sub } = describe(p, d, plan);
-  const why = lost ? T.lost[lost.code](lost.days) : "";
+  const why = lost ? T.lost[lost.code](lost.days, p) : "";
   const showDemo = demo && stageOf(p) === "sent";
   return `<article class="row${d.skipped && taskOf(p) === "invite" ? " row--skipped" : ""}" id="pt-${p.id}">
     <div class="row__main">

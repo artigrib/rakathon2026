@@ -33,11 +33,11 @@ export function overview(data) {
   const ch = {};
   const add = (c, k) => { if (!c) return; ch[c] ||= { sent: 0, replied: 0 }; ch[c][k]++; };
   for (const p of P) {
-    for (const h of p.history) { add(h.channel, "sent"); if (h.response && h.response !== "no_response") add(h.channel, "replied"); }
+    for (const h of p.history) { add(h.channel, "sent"); if (h.response === "interested") add(h.channel, "replied"); }
     let last = null;
     for (const e of store.get(p.id).journey || []) {
       if (e.stage === "sent") { add(e.channel, "sent"); last = e.channel; }
-      else if (e.text && last && !e.ignored) { add(last, "replied"); last = null; }
+      else if (e.text && last && !e.ignored) { if (["interested", "booked", "callback"].includes(e.intent)) add(last, "replied"); last = null; }
     }
   }
   const chRows = Object.entries(ch).sort((a, b) => b[1].replied / b[1].sent - a[1].replied / a[1].sent);

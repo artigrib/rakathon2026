@@ -17,6 +17,7 @@ export const api = {
   step: (body) => call("/api/step", body),
   reset: () => call("/api/reset", {}),
   tick: (days = 1) => call("/api/tick", { days }),
+  mark: (id, field, value) => call("/api/mark", { id, field, value }),
   fhirSync: () => call("/api/fhir/sync", {}),
   patient: (id) => call(`/api/patient/${encodeURIComponent(id)}`),
 };

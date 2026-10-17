@@ -17,6 +17,7 @@ def build(data_dir, ref_date: str = "2026-10-16") -> dict:
             "gp": p["gp_id"], "pneu": p["pneumologist_id"],
             "portal": x["patient_portal_active"] == "true" and x["consent_for_portal_messages"] == "true",
             "pref": x["preferred_contact_channel"],
+            "phone": x.get("phone_number") or None,
             "status": p["status"], "reasons": [r_["text"] for r_ in p["reasons"]],
             "flags": [{"sev": f["severity"], "text": f["text"], "code": f["code"]} for f in p["flags"]],
             "smoking": s and {"status": s["status"], "packYears": s["pack_years"], "source": s["pack_years_source"],

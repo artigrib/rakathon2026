@@ -30,7 +30,7 @@ const rowCtx = {
 function render() {
   const mine = data.patients.filter((p) => p.gp === ui.gp);
   const due = taskCount(mine, today(), data.live?.plans);
-  const docDue = doctorCount(mine);
+  const docDue = doctorCount(mine, today(), data.live?.plans);
   const badge = { tasks: due, doctor: docDue };
   $("nav").innerHTML = ["tasks", "doctor", "patients", "overview"].map((v) => `<button type="button" data-action="pick-view" data-view="${v}"
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${badge[v] ? ` <span class="due">${badge[v]}</span>` : ""}</button>`).join("");
@@ -38,7 +38,9 @@ function render() {
     : ui.view === "patients" ? patients(ui, data, rowCtx) : overview(data);
   $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir });
   $("gp").value = ui.gp;
+  footer();
 }
+let footer = () => {};
 
 const find = (id) => data.patients.find((p) => p.id === id);
 const outboxCache = {}; // messages we sent to the open patient (text, delivery), loaded on demand
@@ -66,10 +68,16 @@ async function send(items) {
   await pull().catch(() => {}); // sent is sent: a failed refresh must not look like a failed send
 }
 
+/** Practice decision (skip, draft, override, result acknowledged): local first, then stored on the server. */
+async function mark(id, field, value) {
+  store.mark(id, field, value);
+  if (backend) { await api.mark(id, field, value); await pull().catch(() => {}); }
+}
+
 /** Journey step or patient reply: the backend runs the same logic as a real webhook. */
 async function step(id, body) {
   if (!backend) {
-    return body.text ? store.step(id, body.reply, today(), { via: "ui" }) : store.step(id, body.stage, today(), body.result ? { result: body.result, via: "ui" } : { via: "ui" });
+    return body.text ? store.step(id, body.reply, today(), { via: "ui", text: body.text }) : store.step(id, body.stage, today(), body.result ? { result: body.result, via: "ui" } : { via: "ui" });
   }
   await api.step({ id, date: today(), ...body });
   await pull();
@@ -82,11 +90,13 @@ const actions = {
   "toggle-detail": async (el) => { ui.open = ui.open === el.dataset.id ? null : el.dataset.id; render(); await loadOutbox(ui.open); },
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
   "close-compose": () => { ui.composing = null; },
-  "save-draft": (el) => {
+  "save-draft": async (el) => {
     const id = el.dataset.id;
-    store.draft(id, el.dataset.channel, $(`msg-${id}`)?.value);
+    const text = $(`msg-${id}`)?.value;
     ui.composing = null;
-    toast(T.toast.draftSaved, { undo: true });
+    await mark(id, "skipped", false);
+    await mark(id, "draft", { channel: el.dataset.channel, text });
+    toast(T.toast.draftSaved, { undo: !backend });
   },
   "confirm-send": async (el) => {
     const p = find(el.dataset.id);
@@ -104,8 +114,9 @@ const actions = {
     }));
     toast(T.toast.approved(rows.length), { undo: !backend });
   },
-  skip: (el) => { store.skip(el.dataset.id); toast(T.toast.skipped); },
-  unskip: (el) => { store.skip(el.dataset.id, false); toast(T.toast.unskipped); },
+  skip: async (el) => { await mark(el.dataset.id, "skipped", true); toast(T.toast.skipped, { undo: !backend }); },
+  unskip: async (el) => { await mark(el.dataset.id, "skipped", false); toast(T.toast.unskipped, { undo: !backend }); },
+  ack: async (el) => { await mark(el.dataset.id, "resultAck", true); toast(T.toast.ack, { undo: !backend }); },
   // Simulated patient reply; with the backend the sample text goes through the real reply understanding.
   reply: async (el) => {
     const r = el.dataset.reply;
@@ -122,9 +133,9 @@ const actions = {
   include: async (el) => {
     const id = el.dataset.id;
     if (store.get(id).override === "EXCLUDED" || store.get(id).stage === "excluded") await step(id, { stage: "include" });
-    store.include(id); toast(el.dataset.exception ? T.toast.exception : T.toast.included);
+    await mark(id, "override", "ELIGIBLE"); toast(el.dataset.exception ? T.toast.exception : T.toast.included, { undo: !backend });
   },
-  exclude: async (el) => { await step(el.dataset.id, { stage: "exclude" }); store.exclude(el.dataset.id); toast(T.toast.excluded); },
+  exclude: async (el) => { await step(el.dataset.id, { stage: "exclude" }); await mark(el.dataset.id, "override", "EXCLUDED"); toast(T.toast.excluded, { undo: !backend }); },
   "toggle-replies": (el) => { ui.demoReplies = el.checked; },
   "fhir-sync": async () => { await api.fhirSync(); location.reload(); },
   tick: async () => {
@@ -172,9 +183,18 @@ async function init() {
   $("gp").innerHTML = gps.map((g) => `<option>${g}</option>`).join("");
   $("gp").addEventListener("change", (e) => { ui.gp = e.target.value; ui.composing = null; render(); });
   document.addEventListener("click", dispatch);
+  document.addEventListener("input", (e) => { // registry search: re-render and keep typing
+    if (e.target.id !== "q") return;
+    ui.query = e.target.value; render();
+    const q = $("q"); q.focus(); q.setSelectionRange(q.value.length, q.value.length);
+  });
   document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("tr[data-action]")) dispatch(e); });
   const d = fmtDate(data.refDate);
-  $("foot").textContent = (backend ? T.footerLive(d, backend.mode === "live") : T.footer(d)) + (backend?.fhir ? T.footerFhir(backend.fhir) : "");
+  footer = () => { // data date + demo clock + FHIR source, refreshed on every render
+    const clk = today() !== data.refDate ? T.footerClock(fmtDate(today())) : "";
+    $("foot").textContent = (backend ? T.footerLive(d, backend.mode === "live") : T.footer(d)) + clk + (backend?.fhir ? T.footerFhir(backend.fhir) : "");
+  };
+  footer();
   $("demo").hidden = false;
   if (backend) {
     await pull().catch(() => {});

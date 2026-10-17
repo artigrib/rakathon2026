@@ -81,6 +81,25 @@ class StepRequest(BaseModel):
     text: str | None = None
 
 
+class MarkRequest(BaseModel):
+    id: str
+    field: str
+    value: object = None
+
+
+MARKS = {"skipped", "draft", "override", "resultAck"}  # practice decisions that are not journey events
+
+
+@app.post("/api/mark")
+def mark(req: MarkRequest):
+    """Nurse / doctor decisions kept on the server (not only in one browser): skip this week, edited invitation,
+    inclusion override, doctor acknowledged a result."""
+    if req.field not in MARKS:
+        raise HTTPException(400, "unknown field")
+    store.patch(req.id, **{req.field: req.value})
+    return store.get(req.id)
+
+
 @app.get("/api/health")
 def health():
     from . import llm

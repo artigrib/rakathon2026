@@ -50,10 +50,12 @@ export const store = {
   draft(id, channel, text) { commit({ [id]: { draft: { channel, text }, skipped: false } }); },
   include(id) { commit({ [id]: { override: "ELIGIBLE" } }); },
   exclude(id) { commit({ [id]: { override: "EXCLUDED" } }); },
+  /** Practice decision that is not a journey event: skipped, draft, override, resultAck. */
+  mark(id, field, value) { commit({ [id]: { [field]: value } }); },
 
-  /** Live mode: server decisions win for the fields they carry; local-only flags (skip, override) are kept. */
+  /** Live mode: the server is the source of truth for every patient (decisions are stored there too). */
   merge(remote) {
-    for (const [id, d] of Object.entries(remote)) decisions[id] = { ...(decisions[id] || {}), ...d };
+    decisions = JSON.parse(JSON.stringify(remote));
     save();
   },
 

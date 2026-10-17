@@ -2,9 +2,12 @@
 // Plain words from the nurse's point of view; one name per action across button, toast and history.
 const pl = (n, one, few, many) => (n === 1 ? one : n >= 2 && n <= 4 ? few : many);
 export const plural = pl;
+// Czech verbs agree with the patient's sex: g(p, "Odmítl", "Odmítla").
+const g = (p, m, f) => (p?.sex === "F" ? f : m);
+export const gender = g;
 
 export const T = {
-  nav: { tasks: "Úkoly", doctor: "Pro lékaře", patients: "Pacienti", overview: "Přehled" },
+  nav: { tasks: "Úkoly", doctor: "Pro lékaře", patients: "Pacienti", overview: "Program" },
 
   tasks: {
     title: "Tento týden",
@@ -12,7 +15,7 @@ export const T = {
   },
   sections: {
     invite: { title: "Pozvat", empty: "Vše odesláno. Pozvaní jsou níže v sekci Čekáme na odpověď." },
-    replied: { title: "Ozvali se", empty: "Nikdo nečeká." },
+    replied: { title: "Ozvali se a zavolat", empty: "Nikdo nečeká." },
     doctor: { title: "Rozhodne lékař", empty: "Nic nečeká." },
     results: { title: "Výsledky", empty: "Nic k zápisu." },
     waiting: { title: "Čekáme na odpověď", empty: "Nikdo." },
@@ -41,9 +44,10 @@ export const T = {
   summary: (all, yours, doc, sys, done, lost) => `${all} v programu: ${yours} čeká na vás, ${doc} na lékaře, ${sys} hlídá systém, ${done} uzavřeno, ` +
     (lost ? `<b class="is-lost">${lost} se ztrácí</b>` : "<b>nikdo se neztrácí</b>"),
   lost: {
-    booked: (n) => `Předán k pneumologovi před ${n} dny, výsledek LDCT chybí. Zavolejte pacientovi.`,
+    booked: (n, p) => `${g(p, "Předán", "Předána")} k pneumologovi před ${n} dny, výsledek LDCT chybí. Zavolejte ${g(p, "mu", "jí")}.`,
     ldct: (n) => `LDCT před ${n} dny, výsledek nezapsán. Vyžádejte zprávu.`,
-    replied: (n) => `Ozval se před ${n} dny a nikdo nereagoval.`,
+    replied: (n, p) => `${g(p, "Ozval se", "Ozvala se")} před ${n} dny a nikdo nereagoval.`,
+    nurse: (n, p) => `Úkol zavolat čeká ${n} dní. ${g(p, "Pacient", "Pacientka")} zatím nikoho neslyšel${g(p, "", "a")}.`,
     failed: () => "Zpráva nebyla doručena. Ověřte telefon nebo zvolte jiný kanál.",
     exhausted: () => "Plán kontaktů skončil bez odpovědi.",
     pause: () => "Pauza skončila a nikdo pacienta znovu neoslovil.",
@@ -51,7 +55,10 @@ export const T = {
 
   patients: {
     title: "Pacienti",
-    filters: { all: "Všichni", todo: "Čeká na vás", running: "Probíhá", done: "Uzavřeno", excluded: "Nesplňují kritéria" },
+    filters: { all: "Všichni", nurse: "Čeká na sestru", doctor: "Čeká na lékaře", system: "Hlídá systém", done: "Uzavřeno", out: "Mimo program" },
+    search: "Najít pacienta",
+    searchHint: "ID, věk nebo kraj",
+    groups: "Kdo je teď na řadě",
     empty: "V této skupině teď nikdo není.",
   },
 
@@ -67,26 +74,29 @@ export const T = {
     sentWait: "",
     interested: "Má zájem o vyšetření",
     callback: "Prosí o zavolání",
-    nurse_call: "Neozval se, zavolejte mu",
+    nurse_call: (p) => g(p, "Neozval se, zavolejte mu", "Neozvala se, zavolejte jí"),
     not_now: (d) => `Teď ne, znovu ${d}`,
-    declined: "Odmítl (01197)",
-    booked: "Předán k pneumologovi (01196)",
+    unreachable: (p, d) => `${g(p, "Nezastižen", "Nezastižena")}, znovu ${d}`,
+    declined: (p) => `${g(p, "Odmítl", "Odmítla")} účast (01197)`,
+    booked: (p) => `${g(p, "Předán", "Předána")} k pneumologovi (01196)`,
+    selfBooked: (p) => `${g(p, "Objednal se sám", "Objednala se sama")} u pneumologa`,
     bookedNext: "Čekáme na výsledek",
-    softDeclined: (d) => `Odmítl poprvé, nabídneme znovu ${d}`,
-    noShow: (d) => `Nepřišel k pneumologovi, nabídneme znovu ${d}`,
+    softDeclined: (p, d) => `${g(p, "Odmítl", "Odmítla")} poprvé, nabídneme znovu ${d}`,
+    noShow: (p, d) => `${g(p, "Nepřišel", "Nepřišla")} k pneumologovi, nabídneme znovu ${d}`,
     ldct: "Zapište výsledek LDCT",
     result: {
       negative: (d) => `Negativní, další LDCT ${d}`,
       indeterminate: () => "Neurčitý, kontrolu určí pneumolog",
       positive: () => "Pozitivní, předáno do centra",
     },
-    excluded: "Vyřazen lékařem",
+    excluded: (p) => `${g(p, "Vyřazen", "Vyřazena")} lékařem`,
+    resultAck: "Lékař převzal",
     replied: (d, via) => `${d}${via ? `, ${via}` : ""}`,
     via: { sms: "SMS", link: "odkaz v SMS", voice: "telefon", "voice-ai": "hovor s asistentem", ui: "zapsáno v ordinaci" },
   },
   status: {
-    ELIGIBLE: "Splňuje kritéria", NEEDS_REVIEW: "Ke kontrole", EXCLUDED_AGE: "Mimo věk 55 až 74 let",
-    EXCLUDED_SMOKING_STATUS: "Nekuřák", EXCLUDED_PACK_YEARS: "Méně než 20 balíčkoroků", EXCLUDED_RECENT_CT: "Nedávné CT nebo už ve screeningu",
+    ELIGIBLE: "Splňuje kritéria", NEEDS_REVIEW: "Rozhodne lékař", EXCLUDED_AGE: "Mimo věk 55 až 74 let",
+    EXCLUDED_SMOKING_STATUS: "Nikdy nekouřili", EXCLUDED_PACK_YEARS: "Méně než 20 balíčkoroků", EXCLUDED_RECENT_CT: "Nedávné CT nebo už ve screeningu",
   },
 
   channel: { portal: "portál", sms: "SMS", voice: "telefonát asistenta", email: "e-mail", letter: "dopis", printout: "tisk v ordinaci", whatsapp: "WhatsApp", nurse: "sestra osobně" },
@@ -100,6 +110,9 @@ export const T = {
     unskip: "Vrátit do dávky",
     booked: "Předán k pneumologovi",
     noShow: "Nepřišel",
+    again: "Kontaktovat znovu",
+    changedMind: "Rozmyslel si to, má zájem",
+    ack: "Převzato",
     declined: "Odmítá",
     unreachable: "Nezastižen",
     interested: "Má zájem",
@@ -137,7 +150,7 @@ export const T = {
   toast: {
     sent: (ch) => `Odesláno: ${ch}.`,
     draftSaved: "Uloženo do dávky.",
-    approved: (n) => `Odesláno jménem lékaře: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,
+    approved: (n) => `Odesláno jménem ordinace: ${n} ${pl(n, "pozvánka", "pozvánky", "pozvánek")}.`,
     skipped: "Vynecháno z této dávky.",
     unskipped: "Vráceno do dávky.",
     tick: (n) => (n ? `Další den: systém sám provedl ${n} ${pl(n, "krok", "kroky", "kroků")} plánu kontaktů.` : "Další den: dnes systém nic neodesílá."),
@@ -147,6 +160,7 @@ export const T = {
       declined: "Zapsáno: odmítá účast (01197).", softDeclined: "Zapsáno: první odmítnutí. Nabídneme znovu za 3 měsíce.", ldct: "Zapsáno: LDCT proběhlo.", result: "Výsledek zapsán, další termín je naplánován.",
     },
     exception: "Přesto zařazen. Rozhodnutí je zaznamenáno.",
+    ack: "Výsledek převzat lékařem.",
     included: "Zařazen k pozvání.",
     excluded: "Vyřazen. Rozhodnutí je zaznamenáno.",
   },
@@ -162,7 +176,7 @@ export const T = {
 
   detail: {
     evaluation: "Proč", journey: "Cesta pacienta", warnings: "Upozornění", smoking: "Kouření", ct: "CT vyšetření", contacts: "Kontakty",
-    status: "Status", packYears: "Balíčkoroky", note: "Záznam", portal: "Portál", prefers: "Preferuje", pneumologist: "Pneumolog",
+    phone: "Telefon", status: "Status", packYears: "Balíčkoroky", note: "Záznam", portal: "Portál", prefers: "Preferuje", pneumologist: "Pneumolog",
     portalYes: "aktivní, souhlas", portalNo: "ne", noSmoking: "Kuřácká anamnéza chybí.", noCt: "Žádné CT v záznamech.",
     noContacts: "Zatím bez kontaktu.",
     unknown: "neuvedeno",
@@ -195,6 +209,8 @@ export const T = {
     replied: (via) => `Odpověděl${via ? `, ${via}` : ""}`,
     via: { sms: "SMS", link: "přes odkaz", voice: "v hovoru", "voice-ai": "v hovoru s asistentem", ui: "zapsáno v ordinaci", whatsapp: "WhatsApp" },
     understood: "Systém zapsal:",
+    softDeclined: "První odmítnutí, nabídneme znovu za 3 měsíce",
+    unreachable: "Sestra nezastihla, zkusíme znovu za 3 měsíce",
     ignored: "Bez změny stavu, krok už neplatí.",
     simulated: "simulováno",
     showText: "Text zprávy",
@@ -216,9 +232,9 @@ export const T = {
     impactNote: (e) => `Odhad pro ${e} pacientů, kteří splňují kritéria. Dnes program osloví 18 % cílové populace, k pneumologovi odešle 54 % oslovených. Stejný podíl odeslaných předpokládáme i u nás.`,
     funnel: "Od dat k výsledku",
     channels: "Který kanál funguje",
-    chCols: ["Kanál", "Kontaktů", "Odpověděli", "Úspěšnost"],
-    chNote: "Odpověď se počítá kanálu posledního kontaktu před ní. Zahrnuje záznamy z kartotéky i kontakty z Plíce včas.",
-    funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Ke kontrole lékařem", "Pozváni", "Ozvali se se zájmem", "Předáni k pneumologovi", "Výsledek zapsán"],
+    chCols: ["Kanál", "Kontaktů", "Mají zájem", "Úspěšnost"],
+    chNote: "Zájem (ano, už objednán, zavolejte mi) se počítá kanálu posledního kontaktu před odpovědí. Zahrnuje záznamy z kartotéky i kontakty z Plíce včas.",
+    funnelSteps: ["Pacienti v datech", "Splňují kritéria", "Rozhodne lékař", "Pozváni", "Mají zájem", "Předáni k pneumologovi", "Výsledek zapsán"],
     exclusions: "Proč pacienti nejsou vhodní",
     exclusionRows: [
       ["EXCLUDED_AGE", "Mimo věk 55 až 74 let"], ["EXCLUDED_PACK_YEARS", "Méně než 20 balíčkoroků"],
@@ -238,6 +254,7 @@ export const T = {
 
   footer: (d) => `Syntetická data Rakathon 2026, odesílání simulované, vyhodnoceno ${d}.`,
   footerLive: (d, live) => `Syntetická data Rakathon 2026, ${live ? "SMS a hovory odcházejí přes Twilio" : "odesílání simulované"}, vyhodnoceno ${d}.`,
+  footerClock: (d) => ` Den ukázky ${d}.`,
   footerFhir: (f) => ` Data z FHIR serveru ${f.server}${f.sync ? `, načteno ${f.sync.at}` : ""}. Zpět zapsáno ${f.written} záznamů${f.errors ? `, ${f.errors} chyb` : ""}.`,
   apiError: "Server neodpověděl. Zkuste to prosím znovu.",
   loadError: "Data se nepodařilo načíst. Obnovte prosím stránku.",
