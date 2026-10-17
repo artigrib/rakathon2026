@@ -73,7 +73,7 @@ def config() -> dict:
             "tts": {"voice_id": VOICE, "model_id": "eleven_flash_v2_5", "agent_output_audio_format": "ulaw_8000",
                     "stability": 0.6, "similarity_boost": 0.75, "speed": 0.95},
             "asr": {"user_input_audio_format": "ulaw_8000", "quality": "high"},
-            "turn": {"turn_timeout": 10, "turn_eagerness": "patient", "silence_end_call_timeout": 20},
+            "turn": {"turn_timeout": 10, "turn_eagerness": "normal", "speculative_turn": True, "silence_end_call_timeout": 20},
             "conversation": {"max_duration_seconds": 180},
         },
         "platform_settings": {
