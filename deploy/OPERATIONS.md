@@ -50,7 +50,7 @@ override keeps the network), restore it from the app: `curl -u USER:PASS -X POST
 |---|---|---|
 | Domain `jsemvcas.cz` (Active24) | yearly renewal | site gone if not renewed |
 | Twilio | prepaid balance; number billed monthly | SMS/calls stop when the balance is 0 |
-| ElevenLabs | free plan, 10 000 characters a month | the agent call goes silent when used up; `VOICE_MODE=gather` avoids it |
+| ElevenLabs | Starter plan (from 17.10.2026), 30 000 characters a month, resets on the 17th | the agent call goes silent when used up; `VOICE_MODE=gather` avoids it |
 | WhatsApp sandbox | join valid 72 h, free text only 24 h after the phone's last message | WhatsApp sends fail; production needs a WhatsApp sender approved by Meta |
 | Gmail app password | until revoked | e-mail channel and alerts stop |
 | Cloudflare tunnel token | until the tunnel is deleted | – |
