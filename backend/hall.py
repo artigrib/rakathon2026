@@ -63,10 +63,11 @@ def new_event() -> dict:
 
 
 def current() -> dict:
-    """The running event; one older than 2 days is replaced (its contacts are deleted)."""
+    """The running event; one closed for joining (older than HALL_TTL_HOURS) is replaced (its contacts are deleted),
+    so the QR code on /sal never leads to "Tato ukázka už skončila"."""
     d = _load()
     ev = d["events"].get(d.get("current", ""))
-    if not ev or time.time() - ev["created"] > 2 * 86400:
+    if not is_open(ev):
         return new_event()
     return ev
 

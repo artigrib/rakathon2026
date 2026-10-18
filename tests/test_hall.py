@@ -87,3 +87,15 @@ def test_call_everybody_then_sms_to_who_did_not_answer_and_ano_reply(hall, monke
     assert "<Message>" in r.text
     assert {p["n"]: p for p in c.get("/api/hall").json()["participants"]}[2]["status"] == "interested"
     assert c.get("/centra", follow_redirects=False).headers["location"].startswith("https://www.vzp.cz/")
+
+
+def test_closed_event_is_replaced_so_the_qr_code_keeps_working(hall):
+    m, h, _ = hall
+    c = TestClient(m.app)
+    old = c.get("/api/hall").json()["id"]
+    d = h._load()
+    d["events"][old]["created"] -= (h.ttl_hours() + 1) * 3600  # joining closed, but not yet 2 days old
+    h._save(d)
+    st = c.get("/api/hall").json()
+    assert st["id"] != old and st["open"]
+    assert "Zapojte se" in c.get(f"/j/{st['id']}").text
