@@ -8,7 +8,7 @@ from cases.seniors import hooks
 
 ROOT = Path(__file__).resolve().parents[3]
 M = json.loads((ROOT / "cases/seniors/messages.cs.json").read_text(encoding="utf-8"))
-DATA = json.loads((ROOT / "cases/seniors/data/seniors.json").read_text(encoding="utf-8"))["patients"]
+DATA = json.loads((ROOT / "cases/seniors/synthetic/seniors.json").read_text(encoding="utf-8"))["patients"]
 
 
 def texts():

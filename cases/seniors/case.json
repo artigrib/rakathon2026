@@ -24,6 +24,6 @@
   "result_stage": null,
   "terminal_reply_stages": ["new", "enrolled", "ok", "needs_help", "low_mood", "callback", "escalated", "resolved", "paused", "declined"],
   "marks": ["basket"],
-  "data": "cases/seniors/data/seniors.json",
+  "data": "cases/seniors/synthetic/seniors.json",
   "storage_key": "jsem-v-poradku:v1"
 }

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-DATA = json.loads((ROOT / "cases/seniors/data/seniors.json").read_text(encoding="utf-8"))
+DATA = json.loads((ROOT / "cases/seniors/synthetic/seniors.json").read_text(encoding="utf-8"))
 PID = next(p["id"] for p in DATA["patients"] if p["stage"] == "ok")
 
 
