@@ -81,6 +81,7 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .hero .wrap { padding-block: 48px 52px; display: grid; gap: 28px; }
 .hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; max-width: 20ch; }
 .hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 50ch; color: var(--ink-2); }
+.hero .label a { color: inherit; }
 .hero .note { font-size: var(--t-s); color: var(--ink-2); max-width: 62ch; }
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; padding: 0; margin: 8px 0 0; }
 .facts li { list-style: none; display: grid; gap: 4px; border-top: 1px solid var(--hair); padding-top: 12px; align-content: start; }
@@ -224,6 +225,29 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .mini svg { width: 100%; height: auto; display: block; }
 .mini h3 { font-size: var(--t-m); font-weight: 700; }
 
+/* video and screenshots */
+.media { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.media img, .media video { display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--hair); background: var(--surface); }
+.media figcaption { font-size: var(--t-s); color: var(--ink-2); max-width: 64ch; }
+video:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; }
+.shots .wide { grid-column: 1 / -1; }
+@media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
+
+/* origin */
+.origin { max-width: 66ch; }
+.nums { display: flex; flex-wrap: wrap; gap: 12px 40px; margin: 0; padding: 0; list-style: none; }
+.nums li { display: grid; }
+.nums b { font: 700 var(--t-xl)/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.nums span { font-size: var(--t-s); color: var(--ink-2); }
+.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px 32px; }
+.method div { display: grid; gap: 6px; align-content: start; }
+.method h3 { font-size: var(--t-m); font-weight: 700; }
+.log { list-style: none; margin: 0; padding: 0; display: grid; }
+.log li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 16px; padding: 10px 0; border-top: 1px solid var(--hair); }
+.log time { font: 500 var(--t-s)/1.6 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .log li { grid-template-columns: 1fr; gap: 2px; } }
+
 /* footer */
 footer { border-top: 2px solid var(--ink); }
 footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
@@ -242,13 +266,13 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#main"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--accent)"/><path d="M7 13.5 11 17.5 19 9" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Jsem včas</a>
-    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#reseni" class="nav-x">Řešení</a><a href="#jak">Jak to funguje</a><a href="#ukazka">Ukázka</a><a href="#technologie" class="nav-x">Technologie</a><a class="btn primary small" href="/login?next=/app/">Vyzkoušet ukázku</a></nav>
+    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#reseni" class="nav-x">Řešení</a><a href="#jak">Jak to funguje</a><a href="#ukazka">Ukázka</a><a href="#technologie" class="nav-x">Technologie</a><a href="#vznik" class="nav-x">Jak vznikl</a><a class="btn primary small" href="/login?next=/app/">Vyzkoušet ukázku</a></nav>
   </div>
 </header>
 <main id="main">
 <section class="hero" aria-labelledby="h-hero">
   <div class="wrap">
-    <p class="label">Rakathon 2026 · výzva Plíce včas · screening karcinomu plic</p>
+    <p class="label"><a href="https://www.rakathon.cz/">Rakathon 2026</a> · výzva Plíce včas · screening karcinomu plic</p>
     <h1 id="h-hero">Pozvánka na screening plic, která dojde až k&nbsp;výsledku.</h1>
     <p class="lead">Jsem včas najde v datech praktického lékaře pacienty pro screening plic, osloví je jménem ordinace a pohlídá, aby došli až k výsledku LDCT. Sestra schvaluje, lékař rozhoduje.</p>
     <div class="cta">
@@ -258,6 +282,19 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
     <p class="note">Ukázka běží na vašem telefonu. Zadáte přístupový kód <b class="mono">demo</b>, svůj telefon a e-mail. Systém vám pak píše a volá, jako byste byli pacient ordinace. Zprávy jdou jen na kontakty, které jste zadali.</p>
     <ul class="facts"><li><b>asi 18&nbsp;%</b><span>cílové populace program za čtyři roky oslovil</span></li><li><b>46&nbsp;%</b><span>pacientů oslovených praktikem účast odmítlo</span></li><li><b>51&nbsp;%</b><span>nádorů zachycených screeningem je ve stadiu 1</span></li><li><b>62&nbsp;%</b><span>praktických lékařů je do programu zapojeno</span></li></ul>
     <p class="src">Data programu z NRHZS, 1.&nbsp;1.&nbsp;2022 až 31.&nbsp;3.&nbsp;2026, věk 55 až 74 let; stadium u pozitivních nálezů se záznamem v Národním onkologickém registru.</p>
+  </div>
+</section>
+<section class="section" id="video" aria-labelledby="h-video">
+  <div class="wrap">
+    <div class="aside"><p class="label">Video</p><h2 id="h-video">Jak to vidí sestra a lékař</h2></div>
+    <div class="body">
+      <figure class="media">
+        <video controls preload="metadata" playsinline poster="/img/ukoly.jpg" aria-describedby="cap-video">
+          <source src="/demo.mp4" type="video/mp4">
+        </video>
+        <figcaption id="cap-video">Záznam ukázky, 110 sekund, česky namluveno. Zvuk se spustí po kliknutí na přehrát.</figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 <section class="section" id="problem" aria-labelledby="h-problem">
@@ -338,6 +375,29 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
     <div class="aside"><p class="label">Ukázka</p><h2 id="h-ukazka">Co uvidíte na svém telefonu</h2></div>
     <div class="body">
 <ol class="steps"><li><div><b>Přihlásíte se kódem demo, svým telefonem a e-mailem</b><span>Po kliknutí na Vyzkoušet ukázku vyplníte jeden formulář: přístupový kód <b class="mono">demo</b>, své telefonní číslo a e-mail. Každý návštěvník má vlastní oddělenou ukázku.</span></div></li><li><div><b>Otevře se aplikace pro sestru</b><span>Obrazovky Úkoly, Pro lékaře, Pacienti a Program, nad 300 smyšlenými pacienty z 15 ordinací. Záznamy jsou smyšlené, aplikace je stejná jako naostro.</span></div></li><li><div><b>Spustíte celou ukázku</b><span>Tlačítko Spustit celou ukázku přidá do seznamu pacienta s vaším telefonem a e-mailem a provede celý příběh krok za krokem: přijde SMS, zazvoní hovor, otevřete osobní odkaz. Na každém kroku vidíte, co systém udělal a proč.</span></div></li><li><div><b>Odpovíte jako skutečný člověk</b><span>Na pozvánku odpovíte SMS, v hovoru řeknete nebo stisknete, co chcete, nebo kliknete na osobní odkaz. Odpověď se objeví na kartě pacienta doslova i s tím, jak jí systém porozuměl, a pacient se přesune do správného stavu.</span></div></li><li><div><b>Posunete čas tlačítkem Další den</b><span>Plán kontaktů se v ukázce neodvíjí v hodinách, ale po dnech. Další den odešle, co je podle plánu na řadě, a na kartě je vidět celá komunikace od nejnovější.</span></div></li><li><div><b>Nebo zkoušíte sami</b><span>U libovolného záznamu můžete zprávu poslat hned zvoleným kanálem, nebo odpověď jen nasimulovat bez telefonu. Obnovit ukázková data vrátí vše na začátek.</span></div></li></ol>
+      <h3 class="sub">Obrazovky aplikace</h3>
+      <div class="shots">
+        <figure class="media wide">
+          <img src="/img/ukoly.jpg" alt="Obrazovka Úkoly: nahoře jeden pacient, který se ztrácí, pod ním pět pacientů k pozvání s tlačítkem Odeslat 5 pozvánek" width="1920" height="1200" loading="lazy">
+          <figcaption>Úkoly. Nahoře kdo se ztrácí a proč, pod tím pozvánky na tento týden. Sestra vidí jen to, co má udělat.</figcaption>
+        </figure>
+        <figure class="media">
+          <img src="/img/kontakt.jpg" alt="Kontaktování pacienta: výběr kanálu SMS, hovor, WhatsApp, e-mail a text zprávy jménem ordinace" width="1920" height="1200" loading="lazy">
+          <figcaption>Kontaktovat teď. Sestra vybere kanál, text je jménem ordinace a odejde hned.</figcaption>
+        </figure>
+        <figure class="media">
+          <img src="/img/karta.jpg" alt="Karta pacientky: komunikace od nejnovější, odpověď Ano, ale až po Vánocích a co systém zapsal" width="1920" height="1200" loading="lazy">
+          <figcaption>Karta pacienta. Celá komunikace na jednom místě, odpověď doslova a jak ji systém pochopil.</figcaption>
+        </figure>
+        <figure class="media">
+          <img src="/img/lekar.jpg" alt="Obrazovka Pro lékaře: čtyři pacienti k rozhodnutí o zařazení a jeden výsledek k převzetí" width="1920" height="1200" loading="lazy">
+          <figcaption>Pro lékaře. Jen rozhodnutí o zařazení, výsledky k převzetí a kódy 01196 a 01197 k vykázání.</figcaption>
+        </figure>
+        <figure class="media">
+          <img src="/img/program.jpg" alt="Přehled programu: dnes osloveno 18, s&nbsp;Jsem&nbsp;včas 101; odesláno k pneumologovi 10 oproti 55" width="1920" height="1200" loading="lazy">
+          <figcaption>Přehled programu. Dopad v datech výzvy a cesta od dat k výsledku.</figcaption>
+        </figure>
+      </div>
     </div>
   </div>
 </section>
@@ -346,6 +406,48 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
     <div class="aside"><p class="label">Technologie</p><h2 id="h-technologie">Jedno jádro, tři ukázky</h2></div>
     <div class="body">
 <dl class="stack"><div><dt>Jádro</dt><dd>Jeden server pro všechny tři ukázky<small>Python, FastAPI. Každá ukázka je balíček <span class="mono">cases/&lt;id&gt;</span>: stavy, texty zpráv, porozumění odpovědím, plán kontaktů a obrazovky. Jádro je společné.</small></dd></div><div><dt>Stavový automat</dt><dd>Tabulka přechodů v JSON<small>stejný soubor čte server i webová aplikace; událost, která v daném stavu nedává smysl, se zapíše, ale nic nezmění</small></dd></div><div><dt>Kanály</dt><dd>Twilio SMS, Voice a WhatsApp, e-mail<small>stav doručení u každé zprávy, odpovědi přes webhooky, osobní odkaz pro odpověď jedním klikem</small></dd></div><div><dt>Hlas</dt><dd>ElevenLabs<small>český hlas a konverzační agent; mluví jen schválenými větami, záložně pevný scénář s volbou klávesou</small></dd></div><div><dt>Porozumění</dt><dd>Pravidla, jazykový model jen pomáhá<small>model odpověď jen zařadí do kategorie; nejistá odpověď jde člověku, odhlášení vždy rozpoznají pravidla; bez modelu systém funguje dál</small></dd></div><div><dt>Data</dt><dd>HL7 FHIR R4, InterSystems IRIS for Health<small>Patient, Observation, ImagingStudy, Communication, Task; ověřeno na všech 300 pacientech výzvy</small></dd></div><div><dt>Web</dt><dd>ES moduly bez frameworku<small>světlý i tmavý režim, telefon i počítač</small></dd></div><div><dt>Kvalita</dt><dd>pytest<small>kontrola kontraktu každé ukázky: stavy, texty všech zpráv, plán kontaktů; vlastní testy každé ukázky</small></dd></div><div><dt>Soukromí</dt><dd>Smyšlená data, zprávy jen vám<small>Pacienti v ukázce jsou syntetická data výzvy. Skutečné zprávy z ukázky odcházejí jen na telefon a e-mail, které návštěvník zadal při přihlášení, s denním limitem.</small></dd></div></dl>
+    </div>
+  </div>
+</section>
+<section class="section" id="vznik" aria-labelledby="h-vznik">
+  <div class="wrap">
+    <div class="aside"><p class="label">Vznik</p><h2 id="h-vznik">Jak vznikl na Rakathonu 2026</h2></div>
+    <div class="body">
+      <p class="origin">Jsem včas vznikl na <a href="https://www.rakathon.cz/">Rakathonu 2026</a> v&nbsp;rámci výzvy č.&nbsp;7 společnosti AstraZeneca „Plíce včas: chytrá cesta k&nbsp;prevenci“: najít v&nbsp;datech pacienty pro program Prevence pro plíce, vyloučit ty, kteří měli v&nbsp;posledním měsíci CT hrudníku, a&nbsp;srozumitelně je informovat, že se mohou obrátit na svého praktického lékaře nebo pneumologa.</p>
+      <ul class="nums">
+        <li><b>~20 h</b><span>od prvního commitu do odevzdání</span></li>
+        <li><b>62</b><span>commitů</span></li>
+        <li><b>109</b><span>automatických testů</span></li>
+        <li><b>30</b><span>předávacích poznámek mezi relacemi</span></li>
+      </ul>
+      <div class="method">
+        <div>
+          <h3>Dvě relace Claude Code</h3>
+          <p>Jedna v cloudu psala engine, rozhraní, testy a video. Druhá na serveru nasazovala, zapojila Twilio, ElevenLabs, Gmail a IRIS a zkoušela vše naostro. Domlouvaly se poznámkami ve složce <span class="mono">bridge/</span> v gitu, kapitán týmu rozhodoval.</p>
+        </div>
+        <div>
+          <h3>Konzilia agentů</h3>
+          <p>Rozhraní prošlo několika koly auditu, kde skupina agentů hrála sestru, lékaře a pacienta a hledala slepé uličky. Našla například měkké odmítnutí vykázané jako 01197, rozporné počty a mužský rod u pacientek.</p>
+        </div>
+        <div>
+          <h3>Mentoři</h3>
+          <p>Pravidla programu potvrdila garantka výzvy. Od mentora výzvy přišel požadavek na jednoduchost pro praktiky, odtud samostatná obrazovka pro lékaře. S mentorem InterSystems jsme ladili zápis zpět do IRIS.</p>
+        </div>
+      </div>
+      <ol class="log" aria-label="Průběh podle commitů">
+        <li><time>pá 17:36</time><span>Engine nad daty výzvy, rozhraní pro sestru, Twilio, plán kontaktů, export do FHIR</span></li>
+        <li><time>pá 18:04</time><span>Švýcarský redesign: úkoly místo tabulek, jedna barva, méně textu</span></li>
+        <li><time>pá 19:57</time><span>Český hlas hovoru přes ElevenLabs</span></li>
+        <li><time>pá 20:05</time><span>Druhá relace na serveru, předávání přes <span class="mono">bridge/</span></span></li>
+        <li><time>pá 21:54</time><span>První SMS naostro, odpověď a potvrzení</span></li>
+        <li><time>pá 22:50</time><span>Kontaktovat teď: SMS, hovor, WhatsApp, e-mail</span></li>
+        <li><time>pá 23:06</time><span>Stavový automat pro celou cestu pacienta</span></li>
+        <li><time>pá 23:44</time><span>Komunikace s pacientem na jednom místě</span></li>
+        <li><time>pá 23:57</time><span>IRIS oběma směry, e-mail přes Gmail</span></li>
+        <li><time>so 03:30</time><span>Obrazovka pro lékaře, opravy z auditu</span></li>
+        <li><time>so 04:06</time><span>Hlasový agent ElevenLabs místo pevného scénáře</span></li>
+        <li><time>so 05:05</time><span>Karta pacienta, video s českým komentářem</span></li>
+      </ol>
     </div>
   </div>
 </section>
