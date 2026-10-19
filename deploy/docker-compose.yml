@@ -1,9 +1,23 @@
 # VPS: app + Cloudflare Tunnel (HTTPS without opening ports). Set TUNNEL_TOKEN in backend/.env,
 # or delete the tunnel service and put Caddy / nginx in front of :8000.
 # Long-term operation (backups, health alerts, auto-deploy): deploy/OPERATIONS.md
+#
+# One image, one case per container (env CASE, see cases/README.md):
+#   app              screening (Plíce včas, jsemvcas.cz)   127.0.0.1:8000  volume plice-data
+#   app-seniors      seniors                                127.0.0.1:8001  volume seniors-data    profile "cases"
+#   app-collections  collections                            127.0.0.1:8002  volume collections-data profile "cases"
+# The two new cases start only with `--profile cases` (make up-all), so the production auto-deploy
+# (deploy/ops/autodeploy.sh, --profile tunnel) keeps running screening alone.
 x-logging: &logging   # json-file logs are unbounded by default; the VPS disk is small
   driver: json-file
   options: { max-size: "10m", max-file: "3" }
+
+x-case: &case          # shared by the non-screening cases; each sets CASE, STATE_FILE, env_file, port, volume
+  build: ..
+  restart: unless-stopped
+  logging: *logging
+  extra_hosts: ["host.docker.internal:host-gateway"]
+  profiles: ["cases"]
 
 services:
   app:
@@ -16,6 +30,25 @@ services:
     # FHIR server (IRIS): joins this compose network (deploy_default), FHIR_BASE=http://fhir-template:52773/fhir/r4.
     # On a host without that, host.docker.internal:32783 works when IRIS publishes on all interfaces.
     extra_hosts: ["host.docker.internal:host-gateway"]
+  app-seniors:
+    <<: *case
+    # shared keys first, then the case's own (PUBLIC_URL, DEMO_USER, DEMO_PASSWORD, ELEVENLABS_AGENT_ID …) win
+    env_file:
+      - path: ../backend/.env
+      - path: ../cases/seniors/.env
+        required: false
+    environment: { CASE: seniors, STATE_FILE: /data/state-seniors.json }
+    ports: ["127.0.0.1:8001:8000"]
+    volumes: ["seniors-data:/data"]
+  app-collections:
+    <<: *case
+    env_file:
+      - path: ../backend/.env
+      - path: ../cases/collections/.env
+        required: false
+    environment: { CASE: collections, STATE_FILE: /data/state-collections.json }
+    ports: ["127.0.0.1:8002:8000"]
+    volumes: ["collections-data:/data"]
   tunnel:
     image: cloudflare/cloudflared:2024.12.2
     command: tunnel --no-autoupdate run
@@ -26,3 +59,5 @@ services:
     profiles: ["tunnel"]
 volumes:
   plice-data:
+  seniors-data:
+  collections-data:

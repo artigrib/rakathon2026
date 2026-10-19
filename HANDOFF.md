@@ -11,8 +11,10 @@ to the LDCT result. Doctor decides exceptions and conflicting data. FHIR R4 expo
 ## Repo map
 - `engine/` – pure Python rules (age 55–74, smoker/ex-smoker, ≥ 20 pack-years, no chest CT in 30 days, LDCT interval 1 y / 2 y after negative), data repair (broken rows, diacritics), channel recommendation. `python -m engine data --ref-date 2026-10-16`
 - `backend/` – FastAPI: serves the web app, Twilio SMS/voice/WhatsApp, reply webhooks, reply understanding (`replies.py` rules + optional LLM `llm.py`), contact plan (`cadence.py`), patient link page `/p/{token}`, AI call (`voice_ai.py`, ConversationRelay), ElevenLabs voice (`tts.py`), FHIR (`fhir.py`). See `backend/README.md`.
-- `web/app/` – static ES-module frontend (no build). Views `js/views/`, components `js/components/`, all UI strings `js/i18n/cs.js`, patient texts `content/messages.cs.json` (shared with backend), tokens `css/tokens.css`.
-- `tests/` – 84 tests: `python -m pytest -q`
+- `cases/<id>/` – one package per case (`screening` = Plíce včas, `seniors`, `collections`), contract in `cases/README.md`. `backend/case.py` loads the one named by env `CASE` (default `screening`). Screening: UI strings `cases/screening/web/i18n.js`, views `cases/screening/web/views/`, patient texts `cases/screening/messages.cs.json` (shared with backend), state machine `cases/screening/journey.json`, reply rules and approved voice sentences `cases/screening/dialog.py`, contact plan `cases/screening/cadence.py`.
+- `web/app/` – static ES-module core shell (no build): `js/shell.js`, `js/case.js` (loads the case's modules from `/app/case/`), core components `js/components/`, core view `js/views/patients.js`, tokens `css/tokens.css`.
+- `tests/` – screening + core tests, `tests/test_case_contract.py` checks every case: `make test` (`CASE=screening python -m pytest -q`), `make test-all` for every case
+- `Makefile` – `make data|run|test|agent CASE=x`, `make test-all`, `make up` / `make up-all`
 - `deploy/docker-compose.yml`, `Dockerfile`, `.github/workflows/deploy.yml`
 - `SPEC.md` (rules, doctor's answers, system boundaries), `BACKLOG.md` (done / todo), `SUBMISSION.md` (texts for the submit form, 3-min table demo script)
 
@@ -21,13 +23,14 @@ Everything private lives in the Google Drive folder "Plíce včas (privátní)" 
 challenge data `plice-data.tgz`, the doctor's presentation, contacts. Keys are never stored there either.
 The AstraZeneca challenge data must not be published. Copy it to the VPS separately:
 `scp -r data/ vps:~/rakathon2026/data/` (1_patients.csv … 5_data_dictionary.csv, README.pdf), then
-`python scripts/build_web_data.py` (creates web/app/data/patients.json). Without it the app and most tests do not run.
+`make data` (= `python -m cases.screening.build`, same as `python scripts/build_web_data.py`; creates web/app/data/patients.json). Without it the screening app and most tests do not run. Seniors and collections use synthetic data: `make data CASE=seniors`.
 
 ## Run on the VPS
 ```bash
 cp backend/.env.example backend/.env      # fill: TWILIO_*, DEMO_TO, PUBLIC_URL, ELEVENLABS_*, LLM_*, TUNNEL_TOKEN
 docker compose -f deploy/docker-compose.yml --profile tunnel up -d --build    # or without --profile tunnel behind Caddy
-curl -s localhost:8000/api/health        # {"mode":"live"|"mock","voice":"elevenlabs"|"twilio",...}
+curl -s localhost:8000/api/health        # {"mode":"live"|"mock","voice":"elevenlabs"|"twilio","case":"screening",...}
+make up-all                              # also seniors (:8001) and collections (:8002), see deploy/OPERATIONS.md
 python -m backend.tts                    # pre-generate call audio (ElevenLabs)
 ```
 Twilio console: number → Messaging → "A message comes in" → `POST {PUBLIC_URL}/twilio/sms`. Geo permissions: Czech Republic (SMS + Voice).
@@ -37,11 +40,11 @@ Trial account: only verified numbers (Verified Caller IDs), trial prefix in SMS,
 ## Rules for any change
 - Secrets only in `backend/.env` (gitignored). Never commit keys.
 - UI copy is Czech, plain and short. No dashes (– —), arrows, middle dots, exclamation marks, ellipses, "AI" labels, internal codes (VPL-…) in patient texts. Medical statements only if verifiable (free, covered by insurance, short, painless, low-dose CT). A test enforces this for patient templates.
-- Patient texts live only in `web/app/content/messages.cs.json`.
+- Patient texts live only in `cases/<id>/messages.cs.json` (screening: `cases/screening/messages.cs.json`).
 - Design: Swiss grid, graphite on #f4f4f2, one accent (petrol #11615d), amber only for data warnings.
-- Patient stage changes only through the state machine (`web/app/content/journey.json`, `backend/fsm.py`, `transition()` in app.py). Add a transition there, never write `store.event(pid, <stage>)` directly.
+- Patient stage changes only through the state machine (`cases/<id>/journey.json`, `backend/fsm.py`, `transition()` in app.py). Add a transition there, never write `store.event(pid, <stage>)` directly.
 - AI never decides inclusion or sending. It only classifies replies; the phone assistant speaks only approved sentences.
-- Run `python -m pytest -q` before pushing.
+- Run `make test-all` (or at least `make test`) before pushing.
 
 ## Open tasks (owner)
 1. Done 17. 10. 00:04: live SMS round trip with confirmation, call with key 1 and with spoken "ano". Quick tunnel URL in SUBMISSION.md.

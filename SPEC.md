@@ -159,7 +159,7 @@ EXCLUDED_SMOKING_STATUS 23 · EXCLUDED_RECENT_CT 23 (sanity check pro testy).
 - Výzva se v systému jmenuje **„Cesta ke screeningu plic“ (AstraZeneca)**; v Praze ji k 16. 10. odpoledne neměl žádný tým.
 
 ## Patient journey: state machine
-Single source: `web/app/content/journey.json`, read by `backend/fsm.py` (server) and `web/app/js/fsm.js` (web app, local mode).
+Single source: `cases/screening/journey.json` (served as `/app/content/journey.json`), read by `backend/fsm.py` (server) and `web/app/js/fsm.js` (web app, local mode).
 Every stage change goes through `transition()` in `backend/app.py` (replies by SMS, WhatsApp, link, call; nurse and doctor actions; contact plan; sending).
 An event that is not allowed in the current stage is written to the history with `ignored: true` and changes nothing.
 

@@ -32,7 +32,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "engine,backend,web/app,data,requirements.txt,Dockerfile,deploy"
+          source: "engine,backend,cases,web/app,data,submission/landing,submission/demo.mp4,requirements.txt,Dockerfile,.dockerignore,deploy"
           target: ~/plice
       - name: Build and restart
         if: env.HAS_VPS == 'true'

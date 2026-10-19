@@ -13,11 +13,11 @@ which is the only one that writes back to IRIS.
 
 | Piece | Where | Restarts by itself |
 |---|---|---|
-| App (FastAPI + web) | `deploy-app-1`, compose in `deploy/`, state in volume `deploy_plice-data` | `unless-stopped` |
+| App (FastAPI + web), case `screening` | `deploy-app-1`, compose in `deploy/`, state in volume `deploy_plice-data` | `unless-stopped` |
 | HTTPS | named Cloudflare tunnel `jsemvcas` in `deploy-tunnel-1` (`--profile tunnel`, `TUNNEL_TOKEN` in `backend/.env`) | `unless-stopped` |
 | FHIR server | InterSystems IRIS for Health in `fhir-template` (`~/iris-fhir-template`, ports on 127.0.0.1 only), joined to `deploy_default` | `always` |
 | Health check | `jsemvcas-health.timer`, every 5 min | e-mail on down and on recovery, starts missing containers |
-| Auto-deploy | `jsemvcas-autodeploy.timer`, every 10 min | new commit on `origin/main` → pip, `build_web_data.py`, tests, rebuild, FHIR sync, e-mail |
+| Auto-deploy | `jsemvcas-autodeploy.timer`, every 10 min | new commit on `origin/main` → pip, `build_web_data.py` (= `make data`), tests (`CASE=screening`), rebuild, FHIR sync, e-mail |
 | Backup | `jsemvcas-backup.timer`, 03:17 nightly | `/root/backups/jsemvcas`: state volume + `.env`, last 14 |
 
 Scripts: `deploy/ops/*.sh`, units: `deploy/ops/systemd/` (installed by copying to `/etc/systemd/system`).
@@ -37,6 +37,66 @@ cd ~/rakathon2026/deploy && /usr/bin/docker compose --profile tunnel logs -f app
 A commit that fails tests is not deployed; it is reported once and the server stays on the previous commit.
 After fixing, push a new commit. To redeploy by hand: `systemctl start jsemvcas-autodeploy` (only when origin/main moved),
 or `cd deploy && /usr/bin/docker compose --profile tunnel up -d --build`.
+
+## Seniors and collections (cases 2 and 3)
+
+The same image runs every case (`cases/<id>/`, env `CASE`, see `cases/README.md`). Production above is case `screening`
+(service `app`); `deploy/docker-compose.yml` also has two services behind the compose profile `cases`, so they never
+start unless asked for. The auto-deploy (`--profile tunnel`), health check and backup do not touch them.
+
+| Service | `CASE` | Host port | Volume | State file | Own keys (optional, gitignored) |
+|---|---|---|---|---|---|
+| `app` | screening | 127.0.0.1:8000 | `deploy_plice-data` | `/data/state.json` | `backend/.env` |
+| `app-seniors` | seniors | 127.0.0.1:8001 | `deploy_seniors-data` | `/data/state-seniors.json` | `cases/seniors/.env` |
+| `app-collections` | collections | 127.0.0.1:8002 | `deploy_collections-data` | `/data/state-collections.json` | `cases/collections/.env` |
+
+```bash
+cd ~/rakathon2026 && make data CASE=seniors && make data CASE=collections   # data files (also built in the image when missing)
+cd deploy && /usr/bin/docker compose --profile cases up -d --build app-seniors app-collections   # only the two new ones
+curl -s localhost:8001/api/health; curl -s localhost:8002/api/health      # "case":"seniors" / "collections"
+/usr/bin/docker compose --profile cases stop app-seniors app-collections  # stop them again (make stop-cases)
+```
+`make up-all` does the same plus screening (it rebuilds and recreates `app` too). Naming the services keeps `app` untouched.
+
+Env: every case container reads `backend/.env`, then `cases/<id>/.env`, which wins. Without a case `.env` the case inherits
+the screening values, so before going live set in `cases/<id>/.env` at least:
+- `PUBLIC_URL=https://seniori.jsemvcas.cz` (patient links, Twilio status and voice callbacks go there; otherwise to jsemvcas.cz),
+- `DEMO_USER` / `DEMO_PASSWORD` (access code of that stand),
+- `ELEVENLABS_AGENT_ID` of the case's own agent (`make agent CASE=seniors` creates it from `cases/seniors/dialog.py`),
+  or `VOICE_MODE=gather`; the screening agent must not answer seniors' calls,
+- optionally its own `TWILIO_FROM`: incoming SMS replies go to the webhook configured on the Twilio number, which is
+  `https://jsemvcas.cz/twilio/sms` (screening). A case with its own replies needs its own number whose
+  "A message comes in" webhook is `{PUBLIC_URL}/twilio/sms` of that case.
+After editing a case `.env`: `/usr/bin/docker compose --profile cases up -d app-seniors`.
+
+To deploy them automatically too, change the compose line in `deploy/ops/autodeploy.sh` to
+`--profile tunnel --profile cases` and add `make test-all` before it; the health check (`health.sh`, port 8000 only) and
+the backup (`backup.sh`, `deploy_plice-data` only) would need the new ports and volumes as well. Not done yet.
+
+### Public subdomains (Cloudflare tunnel, do by hand)
+
+The tunnel `jsemvcas` is managed in the Cloudflare dashboard (token in `backend/.env`), and `deploy-tunnel-1` is on the
+compose network, so it reaches the services by name. Zero Trust → Networks → Tunnels → `jsemvcas` → Public hostnames → Add:
+
+| Hostname | Service |
+|---|---|
+| `jsemvcas.cz` (exists, leave as it is) | as configured now (e.g. `http://app:8000`) |
+| `seniori.jsemvcas.cz` | `http://app-seniors:8000` |
+| `vymahani.jsemvcas.cz` | `http://app-collections:8000` |
+
+Cloudflare creates the DNS CNAMEs. With a locally managed tunnel (`config.yml`) the same as ingress rules, before the
+catch-all `http_status:404`:
+```yaml
+ingress:
+  - hostname: seniori.jsemvcas.cz
+    service: http://app-seniors:8000
+  - hostname: vymahani.jsemvcas.cz
+    service: http://app-collections:8000
+  - hostname: jsemvcas.cz
+    service: http://app:8000
+  - service: http_status:404
+```
+The tunnel container only depends on `app`; a hostname whose service is not running answers 502.
 
 ## Restore
 

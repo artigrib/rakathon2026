@@ -6,9 +6,19 @@ Bez klíčů běží v **testovacím režimu** – nic neodchází, vše ostatn�
 ## Spuštění (5 min)
 ```bash
 pip install fastapi uvicorn python-multipart twilio
-python -m uvicorn backend.app:app --port 8000      # z kořene projektu
+python -m uvicorn backend.app:app --port 8000      # z kořene projektu (= make run)
 # otevřít http://localhost:8000  → patička ukáže „testovací režim“
 ```
+
+## Případy (`CASE`)
+Backend je společné jádro; doménu (texty `messages.cs.json`, journey `journey.json`, dialog, kadence, obrazovky, data)
+bere z `cases/<CASE>/` (`backend/case.py`, kontrakt `cases/README.md`). Jeden proces = jeden případ:
+```bash
+CASE=seniors python -m cases.seniors.build                         # = make data CASE=seniors
+CASE=seniors python -m uvicorn backend.app:app --port 8001         # = make run CASE=seniors
+```
+Stav: `backend/state.json` (screening), `backend/state-<id>.json` (ostatní), přepíše `STATE_FILE`.
+Klíče: `cases/<id>/.env` (vlastní `PUBLIC_URL`, `DEMO_PASSWORD`, `ELEVENLABS_AGENT_ID` …) má přednost před `backend/.env`.
 
 ## Živý režim
 1. `ngrok http 8000` → zkopírovat https adresu.
@@ -55,8 +65,10 @@ SMS obsahuje osobní odkaz `/p/{token}` (bez ID a zdravotních údajů v URL i n
 
 ## Nasazení (VPS / Azure / Render)
 ```bash
-docker build -t plice-vcas .
+docker build -t plice-vcas .                      # jeden obraz pro všechny případy
 docker run -d --name plice -p 8000:8000 --env-file backend/.env -v plice-data:/data plice-vcas
+docker run -d --name seniori -p 8001:8000 --env-file backend/.env -e CASE=seniors -v seniori-data:/data plice-vcas
+# nebo vše najednou: make up-all (deploy/docker-compose.yml, profil cases)
 # HTTPS: Caddy  (caddy reverse-proxy --from demo.example.cz --to :8000)
 #   nebo Cloudflare Tunnel (cloudflared tunnel --url http://localhost:8000) → PUBLIC_URL
 ```
