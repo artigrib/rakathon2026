@@ -10,6 +10,9 @@ from .case import CASE
 from .plan import Plan, Step  # noqa: F401  (re-exported)
 
 PLAN: Plan = CASE.cadence.PLAN
+# Optional case hook `adjust(touch, journey) -> touch | None` (e.g. calling window, weekly cap, channel opt-out);
+# applied to every touch computed with the case's own PLAN. Cases without it behave exactly as before.
+ADJUST = getattr(CASE.cadence, "adjust", None)
 REPLY_STAGES = set(CASE.manifest["terminal_reply_stages"])
 SENT = CASE.manifest["sent_stage"]
 
@@ -22,6 +25,13 @@ def next_touch(journey: list, plan: Plan = PLAN):
     """Next automatic touch for a patient, or None when the plan is finished or the patient replied.
 
     Returns {"due": date, "channel", "variant", "step"} – step = index in the ladder."""
+    touch = _next_touch(journey, plan)
+    if touch and ADJUST and plan is PLAN:
+        return ADJUST(touch, journey)
+    return touch
+
+
+def _next_touch(journey: list, plan: Plan):
     if not journey:
         return None
     staged = [e for e in journey if e.get("stage")]
@@ -34,8 +44,8 @@ def next_touch(journey: list, plan: Plan = PLAN):
     if pause and last["stage"] == pause:
         return {"due": _d(last["date"]) + timedelta(days=plan.pause_days), "channel": plan.steps[0].channel,
                 "variant": plan.restart_variant, "step": 0}
-    # current cycle = sends after the last pause (or all)
-    cut = max((i for i, e in enumerate(staged) if pause and e["stage"] == pause), default=-1)
+    # current cycle = sends after the last pause or the last stage that closes a cycle (or all)
+    cut = max((i for i, e in enumerate(staged) if (pause and e["stage"] == pause) or e["stage"] in plan.cycle_stages), default=-1)
     sends = [e for e in staged[cut + 1:] if e["stage"] == SENT]
     if not sends:
         return None

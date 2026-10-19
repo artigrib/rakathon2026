@@ -1,0 +1,28 @@
+{
+  "id": "collections",
+  "title": "AI vymáhání",
+  "brand": "AI vymáhání",
+  "lang": "cs",
+  "about": "AI asistent vymáhání pro spotřebitelského věřitele (fiktivní Finance Demo a.s.): SMS, hovor, e-mail a WhatsApp. Nabízí platební odkaz, splátkový kalendář, odklad a refinancování. Strategii volí deterministická pravidla podle segmentu dlužníka (strategy.py), AI jen rozumí odpovědím. Compliance je součást produktu: představení věřitele a automatu, žádné údaje o dluhu před ověřením totožnosti, kontakt jen v pracovní dny 8 až 20 h a nejvýše 3× týdně, bez výhrůžek, opt-out po kanálech, spor a zranitelnost zastaví automatiku.",
+  "entity": { "one": "dlužník", "few": "dlužníci", "many": "dlužníků" },
+  "owners": { "operator": "operátor", "supervisor": "supervizor" },
+  "group": { "field": "portfolio", "label": "Portfolio", "default": "Spotřebitelské úvěry" },
+  "views": [
+    { "id": "queue", "module": "views/queue.js" },
+    { "id": "debtors", "module": "core/views/patients.js" },
+    { "id": "promises", "module": "views/promises.js" },
+    { "id": "overview", "module": "views/overview.js" }
+  ],
+  "features": { "fhir": false, "hall": false },
+  "domain": "financedemo.example",
+  "voice": { "mode": "gather", "lang": "cs-CZ", "name": "Google.cs-CZ-Standard-A" },
+  "demo_user": "vymahani",
+  "ref_date": "2026-10-19",
+  "initial_stage": "new",
+  "sent_stage": "contacted",
+  "result_stage": null,
+  "terminal_reply_stages": ["new", "promise_to_pay", "plan_offered", "plan_active", "refi_offered", "refi_accepted", "paid",
+    "dispute", "hardship_review", "human_handoff", "wrong_contact", "do_not_contact", "closed"],
+  "data": "cases/collections/synthetic/debtors.json",
+  "storage_key": "collections:v1"
+}

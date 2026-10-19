@@ -2,7 +2,7 @@
 // what the practice records already had, every message and call we sent (with text and delivery),
 // what the patient answered (verbatim) and how it was understood, what the nurse or doctor decided,
 // and what the system will do next.
-import { T } from "../case.js";
+import { CASE, T } from "../case.js";
 import { esc, fmtDate } from "../util.js";
 
 const C = T.comm;
@@ -26,9 +26,10 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
       title: m.auto ? C.autoSent(m.step) : C.sent, bodyText: m.text, textLabel: m.channel === "voice" ? C.showScript : C.showText, status: st + (m.duration ? `, ${C.duration(m.duration)}` : ""), fail: ["failed", "undelivered", "no-answer", "busy"].includes(m.status) });
   }
   for (const e of d.journey || []) {
-    if (e.stage === "sent" && live) continue; // the outbox has the same send with its text
+    const isSend = e.stage === CASE.sent_stage && (!e.event || e.event === "send"); // not a reply that keeps the stage
+    if (isSend && live) continue; // the outbox has the same send with its text
     if (!e.stage && e.delivery && live) continue; // delivery is already on the outbox item
-    if (e.stage === "sent") { items.push({ date: e.date, actor: e.auto ? "system" : "nurse", channel: e.channel, title: e.auto ? C.autoSent(e.step) : C.sent, status: C.simulated }); continue; }
+    if (isSend) { items.push({ date: e.date, actor: e.auto ? "system" : "nurse", channel: e.channel, title: e.auto ? C.autoSent(e.step) : C.sent, status: C.simulated }); continue; }
     if (!e.stage && e.delivery) { items.push({ date: e.date, actor: "system", channel: e.channel, title: D.delivery[e.delivery] || e.delivery, fail: true }); continue; }
     const doctor = e.event === "exclude" || e.event === "include";
     const reply = !!e.text;

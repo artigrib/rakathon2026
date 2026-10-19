@@ -1,0 +1,158 @@
+{
+  "_about": "Every text sent to a debtor (Czech), shared by the web app and the backend. Compliance (tests/test_compliance.py): every message starts by naming the creditor and saying it is an automated assistant; SMS, WhatsApp, e-mail and calls never contain an amount, the word dluh or any detail of the debt (the recipient may be the wrong person): details only on the secure page /p/{token} after identity verification; no threats, no consequences, no pressure words. Strategy-specific sentences are placeholders filled by hooks.extra_placeholders from the record's strategy (strategy.py): {offer_sms} {offer_email} {offer_voice}. Placeholders: {creditor} {offer_*} {call_us} {link} {link_short}.",
+  "parts": {
+    "creditor": "Finance Demo a.s.",
+    "call_us": " Zavolat nám můžete na tel. {phone}.",
+    "link": "\n\nZabezpečený odkaz: {url}",
+    "link_short": " Odkaz: {url}",
+    "link_marker": "[zabezpečený odkaz]",
+    "offer_sms": {
+      "reminder": " Vyřešíte to online během pár minut.",
+      "plan": " Najdete tam i možnost rozložení do splátek nebo odkladu.",
+      "refi": " Najdete tam i možnost sloučení do jedné měsíční splátky.",
+      "supervisor": " Rádi s Vámi najdeme řešení.",
+      "human": " Rádi s Vámi najdeme řešení."
+    },
+    "offer_email": {
+      "reminder": "Většinou jde jen o přehlédnutí. Na stránce vše vyřešíte během pár minut, platbu můžete provést rovnou online.",
+      "plan": "Pokud se Vám teď nehodí zaplatit vše najednou, najdete na stránce i možnost rozložení do splátek nebo krátkého odkladu. Vyberete si sami.",
+      "refi": "Na stránce najdete i možnost sloučit Vaše závazky do jedné měsíční splátky. O konečných podmínkách rozhodujeme až po posouzení Vaší situace.",
+      "supervisor": "Rádi s Vámi najdeme řešení, které Vám bude vyhovovat.",
+      "human": "Rádi s Vámi najdeme řešení, které Vám bude vyhovovat."
+    },
+    "offer_voice": {
+      "reminder": "Vše vyřešíte online během pár minut.",
+      "plan": "Na stránce najdete i možnost rozložení do splátek nebo odkladu.",
+      "refi": "Na stránce najdete i možnost sloučení do jedné měsíční splátky.",
+      "supervisor": "Rádi s Vámi najdeme řešení.",
+      "human": "Rádi s Vámi najdeme řešení."
+    }
+  },
+  "channel_template": {
+    "sms": "sms",
+    "whatsapp": "sms",
+    "voice": "voice",
+    "email": "email"
+  },
+  "sms": {
+    "FIRST_INVITE": "Dobrý den, zde automatický asistent společnosti {creditor}, máme pro Vás informaci k Vaší smlouvě. Podrobnosti uvidíte po ověření totožnosti na zabezpečené stránce.{offer_sms}{link_short} Nejste-li adresát, odpovězte OMYL.",
+    "REMINDER": "Dobrý den, zde znovu automatický asistent společnosti {creditor}, informace k Vaší smlouvě na Vás stále čeká na zabezpečené stránce, po ověření totožnosti.{offer_sms}{link_short} Nejste-li adresát, odpovězte OMYL.",
+    "LAST_TRY": "Dobrý den, zde automatický asistent společnosti {creditor}, tohle je naše poslední automatická zpráva, dále se Vám ozve kolega z našeho týmu. Informace k Vaší smlouvě najdete po ověření na zabezpečené stránce.{link_short}",
+    "BROKEN_PROMISE": "Dobrý den, zde automatický asistent společnosti {creditor}, domluvená platba k nám zatím nedorazila. Pokud jste už platili, děkujeme a zprávu prosím ignorujte. Nový termín si můžete zvolit po ověření na zabezpečené stránce.{link_short}",
+    "TRIAL": "Dobry den, zde automaticky asistent spolecnosti {creditor}, mame pro Vas informaci k Vasi smlouve."
+  },
+  "voice": {
+    "FIRST_INVITE": "Dobrý den, tady automatický hlasový asistent společnosti {creditor}, jsem automat, ne člověk.\n\nVolám ve věci Vaší smlouvy. Z důvodu ochrany Vašich údajů podrobnosti po telefonu nesděluji. Najdete je po ověření totožnosti na zabezpečené stránce, odkaz máte v naší zprávě. {offer_voice}\n\nPokud chcete zaplatit, stiskněte 1. Pokud potřebujete splátky nebo odklad, stiskněte 2. Pokud chcete, aby Vám zavolal kolega, stiskněte 3. Pokud nejste adresát tohoto hovoru, stiskněte 9. Pokud si nepřejete další hovory, stiskněte 0.",
+    "REMINDER": "Dobrý den, tady automatický hlasový asistent společnosti {creditor}, jsem automat, ne člověk.\n\nVolám znovu ve věci Vaší smlouvy. Podrobnosti po telefonu nesděluji, najdete je po ověření totožnosti na zabezpečené stránce z naší zprávy. {offer_voice}\n\nPokud chcete zaplatit, stiskněte 1. Pokud potřebujete splátky nebo odklad, stiskněte 2. Pokud chcete, aby Vám zavolal kolega, stiskněte 3. Pokud nejste adresát tohoto hovoru, stiskněte 9. Pokud si nepřejete další hovory, stiskněte 0.",
+    "LAST_TRY": "Dobrý den, tady automatický hlasový asistent společnosti {creditor}, jsem automat, ne člověk.\n\nVolám naposledy automaticky ve věci Vaší smlouvy. Dále se Vám ozve kolega z našeho týmu.\n\nPokud chcete, aby Vám kolega zavolal, stiskněte 3. Pokud nejste adresát tohoto hovoru, stiskněte 9. Pokud si nepřejete další hovory, stiskněte 0.",
+    "BROKEN_PROMISE": "Dobrý den, tady automatický hlasový asistent společnosti {creditor}, jsem automat, ne člověk.\n\nVolám ve věci Vaší smlouvy. Domluvená platba k nám zatím nedorazila. Pokud jste už platili, děkujeme. Nový termín si můžete zvolit po ověření na zabezpečené stránce z naší zprávy.\n\nPokud chcete zaplatit, stiskněte 1. Pokud potřebujete splátky nebo odklad, stiskněte 2. Pokud chcete, aby Vám zavolal kolega, stiskněte 3. Pokud nejste adresát tohoto hovoru, stiskněte 9."
+  },
+  "email": {
+    "FIRST_INVITE": "Dobrý den,\n\npíše Vám automatický asistent společnosti {creditor}, tuto zprávu jsme vytvořili a odeslali automaticky.\n\nMáme pro Vás informaci k Vaší smlouvě. Z důvodu ochrany Vašich údajů ji v e-mailu neuvádíme. Podrobnosti uvidíte na zabezpečené stránce poté, co ověříte svou totožnost datem narození nebo posledními čtyřmi číslicemi čísla smlouvy.\n\n{offer_email}{link}\n\nPokud tato zpráva nepatří Vám, dejte nám prosím vědět odpovědí, omlouváme se. Pokud si nepřejete dostávat e-maily, napište to na zabezpečené stránce nebo odpovězte na tuto zprávu.{call_us}\n\nS pozdravem\nZákaznický tým {creditor}",
+    "REMINDER": "Dobrý den,\n\npíše Vám znovu automatický asistent společnosti {creditor}, tuto zprávu jsme odeslali automaticky.\n\nInformace k Vaší smlouvě na Vás stále čeká na zabezpečené stránce. Zobrazí se po ověření Vaší totožnosti.\n\n{offer_email}{link}\n\nPokud tato zpráva nepatří Vám, dejte nám prosím vědět, omlouváme se. Pokud si nepřejete dostávat e-maily, napište to na zabezpečené stránce.{call_us}\n\nS pozdravem\nZákaznický tým {creditor}",
+    "LAST_TRY": "Dobrý den,\n\npíše Vám automatický asistent společnosti {creditor}, tohle je naše poslední automatická zpráva. Dále se Vám ozve kolega z našeho týmu, aby s Vámi probral možnosti řešení.\n\nInformace k Vaší smlouvě najdete po ověření totožnosti na zabezpečené stránce.{link}\n\nPokud tato zpráva nepatří Vám, dejte nám prosím vědět, omlouváme se.{call_us}\n\nS pozdravem\nZákaznický tým {creditor}",
+    "BROKEN_PROMISE": "Dobrý den,\n\npíše Vám automatický asistent společnosti {creditor}, tuto zprávu jsme odeslali automaticky.\n\nDomluvená platba k nám zatím nedorazila. Pokud jste už platili, děkujeme a zprávu prosím ignorujte, platby se někdy připisují se zpožděním.\n\nNový termín, splátky nebo jiné řešení si můžete zvolit po ověření totožnosti na zabezpečené stránce.{link}{call_us}\n\nS pozdravem\nZákaznický tým {creditor}"
+  },
+  "sms_reply": {
+    "promise_to_pay": "Děkujeme, Váš příslib platby jsme zaznamenali. Platit můžete i přes zabezpečenou stránku z předchozí zprávy.",
+    "plan_offered": "Děkujeme. Možnosti splátek a odkladu najdete po ověření na zabezpečené stránce z předchozí zprávy.",
+    "refi_offered": "Děkujeme. Ukázku sloučení do jedné splátky najdete po ověření na zabezpečené stránce z předchozí zprávy.",
+    "hardship_review": "Děkujeme, že jste nám to napsali. Automatické zprávy jsme zastavili a ozve se Vám kolega, který s Vámi v klidu probere možnosti.",
+    "dispute": "Děkujeme. Vaši námitku prověří kolega a ozve se Vám. Do té doby Vám automatické zprávy posílat nebudeme.",
+    "wrong_contact": "Omlouváme se za obtěžování. Číslo jsme si označili a nebudeme Vám psát.",
+    "contacted": "Rozumíme. Tímto kanálem Vás už kontaktovat nebudeme.",
+    "human_handoff": "Děkujeme. Ozve se Vám kolega z našeho týmu, v pracovní dny mezi 8 a 20 hodinou.",
+    "plan_active": "Děkujeme, zaznamenali jsme to.",
+    "paid": "Děkujeme za platbu.",
+    "callback": "Děkujeme. Ozve se Vám kolega z našeho týmu, v pracovní dny mezi 8 a 20 hodinou."
+  },
+  "sender": "Finance Demo a.s.",
+  "email_subject": "Informace k Vaší smlouvě",
+  "voice_ui": {
+    "_about": "Fixed sentences of the keys call (gather mode): after the answer, by the stage it led to.",
+    "no_answer": "Neslyšel jsem odpověď. Informace najdete na zabezpečené stránce z naší zprávy. Na shledanou.",
+    "no_digit": "Děkuji. Informace najdete na zabezpečené stránce z naší zprávy. Na shledanou.",
+    "thanks": {
+      "promise_to_pay": "Děkuji. Termín a způsob platby si zvolíte po ověření na zabezpečené stránce z naší zprávy. Na shledanou.",
+      "plan_offered": "Děkuji. Možnosti splátek a odkladu najdete po ověření na zabezpečené stránce z naší zprávy. Na shledanou.",
+      "human_handoff": "Děkuji. Ozve se Vám kolega z našeho týmu v pracovní dny mezi 8 a 20 hodinou. Na shledanou.",
+      "wrong_contact": "Omlouvám se za obtěžování. Toto číslo si označíme a už Vám volat nebudeme. Na shledanou.",
+      "contacted": "Rozumím. Další hovory Vám volat nebudeme. Na shledanou.",
+      "do_not_contact": "Rozumím. Další automatické zprávy ani hovory od nás nedostanete. Na shledanou."
+    }
+  },
+  "page": {
+    "_about": "Secure page /p/{token} (hooks.page). Before verification it shows no personal data and nothing about the debt. After verification (birth date or last 4 digits of the contract) it shows the amount and the options of the strategy. HTML strings; {…} are filled by hooks.page.",
+    "title": "Finance Demo a.s.",
+    "invalid": "<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na zákaznickou linku společnosti Finance Demo a.s.</p>",
+    "head": "<p class=\"muted\">Finance Demo a.s. · zabezpečená stránka · automatický asistent</p>\n<h1>Informace k Vaší smlouvě</h1>\n<p>Než Vám ukážeme podrobnosti, ověříme, že jste to opravdu Vy.</p>",
+    "foot": "<p class=\"muted\">Finance Demo a.s. je fiktivní společnost této ukázky. Stránku zpracovává automatický asistent; kdykoli Vás můžeme spojit s člověkem. Nikdy po Vás nebudeme chtít heslo, PIN ani údaje o platební kartě mimo platební bránu.</p>",
+    "thanks_title": "Děkujeme",
+    "verify_label": "Datum narození (např. 12. 3. 1984) nebo poslední 4 číslice čísla smlouvy",
+    "verify_button": "Ověřit",
+    "verify_error": "Údaj nesouhlasí. Zkontrolujte ho prosím a zkuste to znovu.",
+    "verify_locked": "<h1>Ověření se nepodařilo</h1><p>Z bezpečnostních důvodů jsme ověření na této stránce zastavili. Ozve se Vám kolega z našeho týmu.</p>",
+    "verified_head": "<p class=\"muted\">Finance Demo a.s. · ověřeno</p>\n<h1>{product}, smlouva {contract}</h1>",
+    "amount": "<div class=\"box\"><p>K úhradě: <b>{amount}</b><br><span class=\"muted\">splatné od {due}</span></p></div>",
+    "recommended": "Doporučujeme pro Vás",
+    "pay_title": "Zaplatit online",
+    "pay_button": "Zaplatit {amount} (ukázková platba)",
+    "pay_note": "Ukázka: žádné peníze se nestrhávají, platba se jen zapíše.",
+    "promise_title": "Zaplatím později",
+    "promise_date": "Datum platby",
+    "promise_amount": "Částka (Kč)",
+    "promise_button": "Potvrdit termín platby",
+    "plan_title": "Rozložit do splátek",
+    "plan_option": "{n} {word} po {monthly}",
+    "plan_note": "Ukázkový výpočet: částka rozdělená na stejné měsíční splátky, poslední splátka vyrovná zaokrouhlení. Bez dalších poplatků za sjednání.",
+    "deferral": "Odklad o 30 dní (celá částka {due_date})",
+    "refi_title": "Sloučit do jedné splátky",
+    "refi_example": "Například: {principal} na {months} měsíců, měsíční splátka {monthly}, úrok {rate} % ročně, RPSN {rpsn} %, celkem zaplatíte {total}.",
+    "refi_disclaimer": "Ilustrativní příklad, nejde o nabídku ani o návrh smlouvy. Skutečné podmínky (úrok, RPSN, doba splácení) stanovíme až po posouzení Vaší úvěruschopnosti a uvedeme je ve smlouvě. Sloučení není povinné.",
+    "refi_button": "Mám zájem, ozvěte se mi",
+    "other_title": "Něco jiného",
+    "thanks": {
+      "paid": "Platbu jsme zaznamenali. Děkujeme, další zprávy k této platbě už nedostanete.",
+      "promise": "Děkujeme. Platbu {amount} očekáváme do {date}. Do té doby Vám nebudeme psát. Ozveme se jen tehdy, když platba nedorazí.",
+      "plan": "Děkujeme. Splátkový kalendář je aktivní: {n} {word} po {monthly}, první splatná {first}.",
+      "deferral": "Děkujeme. Odklad je zaznamenán, celou částku prosím uhraďte do {first}.",
+      "refi": "Děkujeme za zájem. Kolega se Vám ozve s konkrétními podmínkami po posouzení Vaší situace. Nic se tím nezavazujete."
+    },
+    "answers": [
+      {
+        "value": "callback",
+        "label": "Chci mluvit s člověkem",
+        "event": "callback",
+        "intent": "callback",
+        "thanks": "Děkujeme. Ozve se Vám kolega z našeho týmu, v pracovní dny mezi 8 a 20 hodinou."
+      },
+      {
+        "value": "hardship",
+        "label": "Jsem v těžké životní situaci (nemoc, úmrtí v rodině, ztráta práce)",
+        "event": "vulnerable",
+        "intent": "vulnerable",
+        "thanks": "Děkujeme, že jste nám to sdělili. Automatické zprávy jsme zastavili. Ozve se Vám kolega, který s Vámi v klidu probere možnosti."
+      },
+      {
+        "value": "dispute",
+        "label": "Nesouhlasím s pohledávkou",
+        "event": "dispute",
+        "intent": "dispute",
+        "thanks": "Děkujeme. Vaši námitku prověří kolega a ozve se Vám. Do té doby Vám automatické zprávy posílat nebudeme."
+      },
+      {
+        "value": "stop",
+        "label": "Nepřeji si další automatické zprávy ani hovory",
+        "class": "quiet",
+        "event": "opt_out",
+        "intent": "opt_out",
+        "thanks": "Rozumíme. Další automatické zprávy ani hovory od nás nedostanete. Pokud budete chtít, ozvěte se nám."
+      }
+    ],
+    "channel_stop": "Nechci jen tento kanál:",
+    "channel_stop_thanks": "Rozumíme. Kanálem {channel} Vás už kontaktovat nebudeme.",
+    "channels": { "sms": "SMS", "voice": "telefonáty", "email": "e-mail", "whatsapp": "WhatsApp" },
+    "wrong": "<p class=\"muted\">Tato stránka Vám nepatří? <button class=\"quiet\" name=\"answer\" value=\"wrong\">Nejsem adresát této zprávy</button></p>",
+    "wrong_thanks": "Omlouváme se za obtěžování. Kontakt jsme si označili a nebudeme Vám psát."
+  }
+}

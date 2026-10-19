@@ -17,3 +17,4 @@ class Plan:
     pause_stage: str = "not_now"          # stage that pauses the plan ("" = no pause)
     human: str = "nurse"                  # step channel meaning "a person takes over": fires this journey event
     stop_stages: frozenset = frozenset()  # stages after which nothing automatic follows (besides terminal_reply_stages)
+    cycle_stages: frozenset = frozenset()  # stages that close a contact cycle: the next send starts the ladder again (daily check-in)

@@ -1,0 +1,30 @@
+// Jsem v pořádku configuration: product decisions, not code. (Data file, storage key, default district: ../case.json.)
+
+// Compose buttons on a row (the check-in goes by the assistant's call; SMS for seniors who do not hear well).
+export const CHANNELS = ["voice", "sms", "email"];
+
+// Simulated answers of a senior (demo): T.demo.reply[r], T.demo.replyText[r] (sent through the real reply understanding).
+export const REPLIES = ["ok", "need_items", "low_mood", "health_problem", "emergency", "callback"];
+
+// Journey on the senior's card.
+export const JOURNEY = [
+  { key: "called", stages: ["no_answer", "enrolled"] },
+  { key: "answered", stages: ["ok", "needs_help", "low_mood", "callback"] },
+  { key: "escalated", stages: ["escalated"] },
+  { key: "resolved", stages: ["resolved"] },
+];
+
+// Kartotéka seniorů tabs: owner keys (domain.ownerOf) + "all".
+export const FILTERS = ["all", "social", "operator", "system", "paused", "done"];
+
+// Phone of the social service per district for {call_us} (empty = omitted from texts).
+export const PRACTICES = {};
+
+// Stages that get no scheduled check-in call (a person decides first, or the senior said no).
+export const NO_CALL = ["escalated", "paused", "declined"];
+
+// "Getting lost": scheduled days without an answer, days an escalation may stay open.
+export const LOST = { silent: 2, escalated: 2 };   // silent: scheduled call days without an answer
+
+// Basket statuses in order.
+export const BASKET = ["new", "ordered", "done"];

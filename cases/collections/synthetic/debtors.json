@@ -1,0 +1,5115 @@
+{
+"refDate": "2026-10-19",
+"issues": [],
+"patients": [
+{
+"id": "DL-1001",
+"name": "Ondřej Němec",
+"sex": "M",
+"age": 49,
+"birthDate": "1977-06-04",
+"city": "Hradec Králové",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-65752",
+"principal": 185000,
+"balance": 133415,
+"instalment": 3080,
+"outstanding": 15400,
+"dpd": 134,
+"dueSince": "2026-06-07",
+"promises": [],
+"income": "reduced",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 168 524",
+"email": "dluznik1001@example.com",
+"history": [
+{
+"date": "2026-09-02",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "replied"
+},
+{
+"date": "2026-09-11",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-04",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-11",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "134 dní po splatnosti"
+},
+{
+"id": "DL-1002",
+"name": "Alena Němcová",
+"sex": "F",
+"age": 32,
+"birthDate": "1994-06-06",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-94630",
+"principal": 110000,
+"balance": 104450,
+"instalment": 1830,
+"outstanding": 1830,
+"dpd": 20,
+"dueSince": "2026-09-29",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 142 517",
+"email": "dluznik1002@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "20 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1003",
+"name": "Jana Pospíšilová",
+"sex": "F",
+"age": 31,
+"birthDate": "1995-06-18",
+"city": "Liberec",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-31153",
+"principal": 7000,
+"balance": 7000,
+"instalment": 2330,
+"outstanding": 7000,
+"dpd": 8,
+"dueSince": "2026-10-11",
+"promises": [
+{
+"date": "2026-09-05",
+"amount": 6800,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 133 362",
+"email": "dluznik1003@example.com",
+"history": [
+{
+"date": "2026-10-11",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-14",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "8 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1004",
+"name": "Jana Jelínková",
+"sex": "F",
+"age": 70,
+"birthDate": "1956-05-14",
+"city": "Praha",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-53325",
+"principal": 1800,
+"balance": 1800,
+"instalment": 600,
+"outstanding": 1800,
+"dpd": 15,
+"dueSince": "2026-10-04",
+"promises": [
+{
+"date": "2026-06-18",
+"amount": 800,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 137 844",
+"email": "dluznik1004@example.com",
+"history": [
+{
+"date": "2026-10-08",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-11",
+"channel": "email",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Snížený příjem"
+},
+{
+"id": "DL-1005",
+"name": "Tereza Jelínková",
+"sex": "F",
+"age": 41,
+"birthDate": "1985-10-01",
+"city": "Ostrava",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-13724",
+"principal": 200000,
+"balance": 137304,
+"instalment": 4170,
+"outstanding": 4170,
+"dpd": 24,
+"dueSince": "2026-09-25",
+"promises": [
+{
+"date": "2026-09-22",
+"amount": 1600,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 184 834",
+"email": "dluznik1005@example.com",
+"history": [
+{
+"date": "2026-09-25",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Snížený příjem"
+},
+{
+"id": "DL-1006",
+"name": "Michal Černý",
+"sex": "M",
+"age": 35,
+"birthDate": "1991-01-01",
+"city": "Kladno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2024-81931",
+"principal": 30000,
+"balance": 19119,
+"instalment": 1500,
+"outstanding": 9000,
+"dpd": 173,
+"dueSince": "2026-04-29",
+"promises": [
+{
+"date": "2026-09-15",
+"amount": 6800,
+"kept": false
+},
+{
+"date": "2026-09-27",
+"amount": 6700,
+"kept": false
+}
+],
+"income": "unknown",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 160 907",
+"email": "dluznik1006@example.com",
+"history": [
+{
+"date": "2026-05-26",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-08",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-07-16",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-26",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1007",
+"name": "Lukáš Procházka",
+"sex": "M",
+"age": 61,
+"birthDate": "1965-07-05",
+"city": "Brno",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2021-28598",
+"principal": 39000,
+"balance": 35890,
+"instalment": 1620,
+"outstanding": 1620,
+"dpd": 5,
+"dueSince": "2026-10-14",
+"promises": [
+{
+"date": "2026-09-25",
+"amount": 1100,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 193 498",
+"email": "dluznik1007@example.com",
+"history": [
+{
+"date": "2026-10-14",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "5 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1008",
+"name": "Michal Němec",
+"sex": "M",
+"age": 23,
+"birthDate": "2003-12-19",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-58234",
+"principal": 240000,
+"balance": 213443,
+"instalment": 6670,
+"outstanding": 6670,
+"dpd": 10,
+"dueSince": "2026-10-09",
+"promises": [
+{
+"date": "2026-06-13",
+"amount": 3700,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 138 321",
+"email": "dluznik1008@example.com",
+"history": [
+{
+"date": "2026-10-11",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "10 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1009",
+"name": "Hana Černá",
+"sex": "F",
+"age": 27,
+"birthDate": "1999-06-16",
+"city": "Pardubice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-53478",
+"principal": 60000,
+"balance": 30453,
+"instalment": 2500,
+"outstanding": 5000,
+"dpd": 58,
+"dueSince": "2026-08-22",
+"promises": [
+{
+"date": "2026-05-03",
+"amount": 1700,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 0,
+"vulnerable": {
+"kind": "illness",
+"note": "Dlouhodobá nemoc, v SMS zmínil(a) pobyt v nemocnici"
+},
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 141 841",
+"email": "dluznik1009@example.com",
+"history": [
+{
+"date": "2026-10-02",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "VULNERABLE",
+"text": "Zranitelný klient: Dlouhodobá nemoc, v SMS zmínil(a) pobyt v nemocnici. Automatika je zastavena, kontaktuje jen člověk."
+}
+],
+"segment": "vulnerable",
+"strategy": "human",
+"automation": false,
+"rule": "R2",
+"reason": "Známka zranitelnosti: Dlouhodobá nemoc, v SMS zmínil(a) pobyt v nemocnici"
+},
+{
+"id": "DL-1010",
+"name": "Josef Marek",
+"sex": "M",
+"age": 32,
+"birthDate": "1994-04-26",
+"city": "Ostrava",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2025-26152",
+"principal": 45000,
+"balance": 39116,
+"instalment": 2250,
+"outstanding": 2250,
+"dpd": 26,
+"dueSince": "2026-09-23",
+"promises": [
+{
+"date": "2026-06-11",
+"amount": 2000,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 134 400",
+"email": "dluznik1010@example.com",
+"history": [
+{
+"date": "2026-09-26",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Ztráta příjmu"
+},
+{
+"id": "DL-1011",
+"name": "Josef Hájek",
+"sex": "M",
+"age": 22,
+"birthDate": "2004-09-23",
+"city": "Zlín",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2025-64345",
+"principal": 29000,
+"balance": 17278,
+"instalment": 1210,
+"outstanding": 1210,
+"dpd": 26,
+"dueSince": "2026-09-23",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 199 921",
+"email": "dluznik1011@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "26 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1012",
+"name": "Roman Marek",
+"sex": "M",
+"age": 21,
+"birthDate": "2005-01-25",
+"city": "Olomouc",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2022-70747",
+"principal": 7100,
+"balance": 7100,
+"instalment": 2370,
+"outstanding": 7100,
+"dpd": 25,
+"dueSince": "2026-09-24",
+"promises": [
+{
+"date": "2026-09-09",
+"amount": 4900,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 126 720",
+"email": "dluznik1012@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "25 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1013",
+"name": "Tereza Novotná",
+"sex": "F",
+"age": 57,
+"birthDate": "1969-07-23",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-71094",
+"principal": 195000,
+"balance": 71562,
+"instalment": 5420,
+"outstanding": 5420,
+"dpd": 18,
+"dueSince": "2026-10-01",
+"promises": [
+{
+"date": "2026-05-27",
+"amount": 1800,
+"kept": false
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 125 476",
+"email": "dluznik1013@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "1 nedodržený slib platby"
+},
+{
+"id": "DL-1014",
+"name": "Josef Němec",
+"sex": "M",
+"age": 34,
+"birthDate": "1992-10-02",
+"city": "Pardubice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-77329",
+"principal": 290000,
+"balance": 227805,
+"instalment": 4830,
+"outstanding": 4830,
+"dpd": 7,
+"dueSince": "2026-10-12",
+"promises": [
+{
+"date": "2026-05-09",
+"amount": 4400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 127 910",
+"email": "dluznik1014@example.com",
+"history": [
+{
+"date": "2026-10-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-16",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "7 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1015",
+"name": "Roman Černý",
+"sex": "M",
+"age": 56,
+"birthDate": "1970-11-27",
+"city": "Jihlava",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2023-26775",
+"principal": 28500,
+"balance": 27027,
+"instalment": 1190,
+"outstanding": 4760,
+"dpd": 107,
+"dueSince": "2026-07-04",
+"promises": [],
+"income": "irregular",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 158 272",
+"email": "dluznik1015@example.com",
+"history": [
+{
+"date": "2026-09-24",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "107 dní po splatnosti"
+},
+{
+"id": "DL-1016",
+"name": "Eva Procházková",
+"sex": "F",
+"age": 64,
+"birthDate": "1962-03-14",
+"city": "Hradec Králové",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-36140",
+"principal": 235000,
+"balance": 217249,
+"instalment": 3920,
+"outstanding": 7840,
+"dpd": 46,
+"dueSince": "2026-09-03",
+"promises": [
+{
+"date": "2026-06-01",
+"amount": 2900,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 121 346",
+"email": "dluznik1016@example.com",
+"history": [
+{
+"date": "2026-10-04",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "46 dní po splatnosti"
+},
+{
+"id": "DL-1017",
+"name": "Ivana Kučerová",
+"sex": "F",
+"age": 44,
+"birthDate": "1982-03-18",
+"city": "Pardubice",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2024-45793",
+"principal": 75000,
+"balance": 58700,
+"instalment": 3750,
+"outstanding": 15000,
+"dpd": 115,
+"dueSince": "2026-06-26",
+"promises": [
+{
+"date": "2026-08-20",
+"amount": 6600,
+"kept": true
+},
+{
+"date": "2026-09-09",
+"amount": 11600,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 145 599",
+"email": "dluznik1017@example.com",
+"history": [
+{
+"date": "2026-08-31",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-28",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "115 dní po splatnosti"
+},
+{
+"id": "DL-1018",
+"name": "Petra Černá",
+"sex": "F",
+"age": 56,
+"birthDate": "1970-04-12",
+"city": "Zlín",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2025-25686",
+"principal": 37000,
+"balance": 26460,
+"instalment": 1540,
+"outstanding": 7700,
+"dpd": 131,
+"dueSince": "2026-06-10",
+"promises": [
+{
+"date": "2026-07-21",
+"amount": 3900,
+"kept": false
+},
+{
+"date": "2026-09-09",
+"amount": 5500,
+"kept": false
+},
+{
+"date": "2026-09-12",
+"amount": 5200,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 193 977",
+"email": "dluznik1018@example.com",
+"history": [
+{
+"date": "2026-06-22",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-12",
+"channel": "email",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-09-23",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-12",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "3 nedodržené sliby platby"
+},
+{
+"id": "DL-1019",
+"name": "Jiří Němec",
+"sex": "M",
+"age": 51,
+"birthDate": "1975-04-11",
+"city": "Zlín",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2023-38416",
+"principal": 37500,
+"balance": 22126,
+"instalment": 1560,
+"outstanding": 6240,
+"dpd": 97,
+"dueSince": "2026-07-14",
+"promises": [
+{
+"date": "2026-06-24",
+"amount": 4000,
+"kept": false
+},
+{
+"date": "2026-08-05",
+"amount": 3600,
+"kept": false
+},
+{
+"date": "2026-09-25",
+"amount": 4100,
+"kept": false
+}
+],
+"income": "unknown",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 175 177",
+"email": "dluznik1019@example.com",
+"history": [
+{
+"date": "2026-09-12",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-16",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-25",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-13",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "3 nedodržené sliby platby"
+},
+{
+"id": "DL-1020",
+"name": "Barbora Hájková",
+"sex": "F",
+"age": 72,
+"birthDate": "1954-02-26",
+"city": "Kladno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2021-34904",
+"principal": 15000,
+"balance": 14159,
+"instalment": 750,
+"outstanding": 750,
+"dpd": 30,
+"dueSince": "2026-09-19",
+"promises": [
+{
+"date": "2026-08-18",
+"amount": 700,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 183 766",
+"email": "dluznik1020@example.com",
+"history": [
+{
+"date": "2026-09-24",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-02",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "30 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1021",
+"name": "Petr Němec",
+"sex": "M",
+"age": 26,
+"birthDate": "2000-03-21",
+"city": "České Budějovice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-52256",
+"principal": 50000,
+"balance": 17719,
+"instalment": 1040,
+"outstanding": 3120,
+"dpd": 87,
+"dueSince": "2026-07-24",
+"promises": [
+{
+"date": "2026-05-15",
+"amount": 1100,
+"kept": true
+},
+{
+"date": "2026-09-21",
+"amount": 1800,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 122 606",
+"email": "dluznik1021@example.com",
+"history": [
+{
+"date": "2026-08-05",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-09-03",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-16",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-14",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "87 dní po splatnosti"
+},
+{
+"id": "DL-1022",
+"name": "Lucie Nováková",
+"sex": "F",
+"age": 73,
+"birthDate": "1953-07-03",
+"city": "Brno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2021-26668",
+"principal": 65000,
+"balance": 47291,
+"instalment": 3250,
+"outstanding": 6500,
+"dpd": 43,
+"dueSince": "2026-09-06",
+"promises": [
+{
+"date": "2026-07-13",
+"amount": 2100,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 100 727",
+"email": "dluznik1022@example.com",
+"history": [
+{
+"date": "2026-09-14",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-01",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "43 dní po splatnosti"
+},
+{
+"id": "DL-1023",
+"name": "Jiří Jelínek",
+"sex": "M",
+"age": 37,
+"birthDate": "1989-01-15",
+"city": "Ostrava",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2021-90269",
+"principal": 26500,
+"balance": 15335,
+"instalment": 1100,
+"outstanding": 1100,
+"dpd": 9,
+"dueSince": "2026-10-10",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 170 131",
+"email": "dluznik1023@example.com",
+"history": [
+{
+"date": "2026-10-13",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "9 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1024",
+"name": "Martina Němcová",
+"sex": "F",
+"age": 66,
+"birthDate": "1960-07-08",
+"city": "Liberec",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-91420",
+"principal": 250000,
+"balance": 207514,
+"instalment": 5210,
+"outstanding": 5210,
+"dpd": 10,
+"dueSince": "2026-10-09",
+"promises": [
+{
+"date": "2026-07-03",
+"amount": 4700,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 125 407",
+"email": "dluznik1024@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "10 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1025",
+"name": "Monika Sedláčková",
+"sex": "F",
+"age": 29,
+"birthDate": "1997-08-13",
+"city": "Pardubice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-60778",
+"principal": 230000,
+"balance": 88666,
+"instalment": 3830,
+"outstanding": 7660,
+"dpd": 55,
+"dueSince": "2026-08-25",
+"promises": [
+{
+"date": "2026-05-23",
+"amount": 7600,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 179 472",
+"email": "dluznik1025@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "55 dní po splatnosti"
+},
+{
+"id": "DL-1026",
+"name": "Alena Pospíšilová",
+"sex": "F",
+"age": 68,
+"birthDate": "1958-01-04",
+"city": "Hradec Králové",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-52099",
+"principal": 105000,
+"balance": 67653,
+"instalment": 2920,
+"outstanding": 2920,
+"dpd": 23,
+"dueSince": "2026-09-26",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 139 103",
+"email": "dluznik1026@example.com",
+"history": [
+{
+"date": "2026-09-30",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "23 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1027",
+"name": "Lenka Marková",
+"sex": "F",
+"age": 63,
+"birthDate": "1963-03-15",
+"city": "Hradec Králové",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2022-21949",
+"principal": 60000,
+"balance": 24584,
+"instalment": 3000,
+"outstanding": 3000,
+"dpd": 18,
+"dueSince": "2026-10-01",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 102 802",
+"email": "dluznik1027@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "18 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1028",
+"name": "Miroslav Novotný",
+"sex": "M",
+"age": 49,
+"birthDate": "1977-08-02",
+"city": "Hradec Králové",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2021-85742",
+"principal": 36500,
+"balance": 20474,
+"instalment": 1520,
+"outstanding": 3040,
+"dpd": 42,
+"dueSince": "2026-09-07",
+"promises": [
+{
+"date": "2026-09-02",
+"amount": 1300,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 198 732",
+"email": "dluznik1028@example.com",
+"history": [
+{
+"date": "2026-10-02",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "42 dní po splatnosti"
+},
+{
+"id": "DL-1029",
+"name": "Ondřej Jelínek",
+"sex": "M",
+"age": 60,
+"birthDate": "1966-10-10",
+"city": "Jihlava",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-93603",
+"principal": 25000,
+"balance": 21122,
+"instalment": 1250,
+"outstanding": 2500,
+"dpd": 59,
+"dueSince": "2026-08-21",
+"promises": [
+{
+"date": "2026-08-07",
+"amount": 1800,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 115 776",
+"email": "dluznik1029@example.com",
+"history": [
+{
+"date": "2026-09-27",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-04",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "59 dní po splatnosti"
+},
+{
+"id": "DL-1030",
+"name": "Josef Jelínek",
+"sex": "M",
+"age": 60,
+"birthDate": "1966-08-20",
+"city": "Hradec Králové",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2024-15769",
+"principal": 40000,
+"balance": 16556,
+"instalment": 2000,
+"outstanding": 8000,
+"dpd": 96,
+"dueSince": "2026-07-15",
+"promises": [],
+"income": "unknown",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": {
+"note": "Tvrdí, že úvěr nesjednal(a), možné zneužití totožnosti",
+"since": "2026-10-08"
+},
+"pref": "email",
+"phone": "+420 000 177 123",
+"email": "dluznik1030@example.com",
+"history": [],
+"flags": [
+{
+"sev": "warning",
+"code": "DISPUTE",
+"text": "Spor: Tvrdí, že úvěr nesjednal(a), možné zneužití totožnosti. Vymáhání pozastaveno do vyřešení."
+}
+],
+"segment": "dispute",
+"strategy": "human",
+"automation": false,
+"rule": "R1",
+"reason": "Rozporuje pohledávku: Tvrdí, že úvěr nesjednal(a), možné zneužití totožnosti"
+},
+{
+"id": "DL-1031",
+"name": "Petra Marková",
+"sex": "F",
+"age": 48,
+"birthDate": "1978-05-13",
+"city": "Hradec Králové",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2022-25276",
+"principal": 30000,
+"balance": 15133,
+"instalment": 1500,
+"outstanding": 3000,
+"dpd": 57,
+"dueSince": "2026-08-23",
+"promises": [
+{
+"date": "2026-09-03",
+"amount": 2200,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 188 168",
+"email": "dluznik1031@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "57 dní po splatnosti"
+},
+{
+"id": "DL-1032",
+"name": "Lenka Sedláčková",
+"sex": "F",
+"age": 68,
+"birthDate": "1958-12-13",
+"city": "Praha",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-22389",
+"principal": 2400,
+"balance": 2400,
+"instalment": 800,
+"outstanding": 2400,
+"dpd": 20,
+"dueSince": "2026-09-29",
+"promises": [
+{
+"date": "2026-06-15",
+"amount": 1200,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 116 540",
+"email": "dluznik1032@example.com",
+"history": [
+{
+"date": "2026-10-01",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-14",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "20 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1033",
+"name": "Veronika Králová",
+"sex": "F",
+"age": 54,
+"birthDate": "1972-10-05",
+"city": "Brno",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2022-70815",
+"principal": 6700,
+"balance": 6700,
+"instalment": 2230,
+"outstanding": 6700,
+"dpd": 15,
+"dueSince": "2026-10-04",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 171 456",
+"email": "dluznik1033@example.com",
+"history": [
+{
+"date": "2026-10-08",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-13",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "15 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1034",
+"name": "Kateřina Černá",
+"sex": "F",
+"age": 33,
+"birthDate": "1993-09-09",
+"city": "Liberec",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-61458",
+"principal": 245000,
+"balance": 122703,
+"instalment": 10210,
+"outstanding": 10210,
+"dpd": 17,
+"dueSince": "2026-10-02",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 191 205",
+"email": "dluznik1034@example.com",
+"history": [
+{
+"date": "2026-10-13",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-16",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "17 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1035",
+"name": "Tereza Dvořáková",
+"sex": "F",
+"age": 37,
+"birthDate": "1989-11-27",
+"city": "Pardubice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-55141",
+"principal": 160000,
+"balance": 86356,
+"instalment": 6670,
+"outstanding": 33350,
+"dpd": 122,
+"dueSince": "2026-06-19",
+"promises": [
+{
+"date": "2026-07-10",
+"amount": 21700,
+"kept": true
+},
+{
+"date": "2026-09-22",
+"amount": 14700,
+"kept": false
+}
+],
+"income": "reduced",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 151 650",
+"email": "dluznik1035@example.com",
+"history": [
+{
+"date": "2026-07-30",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-04",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-09-21",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-09",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "122 dní po splatnosti"
+},
+{
+"id": "DL-1036",
+"name": "Jana Jelínková",
+"sex": "F",
+"age": 50,
+"birthDate": "1976-11-02",
+"city": "Hradec Králové",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2022-36073",
+"principal": 10500,
+"balance": 4593,
+"instalment": 440,
+"outstanding": 440,
+"dpd": 20,
+"dueSince": "2026-09-29",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 189 716",
+"email": "dluznik1036@example.com",
+"history": [
+{
+"date": "2026-09-30",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "20 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1037",
+"name": "Pavel Němec",
+"sex": "M",
+"age": 69,
+"birthDate": "1957-07-10",
+"city": "Ostrava",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2022-39556",
+"principal": 35000,
+"balance": 23930,
+"instalment": 1460,
+"outstanding": 2920,
+"dpd": 39,
+"dueSince": "2026-09-10",
+"promises": [
+{
+"date": "2026-05-12",
+"amount": 1300,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 139 737",
+"email": "dluznik1037@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "39 dní po splatnosti"
+},
+{
+"id": "DL-1038",
+"name": "Filip Král",
+"sex": "M",
+"age": 23,
+"birthDate": "2003-05-28",
+"city": "Zlín",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2023-39605",
+"principal": 26500,
+"balance": 10734,
+"instalment": 1100,
+"outstanding": 1100,
+"dpd": 27,
+"dueSince": "2026-09-22",
+"promises": [
+{
+"date": "2026-07-20",
+"amount": 400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 133 728",
+"email": "dluznik1038@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "27 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1039",
+"name": "Jan Němec",
+"sex": "M",
+"age": 31,
+"birthDate": "1995-10-09",
+"city": "Kladno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-93193",
+"principal": 70000,
+"balance": 36195,
+"instalment": 3500,
+"outstanding": 17500,
+"dpd": 122,
+"dueSince": "2026-06-19",
+"promises": [],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 116 119",
+"email": "dluznik1039@example.com",
+"history": [
+{
+"date": "2026-10-09",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "122 dní po splatnosti"
+},
+{
+"id": "DL-1040",
+"name": "Ivana Svobodová",
+"sex": "F",
+"age": 70,
+"birthDate": "1956-01-19",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-20510",
+"principal": 60000,
+"balance": 22831,
+"instalment": 1000,
+"outstanding": 4000,
+"dpd": 108,
+"dueSince": "2026-07-03",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": {
+"note": "Rozporuje výši poplatku za upomínku",
+"since": "2026-10-17"
+},
+"pref": "sms",
+"phone": "+420 000 100 290",
+"email": "dluznik1040@example.com",
+"history": [
+{
+"date": "2026-10-03",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "DISPUTE",
+"text": "Spor: Rozporuje výši poplatku za upomínku. Vymáhání pozastaveno do vyřešení."
+}
+],
+"segment": "dispute",
+"strategy": "human",
+"automation": false,
+"rule": "R1",
+"reason": "Rozporuje pohledávku: Rozporuje výši poplatku za upomínku"
+},
+{
+"id": "DL-1041",
+"name": "Hana Svobodová",
+"sex": "F",
+"age": 24,
+"birthDate": "2002-05-01",
+"city": "Ostrava",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-67723",
+"principal": 230000,
+"balance": 211571,
+"instalment": 6390,
+"outstanding": 6390,
+"dpd": 5,
+"dueSince": "2026-10-14",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 105 623",
+"email": "dluznik1041@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "5 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1042",
+"name": "Lucie Doležalová",
+"sex": "F",
+"age": 72,
+"birthDate": "1954-08-16",
+"city": "Liberec",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2025-51166",
+"principal": 2000,
+"balance": 2000,
+"instalment": 670,
+"outstanding": 2000,
+"dpd": 171,
+"dueSince": "2026-05-01",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 107 533",
+"email": "dluznik1042@example.com",
+"history": [
+{
+"date": "2026-05-20",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-18",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-08-03",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "171 dní po splatnosti"
+},
+{
+"id": "DL-1043",
+"name": "Jakub Marek",
+"sex": "M",
+"age": 27,
+"birthDate": "1999-07-16",
+"city": "Hradec Králové",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-77754",
+"principal": 160000,
+"balance": 111850,
+"instalment": 4440,
+"outstanding": 4440,
+"dpd": 15,
+"dueSince": "2026-10-04",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 121 686",
+"email": "dluznik1043@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "15 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1044",
+"name": "Kateřina Nováková",
+"sex": "F",
+"age": 54,
+"birthDate": "1972-12-23",
+"city": "Praha",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-40582",
+"principal": 70000,
+"balance": 51016,
+"instalment": 1460,
+"outstanding": 1460,
+"dpd": 21,
+"dueSince": "2026-09-28",
+"promises": [
+{
+"date": "2026-09-18",
+"amount": 1300,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 129 867",
+"email": "dluznik1044@example.com",
+"history": [
+{
+"date": "2026-09-29",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-13",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Snížený příjem"
+},
+{
+"id": "DL-1045",
+"name": "Markéta Procházková",
+"sex": "F",
+"age": 45,
+"birthDate": "1981-10-12",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-17979",
+"principal": 265000,
+"balance": 243125,
+"instalment": 4420,
+"outstanding": 4420,
+"dpd": 28,
+"dueSince": "2026-09-21",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 158 142",
+"email": "dluznik1045@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "28 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1046",
+"name": "Kateřina Černá",
+"sex": "F",
+"age": 34,
+"birthDate": "1992-09-13",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-19515",
+"principal": 270000,
+"balance": 240513,
+"instalment": 4500,
+"outstanding": 9000,
+"dpd": 50,
+"dueSince": "2026-08-30",
+"promises": [
+{
+"date": "2026-06-29",
+"amount": 7300,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 182 226",
+"email": "dluznik1046@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "50 dní po splatnosti"
+},
+{
+"id": "DL-1047",
+"name": "Veronika Veselá",
+"sex": "F",
+"age": 36,
+"birthDate": "1990-11-12",
+"city": "Brno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-79701",
+"principal": 15000,
+"balance": 8299,
+"instalment": 750,
+"outstanding": 750,
+"dpd": 18,
+"dueSince": "2026-10-01",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 117 715",
+"email": "dluznik1047@example.com",
+"history": [
+{
+"date": "2026-10-05",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "18 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1048",
+"name": "Martin Beneš",
+"sex": "M",
+"age": 34,
+"birthDate": "1992-05-04",
+"city": "Kladno",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2024-36837",
+"principal": 1900,
+"balance": 1900,
+"instalment": 630,
+"outstanding": 1900,
+"dpd": 21,
+"dueSince": "2026-09-28",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 162 912",
+"email": "dluznik1048@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "21 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1049",
+"name": "Roman Hájek",
+"sex": "M",
+"age": 23,
+"birthDate": "2003-05-23",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-44727",
+"principal": 30000,
+"balance": 26865,
+"instalment": 620,
+"outstanding": 2480,
+"dpd": 113,
+"dueSince": "2026-06-28",
+"promises": [
+{
+"date": "2026-05-27",
+"amount": 1300,
+"kept": false
+},
+{
+"date": "2026-08-20",
+"amount": 1800,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 189 325",
+"email": "dluznik1049@example.com",
+"history": [
+{
+"date": "2026-08-27",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-27",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-03",
+"channel": "email",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-10-05",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-15",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1050",
+"name": "Martina Benešová",
+"sex": "F",
+"age": 50,
+"birthDate": "1976-11-20",
+"city": "Hradec Králové",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2021-72575",
+"principal": 18500,
+"balance": 12511,
+"instalment": 770,
+"outstanding": 1540,
+"dpd": 36,
+"dueSince": "2026-09-13",
+"promises": [
+{
+"date": "2026-07-29",
+"amount": 500,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 143 498",
+"email": "dluznik1050@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "36 dní po splatnosti"
+},
+{
+"id": "DL-1051",
+"name": "Karel Novotný",
+"sex": "M",
+"age": 47,
+"birthDate": "1979-12-10",
+"city": "Kladno",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2024-90823",
+"principal": 11500,
+"balance": 7904,
+"instalment": 480,
+"outstanding": 2880,
+"dpd": 162,
+"dueSince": "2026-05-10",
+"promises": [
+{
+"date": "2026-05-25",
+"amount": 1000,
+"kept": false
+},
+{
+"date": "2026-06-17",
+"amount": 2000,
+"kept": false
+},
+{
+"date": "2026-07-28",
+"amount": 2300,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 118 732",
+"email": "dluznik1051@example.com",
+"history": [
+{
+"date": "2026-05-16",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-12",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-09-14",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "3 nedodržené sliby platby"
+},
+{
+"id": "DL-1052",
+"name": "David Procházka",
+"sex": "M",
+"age": 52,
+"birthDate": "1974-09-05",
+"city": "Ostrava",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-26677",
+"principal": 45000,
+"balance": 23216,
+"instalment": 750,
+"outstanding": 2250,
+"dpd": 74,
+"dueSince": "2026-08-06",
+"promises": [
+{
+"date": "2026-05-31",
+"amount": 2100,
+"kept": false
+},
+{
+"date": "2026-09-01",
+"amount": 1400,
+"kept": false
+}
+],
+"income": "unknown",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 193 542",
+"email": "dluznik1052@example.com",
+"history": [
+{
+"date": "2026-08-27",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-09",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-24",
+"channel": "email",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-10-05",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-12",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1053",
+"name": "Miroslav Sedláček",
+"sex": "M",
+"age": 31,
+"birthDate": "1995-03-15",
+"city": "Hradec Králové",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2021-85065",
+"principal": 3700,
+"balance": 3700,
+"instalment": 1230,
+"outstanding": 3700,
+"dpd": 89,
+"dueSince": "2026-07-22",
+"promises": [
+{
+"date": "2026-07-16",
+"amount": 2100,
+"kept": true
+},
+{
+"date": "2026-08-22",
+"amount": 1300,
+"kept": false
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 155 469",
+"email": "dluznik1053@example.com",
+"history": [
+{
+"date": "2026-08-30",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-05",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-13",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-04",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "89 dní po splatnosti"
+},
+{
+"id": "DL-1054",
+"name": "Ondřej Svoboda",
+"sex": "M",
+"age": 22,
+"birthDate": "2004-08-21",
+"city": "České Budějovice",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-97719",
+"principal": 30000,
+"balance": 16322,
+"instalment": 1500,
+"outstanding": 9000,
+"dpd": 168,
+"dueSince": "2026-05-04",
+"promises": [
+{
+"date": "2026-08-10",
+"amount": 8300,
+"kept": false
+},
+{
+"date": "2026-09-22",
+"amount": 6200,
+"kept": false
+}
+],
+"income": "unknown",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 131 733",
+"email": "dluznik1054@example.com",
+"history": [
+{
+"date": "2026-05-05",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-07-01",
+"channel": "voice",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-07-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-07-22",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-10",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-28",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1055",
+"name": "Lenka Svobodová",
+"sex": "F",
+"age": 63,
+"birthDate": "1963-03-12",
+"city": "Olomouc",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-78410",
+"principal": 8900,
+"balance": 8900,
+"instalment": 2970,
+"outstanding": 8900,
+"dpd": 134,
+"dueSince": "2026-06-07",
+"promises": [
+{
+"date": "2026-05-28",
+"amount": 4000,
+"kept": false
+},
+{
+"date": "2026-09-10",
+"amount": 3800,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 145 547",
+"email": "dluznik1055@example.com",
+"history": [
+{
+"date": "2026-06-08",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-06-10",
+"channel": "voice",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-08-04",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-09-22",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "134 dní po splatnosti"
+},
+{
+"id": "DL-1056",
+"name": "Markéta Procházková",
+"sex": "F",
+"age": 55,
+"birthDate": "1971-05-11",
+"city": "Brno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2024-90222",
+"principal": 70000,
+"balance": 27686,
+"instalment": 3500,
+"outstanding": 3500,
+"dpd": 18,
+"dueSince": "2026-10-01",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 110 379",
+"email": "dluznik1056@example.com",
+"history": [
+{
+"date": "2026-10-04",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-07",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "18 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1057",
+"name": "Jana Růžičková",
+"sex": "F",
+"age": 38,
+"birthDate": "1988-08-15",
+"city": "Kladno",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-16014",
+"principal": 12800,
+"balance": 12800,
+"instalment": 4270,
+"outstanding": 12800,
+"dpd": 17,
+"dueSince": "2026-10-02",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 154 729",
+"email": "dluznik1057@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "17 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1058",
+"name": "Miroslav Veselý",
+"sex": "M",
+"age": 27,
+"birthDate": "1999-05-07",
+"city": "Pardubice",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-26818",
+"principal": 10700,
+"balance": 10700,
+"instalment": 3570,
+"outstanding": 10700,
+"dpd": 13,
+"dueSince": "2026-10-06",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 185 440",
+"email": "dluznik1058@example.com",
+"history": [
+{
+"date": "2026-10-15",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-16",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "13 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1059",
+"name": "Kateřina Pospíšilová",
+"sex": "F",
+"age": 61,
+"birthDate": "1965-08-25",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-94036",
+"principal": 225000,
+"balance": 87334,
+"instalment": 3750,
+"outstanding": 3750,
+"dpd": 22,
+"dueSince": "2026-09-27",
+"promises": [
+{
+"date": "2026-05-14",
+"amount": 3400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 167 295",
+"email": "dluznik1059@example.com",
+"history": [
+{
+"date": "2026-10-03",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "22 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1060",
+"name": "Roman Svoboda",
+"sex": "M",
+"age": 55,
+"birthDate": "1971-09-24",
+"city": "Ostrava",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2021-19372",
+"principal": 45000,
+"balance": 24900,
+"instalment": 2250,
+"outstanding": 2250,
+"dpd": 21,
+"dueSince": "2026-09-28",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 172 188",
+"email": "dluznik1060@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "21 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1061",
+"name": "Pavel Černý",
+"sex": "M",
+"age": 60,
+"birthDate": "1966-01-07",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-46035",
+"principal": 275000,
+"balance": 152475,
+"instalment": 5730,
+"outstanding": 22920,
+"dpd": 119,
+"dueSince": "2026-06-22",
+"promises": [
+{
+"date": "2026-09-22",
+"amount": 22000,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 127 427",
+"email": "dluznik1061@example.com",
+"history": [
+{
+"date": "2026-08-10",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-08-16",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "119 dní po splatnosti"
+},
+{
+"id": "DL-1062",
+"name": "Petra Marková",
+"sex": "F",
+"age": 57,
+"birthDate": "1969-04-16",
+"city": "Liberec",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-78147",
+"principal": 230000,
+"balance": 136275,
+"instalment": 3830,
+"outstanding": 11490,
+"dpd": 85,
+"dueSince": "2026-07-26",
+"promises": [],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 120 416",
+"email": "dluznik1062@example.com",
+"history": [
+{
+"date": "2026-08-15",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-08-20",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "85 dní po splatnosti"
+},
+{
+"id": "DL-1063",
+"name": "Petra Němcová",
+"sex": "F",
+"age": 74,
+"birthDate": "1952-04-07",
+"city": "Ostrava",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-91805",
+"principal": 135000,
+"balance": 111298,
+"instalment": 5620,
+"outstanding": 33720,
+"dpd": 173,
+"dueSince": "2026-04-29",
+"promises": [
+{
+"date": "2026-06-20",
+"amount": 25500,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 143 654",
+"email": "dluznik1063@example.com",
+"history": [
+{
+"date": "2026-08-01",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-29",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "173 dní po splatnosti"
+},
+{
+"id": "DL-1064",
+"name": "Zuzana Doležalová",
+"sex": "F",
+"age": 24,
+"birthDate": "2002-03-16",
+"city": "Olomouc",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-33407",
+"principal": 285000,
+"balance": 270069,
+"instalment": 11880,
+"outstanding": 35640,
+"dpd": 67,
+"dueSince": "2026-08-13",
+"promises": [
+{
+"date": "2026-05-22",
+"amount": 11100,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 189 273",
+"email": "dluznik1064@example.com",
+"history": [
+{
+"date": "2026-08-28",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "67 dní po splatnosti"
+},
+{
+"id": "DL-1065",
+"name": "Veronika Benešová",
+"sex": "F",
+"age": 55,
+"birthDate": "1971-09-08",
+"city": "Olomouc",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-83316",
+"principal": 10000,
+"balance": 4520,
+"instalment": 500,
+"outstanding": 1000,
+"dpd": 60,
+"dueSince": "2026-08-20",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 130 913",
+"email": "dluznik1065@example.com",
+"history": [
+{
+"date": "2026-09-18",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-09",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "60 dní po splatnosti"
+},
+{
+"id": "DL-1066",
+"name": "David Růžička",
+"sex": "M",
+"age": 38,
+"birthDate": "1988-05-22",
+"city": "Kladno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-38536",
+"principal": 140000,
+"balance": 75842,
+"instalment": 5830,
+"outstanding": 34980,
+"dpd": 179,
+"dueSince": "2026-04-23",
+"promises": [
+{
+"date": "2026-05-10",
+"amount": 21300,
+"kept": false
+},
+{
+"date": "2026-09-06",
+"amount": 26000,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 199 866",
+"email": "dluznik1066@example.com",
+"history": [
+{
+"date": "2026-06-05",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-08",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-07-25",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-10",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1067",
+"name": "Josef Dvořák",
+"sex": "M",
+"age": 30,
+"birthDate": "1996-06-08",
+"city": "České Budějovice",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2022-27260",
+"principal": 19500,
+"balance": 10837,
+"instalment": 810,
+"outstanding": 3240,
+"dpd": 112,
+"dueSince": "2026-06-29",
+"promises": [],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": {
+"kind": "bereavement",
+"note": "Úmrtí v rodině, sděleno na pobočce"
+},
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 153 380",
+"email": "dluznik1067@example.com",
+"history": [],
+"flags": [
+{
+"sev": "warning",
+"code": "VULNERABLE",
+"text": "Zranitelný klient: Úmrtí v rodině, sděleno na pobočce. Automatika je zastavena, kontaktuje jen člověk."
+}
+],
+"segment": "vulnerable",
+"strategy": "human",
+"automation": false,
+"rule": "R2",
+"reason": "Známka zranitelnosti: Úmrtí v rodině, sděleno na pobočce"
+},
+{
+"id": "DL-1068",
+"name": "Ondřej Procházka",
+"sex": "M",
+"age": 52,
+"birthDate": "1974-05-08",
+"city": "Brno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-29680",
+"principal": 40000,
+"balance": 27236,
+"instalment": 2000,
+"outstanding": 2000,
+"dpd": 25,
+"dueSince": "2026-09-24",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 109 505",
+"email": "dluznik1068@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "25 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1069",
+"name": "Roman Hájek",
+"sex": "M",
+"age": 49,
+"birthDate": "1977-12-26",
+"city": "České Budějovice",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-75389",
+"principal": 35000,
+"balance": 32550,
+"instalment": 1750,
+"outstanding": 8750,
+"dpd": 145,
+"dueSince": "2026-05-27",
+"promises": [],
+"income": "stable",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 103 498",
+"email": "dluznik1069@example.com",
+"history": [
+{
+"date": "2026-09-22",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "145 dní po splatnosti"
+},
+{
+"id": "DL-1070",
+"name": "Petra Hájková",
+"sex": "F",
+"age": 59,
+"birthDate": "1967-07-16",
+"city": "Praha",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2022-67127",
+"principal": 40000,
+"balance": 35724,
+"instalment": 2000,
+"outstanding": 4000,
+"dpd": 31,
+"dueSince": "2026-09-18",
+"promises": [
+{
+"date": "2026-09-14",
+"amount": 2000,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 186 661",
+"email": "dluznik1070@example.com",
+"history": [
+{
+"date": "2026-09-28",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "31 dní po splatnosti"
+},
+{
+"id": "DL-1071",
+"name": "Barbora Marková",
+"sex": "F",
+"age": 38,
+"birthDate": "1988-12-15",
+"city": "Liberec",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-22428",
+"principal": 115000,
+"balance": 108652,
+"instalment": 4790,
+"outstanding": 4790,
+"dpd": 15,
+"dueSince": "2026-10-04",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 171 194",
+"email": "dluznik1071@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "15 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1072",
+"name": "Hana Kučerová",
+"sex": "F",
+"age": 27,
+"birthDate": "1999-08-18",
+"city": "Brno",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2022-75079",
+"principal": 20000,
+"balance": 10827,
+"instalment": 1000,
+"outstanding": 1000,
+"dpd": 15,
+"dueSince": "2026-10-04",
+"promises": [],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 187 262",
+"email": "dluznik1072@example.com",
+"history": [
+{
+"date": "2026-10-06",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-10",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Snížený příjem"
+},
+{
+"id": "DL-1073",
+"name": "Karel Marek",
+"sex": "M",
+"age": 67,
+"birthDate": "1959-11-14",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-77121",
+"principal": 130000,
+"balance": 69681,
+"instalment": 5420,
+"outstanding": 27100,
+"dpd": 147,
+"dueSince": "2026-05-25",
+"promises": [
+{
+"date": "2026-06-08",
+"amount": 19500,
+"kept": false
+},
+{
+"date": "2026-06-22",
+"amount": 26100,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "voice",
+"phone": "+420 000 186 385",
+"email": "dluznik1073@example.com",
+"history": [
+{
+"date": "2026-06-15",
+"channel": "voice",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-06-15",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-29",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-07-08",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1074",
+"name": "Martina Růžičková",
+"sex": "F",
+"age": 57,
+"birthDate": "1969-12-27",
+"city": "Plzeň",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2025-74940",
+"principal": 37500,
+"balance": 26870,
+"instalment": 1560,
+"outstanding": 3120,
+"dpd": 47,
+"dueSince": "2026-09-02",
+"promises": [],
+"income": "unknown",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": {
+"note": "Tvrdí, že telefon vrátil(a) v zákonné lhůtě",
+"since": "2026-10-17"
+},
+"pref": "sms",
+"phone": "+420 000 132 404",
+"email": "dluznik1074@example.com",
+"history": [
+{
+"date": "2026-09-24",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "DISPUTE",
+"text": "Spor: Tvrdí, že telefon vrátil(a) v zákonné lhůtě. Vymáhání pozastaveno do vyřešení."
+}
+],
+"segment": "dispute",
+"strategy": "human",
+"automation": false,
+"rule": "R1",
+"reason": "Rozporuje pohledávku: Tvrdí, že telefon vrátil(a) v zákonné lhůtě"
+},
+{
+"id": "DL-1075",
+"name": "Zuzana Procházková",
+"sex": "F",
+"age": 27,
+"birthDate": "1999-10-14",
+"city": "Jihlava",
+"portfolio": "Telefony na splátky",
+"product": "phone",
+"contract": "TS-2025-23911",
+"principal": 10500,
+"balance": 6423,
+"instalment": 440,
+"outstanding": 880,
+"dpd": 42,
+"dueSince": "2026-09-07",
+"promises": [
+{
+"date": "2026-09-17",
+"amount": 900,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 150 272",
+"email": "dluznik1075@example.com",
+"history": [
+{
+"date": "2026-09-08",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "42 dní po splatnosti"
+},
+{
+"id": "DL-1076",
+"name": "Alena Procházková",
+"sex": "F",
+"age": 39,
+"birthDate": "1987-10-06",
+"city": "Plzeň",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-21059",
+"principal": 65000,
+"balance": 47913,
+"instalment": 1080,
+"outstanding": 1080,
+"dpd": 30,
+"dueSince": "2026-09-19",
+"promises": [
+{
+"date": "2026-07-09",
+"amount": 400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 173 548",
+"email": "dluznik1076@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "30 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1077",
+"name": "Petr Horák",
+"sex": "M",
+"age": 33,
+"birthDate": "1993-05-07",
+"city": "Pardubice",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2024-81122",
+"principal": 50000,
+"balance": 41872,
+"instalment": 2500,
+"outstanding": 5000,
+"dpd": 57,
+"dueSince": "2026-08-23",
+"promises": [
+{
+"date": "2026-07-25",
+"amount": 3300,
+"kept": false
+},
+{
+"date": "2026-09-15",
+"amount": 2300,
+"kept": false
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 110 137",
+"email": "dluznik1077@example.com",
+"history": [
+{
+"date": "2026-09-14",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-15",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-23",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-05",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-14",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1078",
+"name": "Jana Benešová",
+"sex": "F",
+"age": 27,
+"birthDate": "1999-01-05",
+"city": "Pardubice",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-44441",
+"principal": 90000,
+"balance": 64533,
+"instalment": 2500,
+"outstanding": 2500,
+"dpd": 14,
+"dueSince": "2026-10-05",
+"promises": [],
+"income": "irregular",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 199 881",
+"email": "dluznik1078@example.com",
+"history": [
+{
+"date": "2026-10-12",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Nepravidelný příjem"
+},
+{
+"id": "DL-1079",
+"name": "Lukáš Kučera",
+"sex": "M",
+"age": 49,
+"birthDate": "1977-07-26",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-65765",
+"principal": 300000,
+"balance": 282249,
+"instalment": 12500,
+"outstanding": 12500,
+"dpd": 14,
+"dueSince": "2026-10-05",
+"promises": [
+{
+"date": "2026-07-06",
+"amount": 9300,
+"kept": false
+}
+],
+"income": "lost",
+"otherLoans": 1,
+"vulnerable": {
+"kind": "job_loss",
+"note": "Ztráta zaměstnání, při posledním hovoru velmi rozrušen(a)"
+},
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 145 816",
+"email": "dluznik1079@example.com",
+"history": [
+{
+"date": "2026-10-10",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-16",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "VULNERABLE",
+"text": "Zranitelný klient: Ztráta zaměstnání, při posledním hovoru velmi rozrušen(a). Automatika je zastavena, kontaktuje jen člověk."
+}
+],
+"segment": "vulnerable",
+"strategy": "human",
+"automation": false,
+"rule": "R2",
+"reason": "Známka zranitelnosti: Ztráta zaměstnání, při posledním hovoru velmi rozrušen(a)"
+},
+{
+"id": "DL-1080",
+"name": "Veronika Sedláčková",
+"sex": "F",
+"age": 26,
+"birthDate": "2000-04-22",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2021-16176",
+"principal": 235000,
+"balance": 120473,
+"instalment": 9790,
+"outstanding": 9790,
+"dpd": 25,
+"dueSince": "2026-09-24",
+"promises": [],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": {
+"kind": "illness",
+"note": "Onkologická léčba, sděleno operátorovi"
+},
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 121 682",
+"email": "dluznik1080@example.com",
+"history": [
+{
+"date": "2026-09-28",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "VULNERABLE",
+"text": "Zranitelný klient: Onkologická léčba, sděleno operátorovi. Automatika je zastavena, kontaktuje jen člověk."
+}
+],
+"segment": "vulnerable",
+"strategy": "human",
+"automation": false,
+"rule": "R2",
+"reason": "Známka zranitelnosti: Onkologická léčba, sděleno operátorovi"
+},
+{
+"id": "DL-1081",
+"name": "Pavel Němec",
+"sex": "M",
+"age": 40,
+"birthDate": "1986-03-04",
+"city": "Kladno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-44532",
+"principal": 115000,
+"balance": 94861,
+"instalment": 3190,
+"outstanding": 9570,
+"dpd": 76,
+"dueSince": "2026-08-04",
+"promises": [
+{
+"date": "2026-05-08",
+"amount": 6800,
+"kept": false
+},
+{
+"date": "2026-06-20",
+"amount": 7000,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 104 209",
+"email": "dluznik1081@example.com",
+"history": [
+{
+"date": "2026-08-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-03",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-03",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "76 dní po splatnosti"
+},
+{
+"id": "DL-1082",
+"name": "Miroslav Král",
+"sex": "M",
+"age": 32,
+"birthDate": "1994-02-28",
+"city": "Pardubice",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2022-87564",
+"principal": 12300,
+"balance": 12300,
+"instalment": 4100,
+"outstanding": 12300,
+"dpd": 19,
+"dueSince": "2026-09-30",
+"promises": [
+{
+"date": "2026-09-12",
+"amount": 8200,
+"kept": true
+}
+],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "voice",
+"phone": "+420 000 138 325",
+"email": "dluznik1082@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Snížený příjem"
+},
+{
+"id": "DL-1083",
+"name": "Tomáš Dvořák",
+"sex": "M",
+"age": 58,
+"birthDate": "1968-01-16",
+"city": "Hradec Králové",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2025-45912",
+"principal": 35000,
+"balance": 17772,
+"instalment": 1460,
+"outstanding": 8760,
+"dpd": 166,
+"dueSince": "2026-05-06",
+"promises": [
+{
+"date": "2026-05-18",
+"amount": 6800,
+"kept": true
+},
+{
+"date": "2026-08-01",
+"amount": 7200,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 119 102",
+"email": "dluznik1083@example.com",
+"history": [
+{
+"date": "2026-10-01",
+"channel": "letter",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "166 dní po splatnosti"
+},
+{
+"id": "DL-1084",
+"name": "Tereza Svobodová",
+"sex": "F",
+"age": 69,
+"birthDate": "1957-08-13",
+"city": "Praha",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2024-11564",
+"principal": 120000,
+"balance": 51133,
+"instalment": 5000,
+"outstanding": 20000,
+"dpd": 107,
+"dueSince": "2026-07-04",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 196 806",
+"email": "dluznik1084@example.com",
+"history": [
+{
+"date": "2026-08-21",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "107 dní po splatnosti"
+},
+{
+"id": "DL-1085",
+"name": "Petra Pospíšilová",
+"sex": "F",
+"age": 65,
+"birthDate": "1961-04-16",
+"city": "Hradec Králové",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-45142",
+"principal": 55000,
+"balance": 52224,
+"instalment": 2750,
+"outstanding": 16500,
+"dpd": 171,
+"dueSince": "2026-05-01",
+"promises": [],
+"income": "reduced",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 104 746",
+"email": "dluznik1085@example.com",
+"history": [
+{
+"date": "2026-08-29",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-09-10",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-15",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "171 dní po splatnosti"
+},
+{
+"id": "DL-1086",
+"name": "Monika Doležalová",
+"sex": "F",
+"age": 42,
+"birthDate": "1984-11-07",
+"city": "Plzeň",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2021-38159",
+"principal": 11500,
+"balance": 11500,
+"instalment": 3830,
+"outstanding": 11500,
+"dpd": 44,
+"dueSince": "2026-09-05",
+"promises": [
+{
+"date": "2026-05-06",
+"amount": 8100,
+"kept": false
+},
+{
+"date": "2026-09-04",
+"amount": 7100,
+"kept": false
+}
+],
+"income": "unknown",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 137 477",
+"email": "dluznik1086@example.com",
+"history": [
+{
+"date": "2026-09-08",
+"channel": "sms",
+"type": "reminder",
+"delivery": "failed",
+"response": "no_response"
+},
+{
+"date": "2026-09-15",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-23",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-26",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-08",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "info",
+"code": "DELIVERY",
+"text": "Některá dřívější zpráva nebyla doručena."
+}
+],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "2 nedodržené sliby platby"
+},
+{
+"id": "DL-1087",
+"name": "Jakub Marek",
+"sex": "M",
+"age": 30,
+"birthDate": "1996-10-15",
+"city": "Jihlava",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2021-71711",
+"principal": 35000,
+"balance": 22558,
+"instalment": 1750,
+"outstanding": 1750,
+"dpd": 14,
+"dueSince": "2026-10-05",
+"promises": [
+{
+"date": "2026-07-04",
+"amount": 1400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 142 202",
+"email": "dluznik1087@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "14 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1088",
+"name": "Lucie Fialová",
+"sex": "F",
+"age": 62,
+"birthDate": "1964-01-17",
+"city": "Kladno",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2021-63351",
+"principal": 10200,
+"balance": 10200,
+"instalment": 3400,
+"outstanding": 10200,
+"dpd": 120,
+"dueSince": "2026-06-21",
+"promises": [],
+"income": "reduced",
+"otherLoans": 0,
+"vulnerable": {
+"kind": "care",
+"note": "Pečuje o blízkou osobu, ztráta příjmu"
+},
+"dispute": null,
+"pref": "email",
+"phone": "+420 000 158 487",
+"email": "dluznik1088@example.com",
+"history": [
+{
+"date": "2026-07-24",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-10",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [
+{
+"sev": "warning",
+"code": "VULNERABLE",
+"text": "Zranitelný klient: Pečuje o blízkou osobu, ztráta příjmu. Automatika je zastavena, kontaktuje jen člověk."
+}
+],
+"segment": "vulnerable",
+"strategy": "human",
+"automation": false,
+"rule": "R2",
+"reason": "Známka zranitelnosti: Pečuje o blízkou osobu, ztráta příjmu"
+},
+{
+"id": "DL-1089",
+"name": "Jan Marek",
+"sex": "M",
+"age": 66,
+"birthDate": "1960-03-14",
+"city": "Hradec Králové",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2025-53338",
+"principal": 9900,
+"balance": 9900,
+"instalment": 3300,
+"outstanding": 9900,
+"dpd": 17,
+"dueSince": "2026-10-02",
+"promises": [],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 169 857",
+"email": "dluznik1089@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "17 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1090",
+"name": "Tereza Černá",
+"sex": "F",
+"age": 73,
+"birthDate": "1953-08-11",
+"city": "Praha",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2023-32047",
+"principal": 70000,
+"balance": 39742,
+"instalment": 3500,
+"outstanding": 21000,
+"dpd": 168,
+"dueSince": "2026-05-04",
+"promises": [],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 132 737",
+"email": "dluznik1090@example.com",
+"history": [
+{
+"date": "2026-07-28",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "168 dní po splatnosti"
+},
+{
+"id": "DL-1091",
+"name": "Veronika Růžičková",
+"sex": "F",
+"age": 54,
+"birthDate": "1972-06-11",
+"city": "Jihlava",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2022-69621",
+"principal": 5800,
+"balance": 5800,
+"instalment": 1930,
+"outstanding": 5800,
+"dpd": 163,
+"dueSince": "2026-05-09",
+"promises": [],
+"income": "irregular",
+"otherLoans": 3,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 162 977",
+"email": "dluznik1091@example.com",
+"history": [
+{
+"date": "2026-09-29",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "163 dní po splatnosti"
+},
+{
+"id": "DL-1092",
+"name": "Jiří Novotný",
+"sex": "M",
+"age": 47,
+"birthDate": "1979-03-03",
+"city": "Hradec Králové",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2024-49301",
+"principal": 8400,
+"balance": 8400,
+"instalment": 2800,
+"outstanding": 8400,
+"dpd": 174,
+"dueSince": "2026-04-28",
+"promises": [
+{
+"date": "2026-05-06",
+"amount": 8300,
+"kept": true
+},
+{
+"date": "2026-06-14",
+"amount": 8200,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 2,
+"vulnerable": null,
+"dispute": null,
+"pref": "voice",
+"phone": "+420 000 193 706",
+"email": "dluznik1092@example.com",
+"history": [
+{
+"date": "2026-05-07",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-06-10",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-31",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "174 dní po splatnosti"
+},
+{
+"id": "DL-1093",
+"name": "Jan Král",
+"sex": "M",
+"age": 70,
+"birthDate": "1956-02-07",
+"city": "Zlín",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2024-21403",
+"principal": 10700,
+"balance": 10700,
+"instalment": 3570,
+"outstanding": 10700,
+"dpd": 91,
+"dueSince": "2026-07-20",
+"promises": [
+{
+"date": "2026-09-17",
+"amount": 4100,
+"kept": true
+}
+],
+"income": "irregular",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 199 207",
+"email": "dluznik1093@example.com",
+"history": [
+{
+"date": "2026-08-13",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-08-23",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-01",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "long_term",
+"strategy": "refi",
+"automation": true,
+"rule": "R4",
+"reason": "91 dní po splatnosti"
+},
+{
+"id": "DL-1094",
+"name": "Jana Marková",
+"sex": "F",
+"age": 65,
+"birthDate": "1961-03-27",
+"city": "Brno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2022-21132",
+"principal": 115000,
+"balance": 72571,
+"instalment": 4790,
+"outstanding": 9580,
+"dpd": 46,
+"dueSince": "2026-09-03",
+"promises": [
+{
+"date": "2026-05-27",
+"amount": 7900,
+"kept": false
+},
+{
+"date": "2026-07-12",
+"amount": 3200,
+"kept": false
+},
+{
+"date": "2026-07-16",
+"amount": 4800,
+"kept": false
+}
+],
+"income": "irregular",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 112 580",
+"email": "dluznik1094@example.com",
+"history": [
+{
+"date": "2026-09-23",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-29",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-09-29",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-02",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-07",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+},
+{
+"date": "2026-10-11",
+"channel": "letter",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "uncooperative",
+"strategy": "supervisor",
+"automation": false,
+"rule": "R3",
+"reason": "3 nedodržené sliby platby"
+},
+{
+"id": "DL-1095",
+"name": "Jan Pospíšil",
+"sex": "M",
+"age": 41,
+"birthDate": "1985-05-11",
+"city": "Kladno",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-75869",
+"principal": 200000,
+"balance": 70998,
+"instalment": 5560,
+"outstanding": 5560,
+"dpd": 30,
+"dueSince": "2026-09-19",
+"promises": [
+{
+"date": "2026-08-26",
+"amount": 2900,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 1,
+"vulnerable": null,
+"dispute": null,
+"pref": "voice",
+"phone": "+420 000 148 869",
+"email": "dluznik1095@example.com",
+"history": [
+{
+"date": "2026-09-26",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "30 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1096",
+"name": "Petr Procházka",
+"sex": "M",
+"age": 72,
+"birthDate": "1954-07-16",
+"city": "Hradec Králové",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2023-88797",
+"principal": 4300,
+"balance": 4300,
+"instalment": 1430,
+"outstanding": 4300,
+"dpd": 22,
+"dueSince": "2026-09-27",
+"promises": [
+{
+"date": "2026-08-02",
+"amount": 1400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 170 926",
+"email": "dluznik1096@example.com",
+"history": [
+{
+"date": "2026-09-27",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-16",
+"channel": "email",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "22 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1097",
+"name": "Ondřej Fiala",
+"sex": "M",
+"age": 40,
+"birthDate": "1986-11-23",
+"city": "České Budějovice",
+"portfolio": "BNPL",
+"product": "bnpl",
+"contract": "BN-2024-95275",
+"principal": 11500,
+"balance": 11500,
+"instalment": 3830,
+"outstanding": 11500,
+"dpd": 7,
+"dueSince": "2026-10-12",
+"promises": [],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 179 650",
+"email": "dluznik1097@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "7 dní po splatnosti, dosud platil(a) včas"
+},
+{
+"id": "DL-1098",
+"name": "Jan Horák",
+"sex": "M",
+"age": 24,
+"birthDate": "2002-12-21",
+"city": "Zlín",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2022-72250",
+"principal": 75000,
+"balance": 63085,
+"instalment": 3750,
+"outstanding": 3750,
+"dpd": 19,
+"dueSince": "2026-09-30",
+"promises": [
+{
+"date": "2026-08-06",
+"amount": 3400,
+"kept": true
+}
+],
+"income": "lost",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "sms",
+"phone": "+420 000 120 965",
+"email": "dluznik1098@example.com",
+"history": [
+{
+"date": "2026-10-11",
+"channel": "sms",
+"type": "reminder",
+"delivery": "delivered",
+"response": "replied"
+},
+{
+"date": "2026-10-13",
+"channel": "voice",
+"type": "reminder",
+"delivery": "delivered",
+"response": "no_response"
+}
+],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "Ztráta příjmu"
+},
+{
+"id": "DL-1099",
+"name": "Jakub Procházka",
+"sex": "M",
+"age": 60,
+"birthDate": "1966-09-23",
+"city": "Plzeň",
+"portfolio": "Kreditní karty",
+"product": "card",
+"contract": "KK-2025-32860",
+"principal": 55000,
+"balance": 46328,
+"instalment": 2750,
+"outstanding": 5500,
+"dpd": 37,
+"dueSince": "2026-09-12",
+"promises": [
+{
+"date": "2026-07-11",
+"amount": 1700,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "whatsapp",
+"phone": "+420 000 172 932",
+"email": "dluznik1099@example.com",
+"history": [],
+"flags": [],
+"segment": "temporary",
+"strategy": "plan",
+"automation": true,
+"rule": "R5",
+"reason": "37 dní po splatnosti"
+},
+{
+"id": "DL-1100",
+"name": "Hana Sedláčková",
+"sex": "F",
+"age": 28,
+"birthDate": "1998-02-07",
+"city": "Plzeň",
+"portfolio": "Spotřebitelské úvěry",
+"product": "loan",
+"contract": "SU-2023-98565",
+"principal": 50000,
+"balance": 40258,
+"instalment": 830,
+"outstanding": 830,
+"dpd": 6,
+"dueSince": "2026-10-13",
+"promises": [
+{
+"date": "2026-08-30",
+"amount": 400,
+"kept": true
+}
+],
+"income": "stable",
+"otherLoans": 0,
+"vulnerable": null,
+"dispute": null,
+"pref": "voice",
+"phone": "+420 000 122 999",
+"email": "dluznik1100@example.com",
+"history": [],
+"flags": [],
+"segment": "forgetful",
+"strategy": "reminder",
+"automation": true,
+"rule": "R6",
+"reason": "6 dní po splatnosti, dosud platil(a) včas"
+}
+]
+}

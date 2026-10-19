@@ -1,0 +1,255 @@
+{
+  "_about": "Debtor journey (Finance Demo a.s.), read by backend/fsm.py and web/app/js/fsm.js. Only transitions listed here change the stage; any other event is recorded and ignored. Reply intents (dialog.INTENT_EVENT): will_pay, need_plan, cannot_pay, want_refi, dispute, vulnerable, wrong_person, opt_out (STOP: do_not_contact, final), channel_opt_out (one channel only, stage unchanged), callback (question / unclear too). Secure page and system: paid, partial_paid, plan_chosen, refi_accept, instalment_paid; hooks.on_tick: broken (promise date passed without payment), plan_missed, offer_expired. Contact plan: send, human (hand-over to an operator). Operator: resume (back to the queue), contact_fixed, close. Sections: queue | waiting | promises | offers | human | null (done).",
+  "initial": "new",
+  "states": {
+    "new": {
+      "section": "queue",
+      "final": false
+    },
+    "contacted": {
+      "section": "waiting",
+      "final": false
+    },
+    "broken_promise": {
+      "section": "waiting",
+      "final": false
+    },
+    "promise_to_pay": {
+      "section": "promises",
+      "final": false
+    },
+    "plan_offered": {
+      "section": "offers",
+      "final": false
+    },
+    "plan_active": {
+      "section": "promises",
+      "final": false
+    },
+    "refi_offered": {
+      "section": "offers",
+      "final": false
+    },
+    "refi_accepted": {
+      "section": "human",
+      "final": false
+    },
+    "human_handoff": {
+      "section": "human",
+      "final": false
+    },
+    "dispute": {
+      "section": "human",
+      "final": false
+    },
+    "hardship_review": {
+      "section": "human",
+      "final": false
+    },
+    "wrong_contact": {
+      "section": "human",
+      "final": false
+    },
+    "paid": {
+      "section": null,
+      "final": true
+    },
+    "do_not_contact": {
+      "section": null,
+      "final": true
+    },
+    "closed": {
+      "section": null,
+      "final": true
+    }
+  },
+  "transitions": {
+    "new": {
+      "send": "contacted",
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "new",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted"
+    },
+    "contacted": {
+      "send": "contacted",
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "contacted",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted"
+    },
+    "broken_promise": {
+      "send": "contacted",
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "broken_promise",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted"
+    },
+    "promise_to_pay": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "promise_to_pay",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted",
+      "broken": "broken_promise",
+      "partial_paid": "plan_offered"
+    },
+    "plan_offered": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "plan_offered",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted",
+      "offer_expired": "human_handoff"
+    },
+    "plan_active": {
+      "will_pay": "plan_active",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "plan_active",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted",
+      "instalment_paid": "plan_active",
+      "plan_missed": "broken_promise"
+    },
+    "refi_offered": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "refi_offered",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted",
+      "offer_expired": "human_handoff"
+    },
+    "refi_accepted": {
+      "paid": "paid",
+      "human": "human_handoff",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "refi_accepted",
+      "callback": "human_handoff"
+    },
+    "human_handoff": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "cannot_pay": "plan_offered",
+      "want_refi": "refi_offered",
+      "dispute": "dispute",
+      "vulnerable": "hardship_review",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "human_handoff",
+      "callback": "human_handoff",
+      "human": "human_handoff",
+      "paid": "paid",
+      "plan_chosen": "plan_active",
+      "refi_accept": "refi_accepted",
+      "resume": "new",
+      "close": "closed"
+    },
+    "dispute": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "vulnerable": "hardship_review",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "dispute",
+      "callback": "dispute",
+      "dispute": "dispute",
+      "paid": "paid",
+      "resume": "new",
+      "close": "closed"
+    },
+    "hardship_review": {
+      "will_pay": "promise_to_pay",
+      "need_plan": "plan_offered",
+      "plan_chosen": "plan_active",
+      "dispute": "dispute",
+      "opt_out": "do_not_contact",
+      "channel_opt_out": "hardship_review",
+      "callback": "hardship_review",
+      "vulnerable": "hardship_review",
+      "paid": "paid",
+      "resume": "new",
+      "close": "closed"
+    },
+    "wrong_contact": {
+      "contact_fixed": "new",
+      "wrong_person": "wrong_contact",
+      "opt_out": "do_not_contact",
+      "paid": "paid",
+      "close": "closed"
+    },
+    "paid": {},
+    "do_not_contact": {
+      "paid": "paid"
+    },
+    "closed": {
+      "paid": "paid"
+    }
+  }
+}

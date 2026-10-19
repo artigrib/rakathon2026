@@ -1,0 +1,29 @@
+{
+  "id": "seniors",
+  "title": "Jsem v pořádku",
+  "brand": "Jsem v pořádku",
+  "lang": "cs",
+  "about": "Pravidelné hovory osamělým seniorům: jsou v pořádku, jakou mají náladu a co potřebují. Potřeby se sbírají do košíku pro sociální službu, tíseň a zdravotní potíže jdou hned člověku.",
+  "entity": { "one": "senior", "few": "senioři", "many": "seniorů" },
+  "owners": { "operator": "operátor", "social": "sociální pracovník" },
+  "group": { "field": "district", "label": "Obvod", "default": "Brno-střed" },
+  "views": [
+    { "id": "today", "module": "views/today.js" },
+    { "id": "seniors", "module": "views/seniors.js" },
+    { "id": "calls", "module": "views/calls.js" },
+    { "id": "basket", "module": "views/basket.js" },
+    { "id": "overview", "module": "views/overview.js" }
+  ],
+  "features": { "fhir": false, "hall": false },
+  "domain": "jsemvporadku.cz",
+  "voice": { "mode": "gather", "lang": "cs-CZ", "name": "Google.cs-CZ-Standard-A" },
+  "demo_user": "seniori",
+  "ref_date": "2026-10-19",
+  "initial_stage": "new",
+  "sent_stage": "no_answer",
+  "result_stage": null,
+  "terminal_reply_stages": ["new", "enrolled", "ok", "needs_help", "low_mood", "callback", "escalated", "resolved", "paused", "declined"],
+  "marks": ["basket"],
+  "data": "cases/seniors/data/seniors.json",
+  "storage_key": "jsem-v-poradku:v1"
+}

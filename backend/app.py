@@ -164,7 +164,7 @@ class MarkRequest(BaseModel):
     value: object = None
 
 
-MARKS = {"skipped", "draft", "override", "resultAck"}  # practice decisions that are not journey events
+MARKS = {"skipped", "draft", "override", "resultAck", *CASE.manifest.get("marks", [])}  # decisions that are not journey events (+ the case's own)
 
 
 @app.post("/api/mark")
@@ -278,6 +278,9 @@ class TickRequest(BaseModel):
     days: int = 1
 
 
+ON_TICK = getattr(CASE.hooks, "on_tick", None)  # optional case hook: daily duties before the contact plan
+
+
 @app.post("/api/tick")
 def tick(req: TickRequest):
     """Advance the demo clock and run every automatic touch that is due (what a cron does every 15 min)."""
@@ -286,6 +289,8 @@ def tick(req: TickRequest):
     for _ in range(max(1, req.days)):
         day = (date.fromisoformat(today()) + timedelta(days=1)).isoformat()
         store.data["clock"] = day
+        if ON_TICK:  # e.g. collections: a promise to pay was kept or broken (journey events through transition)
+            done += ON_TICK(day, store, transition, PATIENTS) or []
         for pid, d in list(store.decisions().items()):
             n = next_touch(d.get("journey", []))
             if not n or n["due"].isoformat() > day:
@@ -558,6 +563,28 @@ ANSWERS = {a["value"]: (a["event"], a["intent"], a["thanks"]) for a in P["answer
 
 def _page(html: str) -> HTMLResponse:
     return HTMLResponse(PAGE.substitute(content=html))
+
+
+PAGE_HOOK = getattr(CASE.hooks, "page", None)  # optional: the case renders its own personal page (collections: verification first)
+if PAGE_HOOK:
+    @app.api_route("/p/{token}", methods=["GET", "POST"])
+    async def case_page(token: str, request: Request):
+        """hooks.page(pid, record, form or None, store, day) -> {"html", "title"?, "reply"?: {event, intent, extra?}}.
+        A reply goes through the state machine and hooks.on_reply like any other answer."""
+        pid = store.patient_by_token(token)
+        if not pid:
+            return _page(P["invalid"])
+        form = {k: str(v) for k, v in (await request.form()).items()} if request.method == "POST" else None
+        out = PAGE_HOOK(pid, PATIENTS.get(pid, {}), form, store, today())
+        r = out.get("reply")
+        if r:
+            extra = r.get("extra") or {}
+            transition(pid, r["event"], today(), via="link", intent=r["intent"], **({"extra": extra} if extra else {}))
+            CASE.hooks.on_reply(pid, r["intent"], extra, store)
+        body = PAGE.substitute(content=out["html"])
+        if out.get("title"):
+            body = re.sub(r"<title>.*?</title>", f"<title>{escape(out['title'])}</title>", body, count=1)
+        return HTMLResponse(body)
 
 
 @app.get("/p/{token}")

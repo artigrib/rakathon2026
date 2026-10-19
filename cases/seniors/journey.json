@@ -1,0 +1,181 @@
+{
+  "_about": "Journey of one senior in the Jsem v pořádku programme (backend/fsm.py, web/app/js/fsm.js). send = a check-in call or message went out; the stage stays no_answer until the senior answers. Reply events: ok, need_items, low_mood, health_problem, emergency, callback, opt_out. Human events: visit (contact plan: 3x no answer, the social worker visits), escalate, resolve, pause, resume, decline, enroll. 'new' is the state of every record taken over from the registry, so it accepts what any registry stage needs. escalated is never called automatically until a person resolves it.",
+  "initial": "new",
+  "states": {
+    "new": {
+      "section": "plan",
+      "final": false
+    },
+    "enrolled": {
+      "section": "plan",
+      "final": false
+    },
+    "no_answer": {
+      "section": "noanswer",
+      "final": false
+    },
+    "ok": {
+      "section": "ok",
+      "final": false
+    },
+    "needs_help": {
+      "section": "needs",
+      "final": false
+    },
+    "low_mood": {
+      "section": "alert",
+      "final": false
+    },
+    "callback": {
+      "section": "needs",
+      "final": false
+    },
+    "escalated": {
+      "section": "alert",
+      "final": false
+    },
+    "resolved": {
+      "section": "ok",
+      "final": false
+    },
+    "paused": {
+      "section": null,
+      "final": false
+    },
+    "declined": {
+      "section": null,
+      "final": true
+    }
+  },
+  "transitions": {
+    "new": {
+      "send": "no_answer",
+      "enroll": "enrolled",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined",
+      "visit": "escalated",
+      "resolve": "resolved",
+      "resume": "enrolled"
+    },
+    "enrolled": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined"
+    },
+    "no_answer": {
+      "send": "no_answer",
+      "visit": "escalated",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined"
+    },
+    "ok": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined"
+    },
+    "needs_help": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined",
+      "resolve": "resolved"
+    },
+    "low_mood": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined",
+      "resolve": "resolved"
+    },
+    "callback": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined",
+      "resolve": "resolved"
+    },
+    "escalated": {
+      "emergency": "escalated",
+      "health_problem": "escalated",
+      "opt_out": "declined",
+      "resolve": "resolved",
+      "pause": "paused",
+      "decline": "declined"
+    },
+    "resolved": {
+      "send": "no_answer",
+      "ok": "ok",
+      "need_items": "needs_help",
+      "low_mood": "low_mood",
+      "health_problem": "escalated",
+      "emergency": "escalated",
+      "callback": "callback",
+      "opt_out": "declined",
+      "escalate": "escalated",
+      "pause": "paused",
+      "decline": "declined"
+    },
+    "paused": {
+      "resume": "enrolled",
+      "emergency": "escalated",
+      "opt_out": "declined",
+      "decline": "declined"
+    },
+    "declined": {
+      "enroll": "enrolled"
+    }
+  }
+}

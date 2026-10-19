@@ -1,0 +1,180 @@
+{
+ "_about": "Vocabulary shared by dialog.py (extract) and the web app (labels, static-mode extraction). Patterns run on lower-case text without diacritics. mood: 1 (very bad) … 5 (very good); the lowest match wins.",
+ "items": {
+  "nakup": {
+   "label": "nákup",
+   "patterns": [
+    "nakup",
+    "nakoup",
+    "potravin",
+    "chleba",
+    "chleb\\b",
+    "mleko",
+    "rohlik",
+    "jidlo dosl",
+    "nemam co jist",
+    "lednice je prazdn"
+   ]
+  },
+  "leky": {
+   "label": "léky z lékárny",
+   "patterns": [
+    "\\bleky\\b",
+    "\\bleku\\b",
+    "lekarn",
+    "recept",
+    "prasky",
+    "prasku"
+   ]
+  },
+  "obed": {
+   "label": "obědy",
+   "patterns": [
+    "obed",
+    "obedy",
+    "teple jidlo",
+    "varit",
+    "uvarit"
+   ]
+  },
+  "doprava": {
+   "label": "doprava",
+   "patterns": [
+    "odvez",
+    "odvoz",
+    "doprav",
+    "k lekari",
+    "k doktorovi",
+    "na postu",
+    "na urad",
+    "taxi"
+   ]
+  },
+  "uklid": {
+   "label": "úklid",
+   "patterns": [
+    "uklid",
+    "uklizet",
+    "vytrit",
+    "umyt okna",
+    "odpadk"
+   ]
+  },
+  "otop": {
+   "label": "topení a otop",
+   "patterns": [
+    "topen",
+    "topi\\b",
+    "netopi",
+    "uhli",
+    "\\bdrev",
+    "zima v byte",
+    "je mi zima",
+    "kamna",
+    "radiator",
+    "plyn"
+   ]
+  },
+  "pradlo": {
+   "label": "praní prádla",
+   "patterns": [
+    "pradl",
+    "vyprat",
+    "prani",
+    "pracka"
+   ]
+  },
+  "oprava": {
+   "label": "drobná oprava",
+   "patterns": [
+    "oprav",
+    "rozbil",
+    "nefunguje",
+    "kape",
+    "zarovk",
+    "zamek"
+   ]
+  },
+  "navsteva": {
+   "label": "návštěva, popovídat si",
+   "patterns": [
+    "navstev",
+    "popovidat",
+    "nekdo prisel",
+    "nekdo za mnou",
+    "spolecnost"
+   ]
+  },
+  "jine": {
+   "label": "jiná pomoc",
+   "patterns": []
+  }
+ },
+ "mood": {
+  "1": [
+   "nechce se mi zit",
+  "nechce (se mi )?zit",
+   "nema to smysl",
+   "uplne na dne",
+   "nejhur",
+   "zoufal"
+  ],
+  "2": [
+   "smutn",
+   "smutno",
+   "osamel",
+   "spatne",
+   "brecim",
+   "stysk",
+   "nic me nebavi",
+   "je mi tezko",
+   "nemam silu",
+   "nikoho nemam",
+   "\\bzle\\b"
+  ],
+  "3": [
+   "nic moc",
+   "ujde to",
+   "da se to",
+   "jde to",
+   "napul",
+   "unaven",
+   "jak kdy"
+  ],
+  "4": [
+   "\\bdobre\\b",
+   "v poradku",
+   "\\bfajn\\b",
+   "\\bok\\b",
+   "cajk"
+  ],
+  "5": [
+   "vyborn",
+   "skvel",
+   "moc dobre",
+   "krasne",
+   "tesim se"
+  ]
+ },
+ "health": [
+  "\\bboli\\b",
+  "\\bbolest",
+  "nemocn",
+  "horeck",
+  "teplot",
+  "zavrat",
+  "toci se mi hlava",
+  "\\bupadl",
+  "kasl",
+  "nevolno",
+  "zvracim",
+  "otekl",
+  "je mi zle",
+  "neni mi dobre",
+  "dycha",
+  "dychat",
+  "hrudi",
+  "krvac",
+  "omdlel"
+ ]
+}

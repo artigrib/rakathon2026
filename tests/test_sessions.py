@@ -51,7 +51,8 @@ def test_each_visitor_has_own_demo_and_replies_land_in_it(app):
     st = app._store_for(sa)
     st.data["outbox"].append({"patient": "S1", "channel": "sms", "to": "+420601000001", "live": True, "sid": "SMa"})
     TestClient(app.app).post("/twilio/sms", data={"From": "+420601000001", "Body": "Ano"})
-    assert app._store_for(sa).get("S1")["stage"] == "interested"
+    from backend.replies import classify
+    assert app._store_for(sa).get("S1")["stage"] == app.CASE.dialog.STAGE[classify("Ano")["intent"]]  # screening: interested
     # a callback tagged with A's session (?s=) also lands in A's demo
     TestClient(app.app).post(f"/twilio/status?s={sa}", data={"MessageSid": "SMa", "MessageStatus": "delivered"})
     assert app._store_for(sa).get("S1")["journey"][-1]["delivery"] == "delivered"
