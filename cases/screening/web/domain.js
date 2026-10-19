@@ -1,7 +1,7 @@
 // What the practice has to do about each patient. Pure functions over engine output + recorded decisions.
 import { JOURNEY, LOST, RESULTS } from "./config.js";
-import { store } from "./state.js";
-import { isFinal, sectionOf } from "./fsm.js";
+import { store } from "core/state.js";
+import { isFinal, sectionOf } from "core/fsm.js";
 
 // Demo/real "today" for rules that depend on time (set by the app on every render).
 let CLOCK = null;
@@ -86,6 +86,11 @@ export function plannedContact(p) {
 export const failedChannels = (p) => new Set(p.history.filter((h) => h.delivery === "failed").map((h) => h.channel));
 
 export const practices = (patients) => [...new Set(patients.map((p) => p.gp).filter(Boolean))].sort();
+/** Groups for the header selector (case.json group.field = "gp"). */
+export const groups = practices;
+
+/** Message placeholders from the patient record (same as cases/screening/hooks.py extra_placeholders). */
+export const placeholders = (p, M) => ({ gp: p.gp, contact: p.pneu ? M.parts.contact_with_pneu : M.parts.contact });
 
 export const daysBetween = (a, b) => (a && b ? Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 864e5) : 0);
 

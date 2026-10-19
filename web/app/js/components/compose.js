@@ -1,20 +1,19 @@
-import { CHANNELS } from "../config.js";
-import { T } from "../i18n/cs.js";
-import { fixedText, linkNote, message } from "../content/messages.cs.js";
+// Edit and send one message: channel buttons (case config CHANNELS), the text, save as draft or send now.
+import { T, cfg, dom } from "../case.js";
+import { fixedText, linkNote, message } from "../messages.js";
 import { cap, esc, html } from "../util.js";
-import { failedChannels, plannedContact } from "../domain.js";
 import { store } from "../state.js";
 
 export function compose(p, chosenChannel) {
-  const plan = plannedContact(p);
+  const plan = dom.plannedContact(p);
   const channel = chosenChannel || plan.channel;
-  const failed = failedChannels(p);
+  const failed = dom.failedChannels ? dom.failedChannels(p) : new Set();
   const draft = store.get(p.id).draft;
   const text = draft?.text && draft.channel === channel && !fixedText(channel) ? draft.text : message(p, channel, plan.variant);
   return html`<div class="compose" data-compose="${p.id}">
     <span class="compose__label" id="chl-${p.id}">${T.compose.channel}</span>
     <div class="channels" role="group" aria-labelledby="chl-${p.id}">
-      ${CHANNELS.map((c) => {
+      ${cfg.CHANNELS.map((c) => {
         const disabled = c === "portal" && !p.portal;
         const note = c === plan.channel ? T.channelRecommended : failed.has(c) ? T.channelFailed : "";
         return `<button type="button" data-action="pick-channel" data-id="${p.id}" data-channel="${c}"

@@ -1,7 +1,7 @@
-// Patient journey state machine, same table as the backend (content/journey.json).
+// Journey state machine, same table as the backend (cases/<id>/journey.json, served as content/journey.json).
 let J = null;
 
-export async function loadJourney(url = "content/journey.json") {
+export async function loadJourney(url) {
   J = await (await fetch(url)).json();
 }
 
@@ -11,9 +11,12 @@ export const INITIAL = () => J.initial;
 export function next(state, event, refusals = 0) {
   const target = J.transitions[state || J.initial]?.[event];
   if (!target) return null;
-  if (event === J.soft_decline.event && refusals === 0) return J.soft_decline.first_to;
+  if (J.soft_decline && event === J.soft_decline.event && refusals === 0) return J.soft_decline.first_to;
   return target;
 }
+
+/** Event whose first occurrence is soft (journey.json soft_decline), or null. */
+export const softEvent = () => J.soft_decline?.event ?? null;
 
 export const allowed = (state, event) => !!J.transitions[state || J.initial]?.[event];
 

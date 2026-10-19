@@ -1,5 +1,5 @@
 {
-  "_about": "Patient-facing templates (Czech), shared by the web app and the backend. Doctor 16.10.: in the GP's name, simple, calm, informative. Facts only: free (covered by insurance), short, painless, low-dose CT. Placeholders: {contact} {call_us} {link} {link_short}.",
+  "_about": "Patient-facing templates (Czech), shared by the web app and the backend. Doctor 16.10.: in the GP's name, simple, calm, informative. Facts only: free (covered by insurance), short, painless, low-dose CT. Placeholders: {contact} (cases/screening/hooks.py) {call_us} {link} {link_short}.",
   "parts": {
     "contact_with_pneu": "svému praktickému lékaři nebo svému pneumologovi",
     "contact": "svému praktickému lékaři",
@@ -47,6 +47,72 @@
     "_about": "Ukázka v sále (backend/hall.py): když účastník nezvedne hovor, dostane SMS a případně e-mail. Krátké odkazy jsemvcas.cz/centra (seznam center VZP) a jsemvcas.cz/prevence (prevenceproplice.cz) šetří délku SMS.",
     "sms": "Dobrý den, volali jsme kvůli bezplatnému vyšetření plic. Objednat se můžete i sami u plicního lékaře, bez doporučení: {centres} Info: {info} Zájem? Odpovězte ANO. Jsem včas",
     "email_subject": "Bezplatné preventivní vyšetření plic",
-    "email": "Dobrý den,\n\nzkoušeli jsme Vám zavolat kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké a bezplatné vyšetření plic s nízkou dávkou záření.\n\nObjednat se můžete i sami přímo u plicního lékaře, doporučení nepotřebujete.\n\nSeznam pracovišť programu: {centres}\nVíce o programu: {info}\n\nTuto zprávu jste dostali, protože jste se zapojili do ukázky projektu Jsem včas."
+    "email": "Dobrý den,\n\nzkoušeli jsme Vám zavolat kvůli programu Prevence pro plíce. Lidé, kteří kouří nebo dříve kouřili, mohou absolvovat krátké a bezplatné vyšetření plic s nízkou dávkou záření.\n\nObjednat se můžete i sami přímo u plicního lékaře, doporučení nepotřebujete.\n\nSeznam pracovišť programu: {centres}\nVíce o programu: {info}\n\nTuto zprávu jste dostali, protože jste se zapojili do ukázky projektu Jsem včas.",
+    "join_title": "Zapojte se do ukázky",
+    "join_intro": "Představte si, že jste pacient praktického lékaře. Za chvíli Vám zavolá hlasový asistent ordinace z čísla {from}.\nKdyž hovor nevezmete, pošleme SMS s odkazy na pracoviště, kde se dá vyšetření udělat.",
+    "join_consent": "Souhlasím, že mi v rámci ukázky zavoláte a pošlete SMS, případně e-mail. Kontakty smažeme nejpozději do 2 dnů.",
+    "join_note": "Jen česká čísla. Ukázka je zdarma.",
+    "join_no_consent": "Bez souhlasu Vám nemůžeme zavolat.",
+    "join_closed": "<h1>Tato ukázka už skončila</h1><p>Děkujeme za zájem.</p>",
+    "join_done_title": "Hotovo, jste zapojeni",
+    "join_done": "Až přednášející spustí hovory, zavolá Vám číslo {from}. Zvedněte ho a odpovězte ano nebo ne.",
+    "join_done_note": "Když hovor nevezmete, přijde SMS."
+  },
+  "sender": "Vaše ordinace",
+  "email_subject": "Preventivní vyšetření plic",
+  "voice_ui": {
+    "_about": "Fixed sentences of the keys-1/2 call (backend/app.py, channels.py).",
+    "no_answer": "Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou.",
+    "no_digit": "Děkujeme. Pokud budete chtít, ozvěte se prosím své ordinaci. Na shledanou.",
+    "thanks": {
+      "interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
+      "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."
+    }
+  },
+  "page": {
+    "_about": "Personal reply page /p/{token} (backend/app.py). No health data is ever shown on this page. answers: button value → journey event, recorded intent, thank-you text (HTML).",
+    "invalid": "<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na svou ordinaci.</p>",
+    "head": "<p class=\"muted\">Vaše ordinace praktického lékaře</p>\n<h1>Bezplatné preventivní vyšetření plic</h1>\n<p>Lidé, kteří kouří nebo dříve kouřili, mohou v programu Prevence pro plíce absolvovat krátké vyšetření plic. Nebolí a hradí ho zdravotní pojišťovna.</p>",
+    "foot": "<p class=\"muted\">Více informací: <a href=\"https://www.prevenceproplice.cz\">prevenceproplice.cz</a></p>",
+    "thanks_title": "Děkujeme",
+    "answers": [
+      {
+        "value": "interested",
+        "label": "Ano, mám zájem",
+        "class": "primary",
+        "event": "interested",
+        "intent": "interested",
+        "thanks": "Děkujeme. Sestra z Vaší ordinace se Vám ozve a domluví další postup. Objednat se můžete i sami u kteréhokoli pneumologa v programu, viz <a href=\"https://www.vzp.cz/poskytovatele/informace-pro-praxi/seznamy-center-a-szz/seznam-center-casneho-zachytu-karcinomu-plic\">seznam pracovišť</a>."
+      },
+      {
+        "value": "booked",
+        "label": "Už jsem objednaný/á",
+        "event": "booked",
+        "intent": "booked",
+        "thanks": "Děkujeme. Další připomínky Vám už posílat nebudeme."
+      },
+      {
+        "value": "callback",
+        "label": "Zavolejte mi prosím",
+        "event": "callback",
+        "intent": "callback",
+        "thanks": "Děkujeme. Sestra z Vaší ordinace Vám zavolá."
+      },
+      {
+        "value": "not_now",
+        "label": "Teď ne",
+        "event": "not_now",
+        "intent": "not_now",
+        "thanks": "Děkujeme. Ozveme se později. Pokud si to rozmyslíte, ozvěte se své ordinaci."
+      },
+      {
+        "value": "stop",
+        "label": "Nepřeji si další zprávy o tomto programu",
+        "class": "quiet",
+        "event": "opt_out",
+        "intent": "opt_out",
+        "thanks": "Další zprávy o tomto programu Vám posílat nebudeme."
+      }
+    ]
   }
 }

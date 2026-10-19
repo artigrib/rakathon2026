@@ -1,6 +1,8 @@
-"""Plíce včas backend: serves the web app, sends invitations through Twilio, receives replies.
+"""Backend of the active case (CASE env, default screening = Plíce včas): serves the web app, sends messages
+through Twilio, receives replies. Everything domain-specific comes from cases/<id>/ (backend/case.py).
 
   uvicorn backend.app:app --reload --port 8000        (from the project root)
+  CASE=seniors uvicorn backend.app:app --port 8001
 
 Without Twilio keys it runs in MOCK mode. With keys + PUBLIC_URL (ngrok) + DEMO_TO it sends for real."""
 from datetime import date
@@ -21,8 +23,9 @@ import re
 from datetime import timedelta
 
 from . import agent_call, channels, ctx, fhir_sink, fsm, hall, messages, recipient, sessions, tts
+from .case import CASE
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
-from .cadence import next_touch
+from .cadence import PLAN, next_touch
 from .replies import understand
 from .settings import settings
 from .store import Store
@@ -31,10 +34,11 @@ _rlog = logging.getLogger("uvicorn.error")  # voice turns and agent outcomes in 
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
-app = FastAPI(title="Jsem včas")
+app = FastAPI(title=CASE.manifest["title"])
+REDIRECTS = CASE.manifest.get("redirects", {})  # public short links of the case, e.g. /centra
 
 OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/", "/j/")  # Twilio, ElevenLabs and patients need these without a password
-OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout", "/centra", "/prevence"}  # public pages (exact: "/" as a prefix would open everything)
+OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout", *REDIRECTS}  # public pages (exact: "/" as a prefix would open everything)
 
 # ---------- demo state per visitor ----------
 # A signed-in visitor (/login: access code + own phone and e-mail) gets their own demo: their own patient journeys,
@@ -101,16 +105,21 @@ async def access(request: Request, call_next):
         return RedirectResponse("/login?next=" + quote(path))
     return JSONResponse({"detail": "Přihlášení vyžadováno"}, status_code=401)
 PATIENTS: dict = {}
-REF_DATE = "2026-10-16"
+REF_DATE = CASE.manifest["ref_date"]
 
 
 def load_patients():
-    """web/app/data/patients.json = engine output (from CSV, or from the FHIR server after /api/fhir/sync)."""
+    """The case data file (case.json "data"; screening: web/app/data/patients.json = engine output from CSV, or from
+    the FHIR server after /api/fhir/sync). Missing file = no records yet (run `python -m cases.<id>.build`)."""
     global REF_DATE
-    d = json.loads((WEB / "data/patients.json").read_text(encoding="utf-8"))
+    if not CASE.data.exists():
+        _rlog.warning("data file %s missing: python -m cases.%s.build", CASE.data, CASE.id)
+        PATIENTS.clear()
+        return
+    d = json.loads(CASE.data.read_text(encoding="utf-8"))
     PATIENTS.clear()
     PATIENTS.update({p["id"]: p for p in d["patients"]})
-    REF_DATE = d["refDate"]
+    REF_DATE = d.get("refDate") or CASE.manifest["ref_date"]
 
 
 load_patients()
@@ -124,9 +133,8 @@ def today() -> str:
 def patient_link(pid: str) -> str:
     token = store.token(pid)  # created on first contact; the page works on any host
     return ctx.url(f"/p/{token}")  # tagged with the visitor's session, so the answer lands in their demo
-VOICE_NO_DIGIT = "Děkujeme. Pokud budete chtít, ozvěte se prosím své ordinaci. Na shledanou."
-VOICE_THANKS = {"interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
-                "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."}
+VOICE_NO_DIGIT = messages.text("voice_ui.no_digit", "Děkujeme. Na shledanou.")
+VOICE_THANKS = messages.M.get("voice_ui", {}).get("thanks", {})  # stage after the keys-1/2 answer → sentence
 
 
 # ---------- API for the web app ----------
@@ -169,6 +177,12 @@ def mark(req: MarkRequest):
     return store.get(req.id)
 
 
+@app.get("/api/case")
+def case_manifest():
+    """Manifest of the active case: the web app loads its modules, views, title and storage key from it."""
+    return CASE.manifest
+
+
 @app.get("/api/health")
 def health():
     from . import llm
@@ -176,9 +190,10 @@ def health():
             "ai": llm.provider() if llm.enabled() else None, "voice": "elevenlabs" if tts.enabled() else "twilio",
             "trial": settings.live and settings.trial,
             "email": settings.email_live,
+            "case": CASE.id,
             "fhir": ({"server": settings.fhir_base.split("//")[-1].split("/")[0], "sync": store.data.get("fhir_sync"),
                       "written": fhir_sink.state["sent"], "errors": fhir_sink.state["errors"], "lastError": fhir_sink.state["last_error"]}
-                     if settings.fhir_base else None)}
+                     if settings.fhir_base and CASE.feature("fhir") else None)}
 
 
 @app.get("/audio/{name}")
@@ -275,11 +290,11 @@ def tick(req: TickRequest):
             n = next_touch(d.get("journey", []))
             if not n or n["due"].isoformat() > day:
                 continue
-            if n["channel"] == "nurse":
-                transition(pid, "nurse", day, auto=True, step=n["step"])
-                done.append({"id": pid, "channel": "nurse"})
+            if n["channel"] == PLAN.human:  # the plan hands over to a person (screening: the nurse calls)
+                transition(pid, PLAN.human, day, auto=True, step=n["step"])
+                done.append({"id": pid, "channel": PLAN.human})
                 continue
-            p = PATIENTS.get(pid, {"gp": "", "pneu": None})
+            p = PATIENTS.get(pid, {})
             text = messages.render(p, n["channel"], n["variant"], patient_link(pid))
             done.append(_send(pid, n["channel"], n["variant"], text, day, budget, auto=True, step=n["step"]))
     store._save()
@@ -313,7 +328,6 @@ def patient_messages(pid: str):
     return {"outbox": out}
 
 
-@app.post("/api/fhir/sync")
 def fhir_sync():
     """Load the practice's patients from the FHIR server (IRIS) and evaluate them with the same engine."""
     if not settings.fhir_base:
@@ -325,7 +339,7 @@ def fhir_sync():
     out = build(write(t, ROOT / "data_fhir"), REF_DATE)
     if not out["patients"]:  # an empty or unreachable server must not wipe the practice's patient list
         raise HTTPException(409, f"FHIR server returned no patients ({len(res)} resources); run /api/fhir/push first")
-    (WEB / "data/patients.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    CASE.data.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     load_patients()
     info = {"at": datetime_now(), "resources": len(res), "patients": len(out["patients"])}
     store.data["fhir_sync"] = info
@@ -333,7 +347,6 @@ def fhir_sync():
     return info
 
 
-@app.post("/api/fhir/push")
 def fhir_push():
     """Upload the whole practice data + evaluation + journey to the FHIR server as one transaction Bundle."""
     if not settings.fhir_base:
@@ -356,11 +369,16 @@ def datetime_now():
     return datetime.now(ZoneInfo("Europe/Prague")).strftime("%Y-%m-%d %H:%M")
 
 
-@app.get("/api/fhir")
 def fhir_bundle(gp: str | None = None):
     """FHIR R4 transaction Bundle (patients, smoking, CT, contacts, evaluation, tasks) – POST it to any FHIR server."""
     from .fhir import bundle
     return bundle(ROOT / "data", REF_DATE, store.decisions(), gp)
+
+
+if CASE.feature("fhir"):  # screening: the practice's patients live on an IRIS FHIR server
+    app.post("/api/fhir/sync")(fhir_sync)
+    app.post("/api/fhir/push")(fhir_push)
+    app.get("/api/fhir")(fhir_bundle)
 
 
 @app.post("/api/reset")
@@ -397,15 +415,18 @@ def transition(pid, event, day=None, **extra):
     if event in ("declined", "opt_out"):
         extra.setdefault("intent", event)
     d = store.event(pid, target, day, event=event, **extra)
-    if _current.get() is None:  # only the shared demo writes back; visitors' demos would overwrite each other in IRIS
+    if _current.get() is None and CASE.feature("fhir"):  # only the shared demo writes back; visitors' demos would overwrite each other in IRIS
         fhir_sink.push(settings, pid, event, d, PATIENTS.get(pid, {}).get("gp"))  # write-back to the FHIR server, async
     return d
 
 
 def _record_reply(pid, text, understood, via, day=None):
     c = understood
-    return transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
-                      why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}))
+    d = transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
+                   why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}),
+                   **({"extra": c["extra"]} if c.get("extra") else {}))
+    CASE.hooks.on_reply(pid, c["intent"], c.get("extra") or {}, store)  # case side effects (needs basket, promise to pay …)
+    return d
 
 
 def _apply_reply(pid, text, via, day=None):
@@ -417,7 +438,7 @@ async def inbound_sms(request: Request):
     form = await _form(request)
     sender = form.get("From") or ""
     via = "whatsapp" if sender.startswith("whatsapp:") else "sms"  # SMS and WhatsApp share this webhook
-    hall_reply = hall.inbound(sender.replace("whatsapp:", ""), form.get("Body", "")) if via == "sms" else None
+    hall_reply = hall.inbound(sender.replace("whatsapp:", ""), form.get("Body", "")) if via == "sms" and HALL else None
     if hall_reply is not None:  # someone from the hall demo answered the SMS after a missed call
         body = f"<Message>{escape(hall_reply)}</Message>" if hall_reply else ""
         return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
@@ -483,7 +504,7 @@ async def relay(ws: WebSocket, pid: str):
             _rlog.info("relay %s in %s %s", pid, msg.get("type"),
                        {k: msg.get(k) for k in ("voicePrompt", "last", "digit", "utteranceUntilInterrupt", "durationUntilInterruptMs", "description") if k in msg})
             if msg.get("type") == "dtmf":
-                msg = {"type": "prompt", "voicePrompt": {"1": "ano", "2": "teď ne"}.get(msg.get("digit"), "")}
+                msg = {"type": "prompt", "voicePrompt": CASE.dialog.DTMF.get(msg.get("digit"), "")}
             if msg.get("type") != "prompt":
                 continue
             said = msg.get("voicePrompt", "")
@@ -519,7 +540,8 @@ async def _agent_outcome(pid: str, call_sid: str):
     if not o:
         return
     _record_reply(pid, o["text"], {"intent": o["intent"], "why": f"hlasový asistent: {o['intent']}", "source": "elevenlabs-agent",
-                                   **({"when": o["when"]} if o["when"] else {})}, "voice-agent")
+                                   **({"when": o["when"]} if o["when"] else {}), **({"extra": o["extra"]} if o.get("extra") else {})},
+                  "voice-agent")
 
 
 # ---------- patient page (personal link from SMS / e-mail) ----------
@@ -529,16 +551,9 @@ from fastapi import Form  # noqa: E402
 from fastapi.responses import HTMLResponse  # noqa: E402
 
 PAGE = Template((Path(__file__).with_name("templates") / "patient.html").read_text(encoding="utf-8"))
-PNEU_LIST = "https://www.vzp.cz/poskytovatele/informace-pro-praxi/seznamy-center-a-szz/seznam-center-casneho-zachytu-karcinomu-plic"
-# answer → (journey stage, intent, thank-you text). No health data is ever shown on this page.
-ANSWERS = {
-    "interested": ("interested", "interested", "Děkujeme. Sestra z Vaší ordinace se Vám ozve a domluví další postup. "
-                   f'Objednat se můžete i sami u kteréhokoli pneumologa v programu, viz <a href="{PNEU_LIST}">seznam pracovišť</a>.'),
-    "booked": ("booked", "booked", "Děkujeme. Další připomínky Vám už posílat nebudeme."),
-    "callback": ("callback", "callback", "Děkujeme. Sestra z Vaší ordinace Vám zavolá."),
-    "not_now": ("not_now", "not_now", "Děkujeme. Ozveme se později. Pokud si to rozmyslíte, ozvěte se své ordinaci."),
-    "stop": ("declined", "opt_out", "Další zprávy o tomto programu Vám posílat nebudeme."),
-}
+P = messages.M["page"]  # texts of the personal page (case messages.cs.json); no health data is ever shown on it
+# answer → (journey event, intent, thank-you text)
+ANSWERS = {a["value"]: (a["event"], a["intent"], a["thanks"]) for a in P["answers"]}
 
 
 def _page(html: str) -> HTMLResponse:
@@ -549,30 +564,26 @@ def _page(html: str) -> HTMLResponse:
 def patient_page(token: str):
     pid = store.patient_by_token(token)
     if not pid:
-        return _page("<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na svou ordinaci.</p>")
-    gp = PATIENTS.get(pid, {}).get("gp") or ""
+        return _page(P["invalid"])
+    cls = lambda a: f' class="{a["class"]}"' if a.get("class") else ""  # noqa: E731
+    buttons = "\n".join(f'  <button{cls(a)} name="answer" value="{a["value"]}">{a["label"]}</button>' for a in P["answers"])
     return _page(f"""
-<p class="muted">Vaše ordinace praktického lékaře</p>
-<h1>Bezplatné preventivní vyšetření plic</h1>
-<p>Lidé, kteří kouří nebo dříve kouřili, mohou v programu Prevence pro plíce absolvovat krátké vyšetření plic. Nebolí a hradí ho zdravotní pojišťovna.</p>
+{P["head"]}
 <form method="post">
-  <button class="primary" name="answer" value="interested">Ano, mám zájem</button>
-  <button name="answer" value="booked">Už jsem objednaný/á</button>
-  <button name="answer" value="callback">Zavolejte mi prosím</button>
-  <button name="answer" value="not_now">Teď ne</button>
-  <button class="quiet" name="answer" value="stop">Nepřeji si další zprávy o tomto programu</button>
+{buttons}
 </form>
-<p class="muted">Více informací: <a href="https://www.prevenceproplice.cz">prevenceproplice.cz</a></p>""")
+{P["foot"]}""")
 
 
 @app.post("/p/{token}")
 def patient_answer(token: str, answer: str = Form(...)):
     pid = store.patient_by_token(token)
     if not pid or answer not in ANSWERS:
-        return _page("<h1>Odkaz už neplatí</h1><p>Obraťte se prosím na svou ordinaci.</p>")
+        return _page(P["invalid"])
     event, intent, thanks = ANSWERS[answer]
-    transition(pid, "opt_out" if intent == "opt_out" else event, today(), via="link", intent=intent)
-    return _page(f'<h1>Děkujeme</h1><div class="box"><p>{thanks}</p></div>')
+    transition(pid, event, today(), via="link", intent=intent)
+    CASE.hooks.on_reply(pid, intent, {}, store)
+    return _page(f'<h1>{P["thanks_title"]}</h1><div class="box"><p>{thanks}</p></div>')
 
 
 # ---------- web app (same origin → no CORS) ----------
@@ -581,34 +592,27 @@ HALL_PAGE = Template((Path(__file__).with_name("templates") / "hall.html").read_
 HALL_JOIN = Template((Path(__file__).with_name("templates") / "hall_join.html").read_text(encoding="utf-8"))
 
 
-@app.get("/centra")
-def short_centres():
-    return RedirectResponse(PNEU_LIST)
+for _path, _url in REDIRECTS.items():  # short links of the case for SMS, e.g. /centra → list of screening centres
+    app.get(_path, include_in_schema=False)(lambda _u=_url: RedirectResponse(_u))
+
+HALL = CASE.feature("hall")
+HT = messages.M.get("hall", {})
 
 
-@app.get("/prevence")
-def short_info():
-    return RedirectResponse("https://www.prevenceproplice.cz")
-
-
-@app.get("/sal")
 def hall_page():
     from html import escape as h
     return HTMLResponse(HALL_PAGE.safe_substitute(**{"from": h(settings.from_number)}))
 
 
-@app.get("/api/hall")
 def hall_state():
     ev = hall.current()
     return {**hall.public(ev), "qr": hall.qr_svg(hall.public(ev)["joinUrl"])}
 
 
-@app.post("/api/hall/new")
 def hall_new():
     return hall.public(hall.new_event())
 
 
-@app.post("/api/hall/call")
 def hall_call():
     if not settings.live:
         raise HTTPException(409, "Twilio není nastavené, hovory nejdou naostro.")
@@ -623,63 +627,69 @@ def _join_form(eid: str, error: str = "", phone: str = "", email: str = "", stat
     from html import escape as h
     err = f'<p class="err" role="alert">{h(error)}</p>' if error else ""
     return _join_page(f"""
-<h1>Zapojte se do ukázky</h1>
-<p>Představte si, že jste pacient praktického lékaře. Za chvíli Vám zavolá hlasový asistent ordinace z čísla {h(settings.from_number)}.
-Když hovor nevezmete, pošleme SMS s odkazy na pracoviště, kde se dá vyšetření udělat.</p>
+<h1>{HT["join_title"]}</h1>
+<p>{HT["join_intro"].replace("{from}", h(settings.from_number))}</p>
 {err}
 <form method="post" action="/j/{h(eid)}">
   <label>Telefon<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+420 601 234 567" required value="{h(phone)}"></label>
   <label>E-mail (nepovinné)<input name="email" type="email" autocomplete="email" value="{h(email)}"></label>
   <label class="check"><input type="checkbox" name="consent" value="1" required>
-    <span>Souhlasím, že mi v rámci ukázky zavoláte a pošlete SMS, případně e-mail. Kontakty smažeme nejpozději do 2 dnů.</span></label>
+    <span>{HT["join_consent"]}</span></label>
   <button type="submit">Zapojit se</button>
 </form>
-<p class="muted">Jen česká čísla. Ukázka je zdarma.</p>""", status)
+<p class="muted">{HT["join_note"]}</p>""", status)
 
 
-@app.get("/j/{eid}")
 def hall_join_form(eid: str):
     ev = hall.get(eid)
     if not hall.is_open(ev) or ev["id"] != hall.current()["id"]:
-        return _join_page("<h1>Tato ukázka už skončila</h1><p>Děkujeme za zájem.</p>", 404)
+        return _join_page(HT["join_closed"], 404)
     return _join_form(eid)
 
 
-@app.post("/j/{eid}")
 async def hall_join(eid: str, request: Request):
     from html import escape as h
     f = await request.form()
     phone, email = str(f.get("phone", "")).strip(), str(f.get("email", "")).strip()
     if not f.get("consent"):
-        return _join_form(eid, "Bez souhlasu Vám nemůžeme zavolat.", phone, email, 400)
+        return _join_form(eid, HT["join_no_consent"], phone, email, 400)
     try:
         p = hall.join(eid, phone, email)
     except ValueError as e:
         return _join_form(eid, str(e), phone, email, 400)
     return _join_page(f"""
-<h1>Hotovo, jste zapojeni</h1>
+<h1>{HT["join_done_title"]}</h1>
 <div class="big">{p["n"]}</div>
-<p>Až přednášející spustí hovory, zavolá Vám číslo {h(settings.from_number)}. Zvedněte ho a odpovězte ano nebo ne.</p>
-<p class="muted">Když hovor nevezmete, přijde SMS.</p>""")
+<p>{HT["join_done"].replace("{from}", h(settings.from_number))}</p>
+<p class="muted">{HT["join_done_note"]}</p>""")
 
 
-@app.post("/twilio/hall/voice/{eid}/{n}")
 async def hall_voice(eid: str, n: int, request: Request):
     await _form(request)
     return Response(hall.voice_twiml(eid, n), media_type="application/xml")
 
 
-@app.post("/twilio/hall/answer/{eid}/{n}")
 async def hall_answer(eid: str, n: int, request: Request):
     form = await _form(request)
     return Response(hall.answer(eid, n, form.get("Digits") or form.get("SpeechResult") or ""), media_type="application/xml")
 
 
-@app.post("/twilio/hall/status/{eid}/{n}")
 async def hall_status(eid: str, n: int, request: Request):
     form = await _form(request)
     await asyncio.to_thread(hall.call_status, eid, n, form.get("CallStatus", ""))
     return Response(status_code=204)
+
+
+if HALL:  # Ukázka v sále: only cases with features.hall
+    app.get("/sal")(hall_page)
+    app.get("/api/hall")(hall_state)
+    app.post("/api/hall/new")(hall_new)
+    app.post("/api/hall/call")(hall_call)
+    app.get("/j/{eid}")(hall_join_form)
+    app.post("/j/{eid}")(hall_join)
+    app.post("/twilio/hall/voice/{eid}/{n}")(hall_voice)
+    app.post("/twilio/hall/answer/{eid}/{n}")(hall_answer)
+    app.post("/twilio/hall/status/{eid}/{n}")(hall_status)
 
 
 # ---------- sign-in: access code + the visitor's own phone and e-mail ----------
@@ -778,7 +788,29 @@ def projekt_video():
     return FileResponse(ROOT / "submission" / "demo.mp4", media_type="video/mp4")
 
 
+# ---------- the case's part of the web app (before the /app mount, which would answer first) ----------
+@app.get("/app/content/{name}")
+def case_content(name: str):
+    """case.json, journey.json, messages.cs.json … of the case (only top-level JSON files, never its Python)."""
+    from fastapi.responses import FileResponse
+    path = CASE.dir / name
+    if not name.endswith(".json") or "/" in name or name.startswith(".") or not path.is_file():
+        raise HTTPException(404)
+    return FileResponse(path, media_type="application/json")
+
+
+@app.get("/app/data/patients.json")
+def case_data():
+    """The case's records (case.json "data"); the web app reads the key `patients`."""
+    from fastapi.responses import FileResponse
+    if not CASE.data.is_file():
+        raise HTTPException(404, f"run: python -m cases.{CASE.id}.build")
+    return FileResponse(CASE.data, media_type="application/json")
+
+
 if LANDING.exists():
     app.mount("/projekt", StaticFiles(directory=LANDING), name="landing")
     app.mount("/img", StaticFiles(directory=LANDING / "img"), name="landing-img")  # landing images at the domain root
+if CASE.web.is_dir():
+    app.mount("/app/case", StaticFiles(directory=CASE.web), name="case-web")  # ES modules of the case
 app.mount("/app", StaticFiles(directory=WEB, html=True), name="web")

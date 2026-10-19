@@ -1,7 +1,8 @@
-// Practice decisions and patient-journey events layered on top of engine output. Persisted per viewer (demo only).
-import { STORAGE_KEY } from "./config.js";
+// Practice decisions and journey events layered on top of the case records. Persisted per viewer (demo only).
+import { CASE } from "./case.js";
 import { next, refusals } from "./fsm.js";
 
+const STORAGE_KEY = CASE.storage_key;
 const listeners = new Set();
 let decisions = load();
 let lastUndo = null;

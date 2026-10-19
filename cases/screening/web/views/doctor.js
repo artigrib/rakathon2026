@@ -1,10 +1,11 @@
 // The doctor's screen: only what the doctor decides or signs, once a week, nothing else.
 // (Mentor: simplicity for GPs, who are often older; the doctor decides exceptions.)
-import { T } from "../i18n/cs.js";
+import { T } from "../i18n.js";
+import { mineOf } from "core/case.js";
 import { addDays, lostOf, ownerOf, stageOf, taskOf } from "../domain.js";
-import { row } from "../components/row.js";
-import { store } from "../state.js";
-import { esc, fmtDate } from "../util.js";
+import { row } from "core/components/row.js";
+import { store } from "core/state.js";
+import { esc, fmtDate } from "core/util.js";
 
 const L = T.doctor;
 
@@ -16,7 +17,7 @@ const section = (id, count, title, body, due = false) => `<section class="sectio
 export const doctorCount = (mine, clock, plans) => mine.filter((p) => ownerOf(p, clock, plans) === "doctor").length;
 
 export function doctor(ui, data, rowCtx) {
-  const mine = data.patients.filter((p) => p.gp === ui.gp);
+  const mine = mineOf(data, ui);
   const clock = data.live?.clock || data.refDate;
   const weekAgo = addDays(clock, -7);
 
@@ -49,3 +50,5 @@ export function doctor(ui, data, rowCtx) {
     ${section("programme", "", L.programme, funnel)}`;
 }
 
+
+export { doctor as render, doctorCount as badge };

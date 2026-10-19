@@ -1,5 +1,5 @@
 // Presenter controls, kept apart from the product: simulated replies and (with the backend) the demo clock.
-import { T } from "../i18n/cs.js";
+import { T } from "../case.js";
 import { esc, fmtDate } from "../util.js";
 
 function recipientForm(r, error) {
@@ -18,11 +18,11 @@ function recipientForm(r, error) {
     </div>`;
 }
 
-export function demoPanel({ replies, clock, fhir, recipient, recipientError }) {
+export function demoPanel({ replies, clock, fhir, hall, recipient, recipientError }) {
   return `<summary>${T.demo.title}</summary>
     <div class="demo__body">
       <p>${T.demo.intro}</p>
-      ${recipient ? `<a class="btn" href="/sal" target="_blank" rel="noopener">${T.demo.hall}</a>` : ""}
+      ${recipient && hall ? `<a class="btn" href="/sal" target="_blank" rel="noopener">${T.demo.hall}</a>` : ""}
       ${recipient ? recipientForm(recipient, recipientError) : ""}
       ${clock ? `<div><b>${T.demo.clock(fmtDate(clock))}</b></div>
         <button type="button" class="btn" data-action="tick">${T.demo.next}</button>` : ""}

@@ -1,4 +1,4 @@
-"""LLM understanding of free-text patient replies (Czech). Provider chosen by env, no SDKs needed:
+"""LLM understanding of free-text replies (Czech); intents and prompt come from the case dialog. Provider chosen by env, no SDKs needed:
 
   LLM_PROVIDER=anthropic  ANTHROPIC_API_KEY=…  [ANTHROPIC_MODEL=claude-haiku-5-5]
   LLM_PROVIDER=openai     OPENAI_API_KEY=…     [OPENAI_MODEL=gpt-4o-mini]
@@ -10,24 +10,12 @@ import json
 import os
 import urllib.request
 
-INTENTS = ["interested", "booked", "callback", "not_now", "declined", "opt_out", "question", "unclear"]
+from .case import CASE
 
-SYSTEM = """Jsi asistent ordinace praktického lékaře v programu Prevence pro plíce (screening rakoviny plic).
-Pacient dostal pozvánku na bezplatné preventivní vyšetření plic a odpověděl. Urči, co pacient chce.
-
-Vrať POUZE JSON: {"intent": "...", "when": "...", "confidence": "high|low", "why": "..."}
-intent:
-- interested: má zájem, souhlasí, chce vyšetření
-- booked: už je objednaný nebo vyšetření absolvoval
-- callback: chce, aby mu někdo zavolal (případně kdy)
-- not_now: teď ne / později / po nějaké události
-- declined: nemá zájem
-- opt_out: nechce žádné další zprávy ani hovory
-- question: ptá se na něco (cena, bolest, kde, jak dlouho…)
-- unclear: nedá se poznat, nebo jde o citlivou situaci (úmrtí, špatné číslo, rozčilení, zdravotní potíže)
-when: časový údaj z odpovědi, pokud nějaký je (např. "po Vánocích", "odpoledne"), jinak "".
-why: jedna krátká česká věta pro sestru, proč jsi tak rozhodl.
-Při pochybnosti zvol unclear – odpověď pak vyřeší sestra. Nikdy neradíš zdravotně."""
+D = CASE.dialog
+INTENTS = D.INTENTS
+SYSTEM = D.LLM_SYSTEM  # the case asks for JSON {intent, when, confidence, why[, extra]}
+USER = getattr(D, "LLM_USER", "Odpověď: «{text}»")
 
 
 def provider() -> str:
@@ -49,7 +37,7 @@ def _post(url, headers, body, timeout=8):
 
 def _complete(text: str) -> str:
     p = provider()
-    user = f"Odpověď pacienta: «{text}»"
+    user = USER.format(text=text)
     if p == "anthropic":
         r = _post("https://api.anthropic.com/v1/messages",
                   {"x-api-key": os.environ["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01"},
@@ -75,5 +63,8 @@ def classify(text: str) -> dict:
     out = json.loads(raw)
     if out.get("intent") not in INTENTS:
         raise ValueError(f"unexpected intent {out.get('intent')!r}")
-    return {"intent": out["intent"], "when": out.get("when", ""), "confidence": out.get("confidence", "low"),
-            "why": out.get("why", "")}
+    r = {"intent": out["intent"], "when": out.get("when", ""), "confidence": out.get("confidence", "low"),
+         "why": out.get("why", "")}
+    if isinstance(out.get("extra"), dict) and out["extra"]:  # structured fields the case asked for (mood, amount …)
+        r["extra"] = out["extra"]
+    return r

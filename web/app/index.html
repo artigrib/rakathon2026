@@ -7,17 +7,19 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
+<!-- case modules (cases/<id>/web/) import the core as "core/…" -->
+<script type="importmap">{ "imports": { "core/": "./js/" } }</script>
 
 <header class="top">
   <div class="wrap grid">
-    <div class="mark"><b>Jsem včas</b></div>
+    <div class="mark"><b id="brand">Jsem včas</b></div>
     <nav class="nav" id="nav" aria-label="Hlavní navigace"></nav>
-    <label class="practice" for="gp">Ordinace <select id="gp"></select></label>
+    <label class="practice" for="gp" id="group"><span id="group-label"></span> <select id="gp"></select></label>
   </div>
 </header>
 
 <main class="wrap">
-  <div id="view"><p class="empty">Načítám pacienty</p></div>
+  <div id="view"><p class="empty">Načítám</p></div>
   <p class="foot" id="foot"></p>
 </main>
 

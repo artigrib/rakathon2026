@@ -1,0 +1,31 @@
+{
+  "id": "screening",
+  "title": "Jsem včas",
+  "brand": "Jsem včas",
+  "lang": "cs",
+  "about": "Plíce včas: pozvání pacientů praktického lékaře na screening karcinomu plic (LDCT).",
+  "entity": { "one": "pacient", "few": "pacienti", "many": "pacientů" },
+  "owners": { "nurse": "sestra", "doctor": "lékař" },
+  "group": { "field": "gp", "label": "Ordinace", "default": "VPL-0142" },
+  "views": [
+    { "id": "tasks", "module": "views/tasks.js" },
+    { "id": "doctor", "module": "views/doctor.js" },
+    { "id": "patients", "module": "core/views/patients.js" },
+    { "id": "overview", "module": "views/overview.js" }
+  ],
+  "features": { "fhir": true, "hall": true },
+  "domain": "jsemvcas.cz",
+  "redirects": {
+    "/centra": "https://www.vzp.cz/poskytovatele/informace-pro-praxi/seznamy-center-a-szz/seznam-center-casneho-zachytu-karcinomu-plic",
+    "/prevence": "https://www.prevenceproplice.cz"
+  },
+  "voice": { "mode": "gather", "lang": "cs-CZ", "name": "Google.cs-CZ-Standard-A" },
+  "demo_user": "plice",
+  "ref_date": "2026-10-16",
+  "initial_stage": "new",
+  "sent_stage": "sent",
+  "result_stage": "result",
+  "terminal_reply_stages": ["interested", "callback", "booked", "ldct", "result", "declined", "excluded", "new"],
+  "data": "web/app/data/patients.json",
+  "storage_key": "plice-vcas:v2"
+}

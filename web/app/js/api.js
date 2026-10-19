@@ -1,5 +1,5 @@
 // Thin client for the backend. Every call throws on HTTP error; callers decide what to show.
-import { API_BASE } from "./config.js";
+const API_BASE = ""; // same origin as the page
 
 async function call(path, body) {
   const r = await fetch(API_BASE + path, body

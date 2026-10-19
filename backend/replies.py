@@ -1,31 +1,24 @@
-"""Understand a free-text patient reply (Czech). Deterministic rules first – predictable and testable;
+"""Understand a free-text reply (Czech). Deterministic rules first – predictable and testable;
 an LLM can be plugged in via `classify(..., llm=fn)` for replies the rules do not understand.
 
-Intents map 1:1 to journey stages used by the web app:
-  interested | booked | callback | not_now | declined | opt_out | question | unclear
-declined = "not interested" (doctor: first refusal → other channel + motivation, second → stop);
-opt_out = explicit "do not contact me" → stop immediately.
-Anything not clearly understood goes to the nurse (never auto-answered)."""
+Rules, intents and stages come from the case dialog (cases/<id>/dialog.py). The safety policy stays here:
+opt-out always wins, a low-confidence AI answer goes to a person, anything not understood is never auto-answered.
+Core intents every case has: opt_out, question, unclear."""
 import re
 import unicodedata
+
+from .case import CASE
+
+D = CASE.dialog
+RULES = D.RULES
+QUESTION = D.QUESTION
+STAGE = D.STAGE
+WHY = {"question": "dotaz", "unclear": "odpovědi nerozumíme – předáno člověku", **getattr(D, "WHY", {})}
 
 
 def _norm(text: str) -> str:
     t = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode().lower()
     return re.sub(r"\s+", " ", t).strip()
-
-
-# (intent, patterns) in priority order – first match wins.
-RULES = [
-    ("opt_out", [r"\bstop\b", r"\bodhlas", r"nekontaktuj", r"nepiste", r"nevolejte", r"neobtezujte"]),
-    ("declined", [r"nechci\b", r"nemam zajem", r"\bnezajem"]),
-    ("booked", [r"objednan", r"objednal", r"mam termin", r"uz jsem (byl|byla|u)", r"jsem objednany"]),
-    ("callback", [r"zavolej", r"zavolat", r"volejte", r"ozvete se", r"\bzavolani"]),
-    ("not_now", [r"\bted ne\b", r"\bnyni ne\b", r"momentalne ne", r"pozdeji", r"\baz po\b", r"\baz v\b", r"pristi (tyden|mesic|rok)", r"\bpo (vanocich|novem roce|dovolene)"]),
-    ("interested", [r"^\s*1\s*$", r"\bano\b", r"mam zajem", r"\bzajem\b", r"\bchci\b", r"\brad[ae]?\b", r"\bdobre\b", r"\bok\b", r"souhlas"]),
-    ("declined", [r"^\s*2\s*$", r"^\s*ne\b"]),
-]
-QUESTION = re.compile(r"\?|\b(kolik|kde|kdy|jak|proc|bolí|boli|plati|zdarma)\b")
 
 
 def classify(text: str, llm=None) -> dict:
@@ -36,25 +29,30 @@ def classify(text: str, llm=None) -> dict:
             if re.search(p, t):
                 return {"intent": intent, "confidence": "high", "why": f"pravidlo: {p}"}
     if QUESTION.search(t):
-        return {"intent": "question", "confidence": "high", "why": "dotaz pacienta"}
+        return {"intent": "question", "confidence": "high", "why": WHY["question"]}
     if llm:
         try:
             r = llm(text)
-            if r.get("intent") in {"interested", "booked", "callback", "not_now", "declined", "opt_out", "question"}:
+            if r.get("intent") in set(D.INTENTS) - {"unclear"}:
                 return {**r, "why": "AI: " + r.get("why", "")}
         except Exception as e:  # never break the webhook because of the LLM
             return {"intent": "unclear", "confidence": "low", "why": f"AI nedostupná: {e}"}
-    return {"intent": "unclear", "confidence": "low", "why": "odpovědi nerozumíme – předáno sestře"}
+    return {"intent": "unclear", "confidence": "low", "why": WHY["unclear"]}
 
 
-# Journey stage for each intent; question/unclear land with the nurse as a callback task.
-STAGE = {"interested": "interested", "booked": "booked", "callback": "callback", "not_now": "not_now",
-         "declined": "declined", "opt_out": "declined", "question": "callback", "unclear": "callback"}
+def _with_extra(r: dict, text: str) -> dict:
+    """Structured fields of the case (dialog.extract over the text, merged over what the AI found)."""
+    extra = {**(r.get("extra") or {}), **(D.extract(text) or {})}
+    return {**r, "extra": extra} if extra else r
 
 
 def understand(text: str) -> dict:
     """What the backend actually uses: rules for hard safety (opt-out always wins), the LLM for everything else
-    when configured, rules again as the fallback. Low-confidence AI answers go to the nurse."""
+    when configured, rules again as the fallback. Low-confidence AI answers go to a person."""
+    return _with_extra(_understand(text), text)
+
+
+def _understand(text: str) -> dict:
     from . import llm
     rules = classify(text)
     if rules["intent"] == "opt_out" or not llm.enabled():

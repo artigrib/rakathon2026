@@ -4,6 +4,8 @@ from xml.sax.saxutils import escape
 
 from . import tts
 from . import ctx, recipient
+from .case import CASE
+from .messages import text as _text
 from .settings import settings
 
 
@@ -50,7 +52,7 @@ def start_call(patient_id: str, live: bool) -> dict:
     return {"sid": c.sid, "live": True, "to": recipient.phone(), "status": c.status}
 
 
-NO_ANSWER = "Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou."
+NO_ANSWER = _text("voice_ui.no_answer", "Neslyšeli jsme odpověď. Na shledanou.")
 
 
 def speak(text: str) -> str:
@@ -93,7 +95,9 @@ def _relay_voice() -> str:
     return f' ttsProvider="ElevenLabs" voice="{escape(vid)}"' if vid else ""
 
 
-EMAIL_SUBJECT = "Preventivní vyšetření plic"
+EMAIL_SUBJECT = _text("email_subject", CASE.manifest["title"])
+SENDER = _text("sender", CASE.manifest["brand"])  # display name of the e-mail sender
+DOMAIN = CASE.manifest.get("domain", "jsemvcas.cz")
 
 
 def send_email(body: str, live: bool, to: str = "") -> dict:
@@ -106,7 +110,7 @@ def send_email(body: str, live: bool, to: str = "") -> dict:
     import urllib.request
     payload = {
         "personalizations": [{"to": [{"email": to or recipient.email()}]}],
-        "from": {"email": settings.email_from, "name": "Vaše ordinace"},
+        "from": {"email": settings.email_from, "name": SENDER},
         "subject": EMAIL_SUBJECT,
         "content": [{"type": "text/plain", "value": body}],
     }
@@ -122,9 +126,9 @@ def _smtp(body: str, to: str = "") -> dict:
     from email.utils import formataddr, make_msgid
     m = EmailMessage()
     m["Subject"] = EMAIL_SUBJECT
-    m["From"] = formataddr(("Vaše ordinace", settings.email_from or settings.smtp_user))
+    m["From"] = formataddr((SENDER, settings.email_from or settings.smtp_user))
     m["To"] = to or recipient.email()
-    m["Message-ID"] = make_msgid(domain="jsemvcas.cz")
+    m["Message-ID"] = make_msgid(domain=DOMAIN)
     m.set_content(body)
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as s:
         s.starttls()

@@ -1,21 +1,39 @@
 """Runtime settings from environment (.env). Without Twilio keys the backend runs in MOCK mode: nothing leaves the machine."""
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+CASE_ID = os.getenv("CASE", "screening").strip() or "screening"
+
 
 def _env_file():
-    p = Path(__file__).with_name(".env")
+    """cases/<id>/.env first (its own agent id, password …), then the shared backend/.env; the environment wins."""
     if os.getenv("PLICE_SKIP_ENV_FILE") == "1":  # tests: never read the server's real keys, password or FHIR server
         return
-    if p.exists():
-        for line in p.read_text(encoding="utf-8").splitlines():
-            if line.strip() and not line.lstrip().startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                os.environ.setdefault(k.strip(), v.strip().strip('"'))
+    for p in (ROOT / "cases" / CASE_ID / ".env", Path(__file__).with_name(".env")):
+        if p.exists():
+            for line in p.read_text(encoding="utf-8").splitlines():
+                if line.strip() and not line.lstrip().startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"'))
 
 
 _env_file()
+
+
+def _manifest() -> dict:
+    try:
+        return json.loads((ROOT / "cases" / CASE_ID / "case.json").read_text(encoding="utf-8"))
+    except OSError:
+        return {}
+
+
+_M = _manifest()
+_V = _M.get("voice", {})
+# Shared state of the demo: screening keeps backend/state.json, other cases get their own file.
+_STATE = Path(__file__).with_name("state.json" if CASE_ID == "screening" else f"state-{CASE_ID}.json")
 
 
 @dataclass(frozen=True)
@@ -43,7 +61,7 @@ class Settings:
     smtp_password: str = os.getenv("SMTP_PASSWORD", "")
     # Password for the web app and its API (the challenge data must not be public). Webhooks, the patient link page,
     # call audio and /api/health stay open. Empty = no password (local development).
-    demo_user: str = os.getenv("DEMO_USER", "plice")
+    demo_user: str = os.getenv("DEMO_USER", _M.get("demo_user", CASE_ID))
     demo_password: str = os.getenv("DEMO_PASSWORD", "")
     # FHIR server (InterSystems IRIS for Health): source of patients and target of the journey write-back
     fhir_base: str = os.getenv("FHIR_BASE", "").rstrip("/")
@@ -51,10 +69,10 @@ class Settings:
     fhir_password: str = os.getenv("FHIR_PASSWORD", "")
     # The demo clock ("Další den") simulates by default; TICK_LIVE=1 lets automatic touches go out for real.
     tick_live: bool = os.getenv("TICK_LIVE", "0") == "1"
-    voice_name: str = os.getenv("VOICE_NAME", "Google.cs-CZ-Standard-A")
-    voice_mode: str = os.getenv("VOICE_MODE", "gather")       # gather = script + keys 1/2; relay = rules over ConversationRelay; agent = ElevenLabs voice agent
-    voice_lang: str = os.getenv("VOICE_LANG", "cs-CZ")
-    state_file: Path = Path(os.getenv("STATE_FILE", str(Path(__file__).with_name("state.json"))))
+    voice_name: str = os.getenv("VOICE_NAME", _V.get("name", "Google.cs-CZ-Standard-A"))
+    voice_mode: str = os.getenv("VOICE_MODE", _V.get("mode", "gather"))       # gather = script + keys 1/2; relay = rules over ConversationRelay; agent = ElevenLabs voice agent
+    voice_lang: str = os.getenv("VOICE_LANG", _V.get("lang", "cs-CZ"))
+    state_file: Path = Path(os.getenv("STATE_FILE", str(_STATE)))
 
     @property
     def email_live(self) -> bool:

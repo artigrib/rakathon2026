@@ -1,4 +1,4 @@
-import { T } from "../i18n/cs.js";
+import { T } from "../case.js";
 import { store } from "../state.js";
 
 let timer;

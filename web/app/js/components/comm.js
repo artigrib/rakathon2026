@@ -2,7 +2,7 @@
 // what the practice records already had, every message and call we sent (with text and delivery),
 // what the patient answered (verbatim) and how it was understood, what the nurse or doctor decided,
 // and what the system will do next.
-import { T } from "../i18n/cs.js";
+import { T } from "../case.js";
 import { esc, fmtDate } from "../util.js";
 
 const C = T.comm;

@@ -1,7 +1,7 @@
-import { T } from "../i18n/cs.js";
-import { fmtDate, countBy } from "../util.js";
+import { T } from "../i18n.js";
+import { fmtDate, countBy } from "core/util.js";
 import { batchOf, practices, stageOf, taskOf } from "../domain.js";
-import { store } from "../state.js";
+import { store } from "core/state.js";
 
 const O = T.overview;
 
@@ -74,3 +74,5 @@ export function overview(data) {
     ${section("practices", O.practices, table)}
     ${section("dq", O.dataQuality, dq)}`;
 }
+
+export const render = (ui, data) => overview(data);

@@ -1,10 +1,11 @@
 // Default screen: what the practice has to do this week, most urgent first.
 import { SECTIONS } from "../config.js";
-import { T } from "../i18n/cs.js";
+import { T } from "../i18n.js";
+import { mineOf } from "core/case.js";
 import { batchOf, lostOf, ownerOf, stageOf, taskOf } from "../domain.js";
-import { sectionOf } from "../fsm.js";
-import { row } from "../components/row.js";
-import { store } from "../state.js";
+import { sectionOf } from "core/fsm.js";
+import { row } from "core/components/row.js";
+import { store } from "core/state.js";
 
 const ORDER = { nurse_call: 0, callback: 1, interested: 2, ldct: 0, booked: 1 };
 
@@ -14,7 +15,7 @@ function batchBlock(mine) {
 }
 
 export function tasks(ui, data, rowCtx) {
-  const mine = data.patients.filter((p) => p.gp === ui.gp);
+  const mine = mineOf(data, ui);
   const clock = data.live?.clock || data.refDate;
   const lost = new Map(mine.map((p) => [p.id, lostOf(p, clock, data.live?.plans)]).filter(([, l]) => l));
   const by = Object.fromEntries(SECTIONS.map((s) => [s, []]));
@@ -72,3 +73,5 @@ export function tasks(ui, data, rowCtx) {
 
 /** Number of things waiting for the practice (shown in the navigation). */
 export const taskCount = (mine, clock, plans) => mine.filter((p) => ["nurse", "lost"].includes(ownerOf(p, clock, plans))).length;
+
+export { tasks as render, taskCount as badge };

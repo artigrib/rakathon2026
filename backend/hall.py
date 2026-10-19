@@ -18,14 +18,16 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 from . import channels, messages, recipient, tts
+from .case import CASE
 from .replies import understand
 from .settings import settings
 
 _lock = threading.RLock()
 FINAL = {"interested", "not_now", "declined", "unclear", "no_answer", "limit", "error"}
-CLOSING = {"interested": "Děkuji. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
-           "not_now": "Děkuji. Ozveme se později. Na shledanou."}
-NOT_UNDERSTOOD = "Děkuji. Pošleme Vám zprávu s informacemi. Na shledanou."
+# Spoken sentences and the intent → card status map come from the case dialog (features.hall).
+CLOSING = getattr(CASE.dialog, "HALL_CLOSING", {})
+NOT_UNDERSTOOD = getattr(CASE.dialog, "HALL_NOT_UNDERSTOOD", "")
+STATUS = getattr(CASE.dialog, "HALL_STATUS", {})
 
 
 def max_participants() -> int:
@@ -198,10 +200,9 @@ def voice_twiml(eid: str, n: int) -> str:
 
 
 def answer(eid: str, n: int, said: str) -> str:
-    digit = {"1": "ano", "2": "teď ne"}.get(said.strip(), said)
+    digit = CASE.dialog.DTMF.get(said.strip(), said)
     intent = understand(digit)["intent"]
-    status = {"interested": "interested", "booked": "interested", "callback": "interested",
-              "not_now": "not_now", "declined": "declined", "opt_out": "declined"}.get(intent, "unclear")
+    status = STATUS.get(intent, "unclear")
     _update(eid, n, status=status, said=said[:120])
     return channels.twiml_say(CLOSING.get(status, CLOSING["not_now"] if status == "declined" else NOT_UNDERSTOOD))
 
@@ -225,8 +226,10 @@ def call_status(eid: str, n: int, st: str):
 
 
 def _links() -> dict:
-    base = settings.public_url.replace("https://", "").replace("http://", "") or "jsemvcas.cz"
-    return {"centres": f"{base}/centra", "info": f"{base}/prevence"}
+    """Short links of the case (case.json "redirects", e.g. /centra, /prevence) as {centres, info} for the SMS."""
+    base = settings.public_url.replace("https://", "").replace("http://", "") or CASE.manifest.get("domain", "")
+    names = getattr(CASE.dialog, "HALL_LINKS", {"centres": "/centra", "info": "/prevence"})
+    return {k: f"{base}{path}" for k, path in names.items()}
 
 
 def fallback(eid: str, n: int):
@@ -258,8 +261,7 @@ def inbound(phone: str, body: str):
     for p in ev["participants"]:
         if p["phone"] == phone and "sms" in p.get("fallback", []):
             intent = understand(body)["intent"]
-            status = "interested" if intent in ("interested", "booked", "callback") else \
-                "declined" if intent in ("declined", "opt_out") else "not_now" if intent == "not_now" else p["status"]
+            status = STATUS.get(intent, p["status"])
             _update(ev["id"], p["n"], status=status, said=body[:120])
             return messages.sms_reply(intent, status) if status in ("interested", "not_now", "declined") else ""
     return None

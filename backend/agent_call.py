@@ -10,8 +10,11 @@ import os
 import time
 import urllib.request
 
+from .case import CASE
+
 API = "https://api.elevenlabs.io/v1/convai"
-DECISIONS = {"interested", "booked", "callback", "not_now", "declined", "opt_out", "unclear"}
+DECISIONS = set(CASE.dialog.DECISIONS)
+DATA = getattr(CASE.dialog, "AGENT_DATA", {})  # extra data collection fields of the case → `extra`
 
 
 def agent_id() -> str:
@@ -44,7 +47,7 @@ def _find(call_sid: str):
 
 
 def outcome(call_sid: str, wait_s: float = 90, step_s: float = 5):
-    """{'intent', 'text', 'when', 'conversation_id'} once the agent's analysis is ready, else None."""
+    """{'intent', 'text', 'when', 'conversation_id'[, 'extra']} once the agent's analysis is ready, else None."""
     deadline = time.time() + wait_s
     while time.time() < deadline:
         try:
@@ -56,7 +59,8 @@ def outcome(call_sid: str, wait_s: float = 90, step_s: float = 5):
             decision = str((dc.get("decision") or {}).get("value") or "unclear").strip().lower()
             when = str((dc.get("preferred_time") or {}).get("value") or "").strip()
             said = " | ".join(t.get("message") or "" for t in c.get("transcript") or [] if t.get("role") == "user")
+            extra = {k: (dc.get(k) or {}).get("value") for k in DATA if (dc.get(k) or {}).get("value") not in (None, "")}
             return {"intent": decision if decision in DECISIONS else "unclear", "text": said.strip(" |"),
-                    "when": when, "conversation_id": c.get("conversation_id")}
+                    "when": when, "conversation_id": c.get("conversation_id"), **({"extra": extra} if extra else {})}
         time.sleep(step_s)
     return None

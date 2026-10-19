@@ -1,38 +1,17 @@
 """Contact plan (cadence): when and through which channel the next automatic touch goes out.
 
 Deterministic on purpose – the practice must know exactly what will be sent and when.
-AI only interprets replies; it never decides to contact anyone.
-
-Default ladder (days from the first invitation of the current cycle):
-  0 SMS  →  3 voice call  →  5 voice call (other time of day)  →  8 WhatsApp  →  12 nurse calls personally
-Stops immediately on any reply. "Not now" pauses the plan, then a new cycle starts with a motivating text.
+AI only interprets replies; it never decides to contact anyone. The ladder itself (PLAN) belongs to the case
+(cases/<id>/cadence.py); stages come from its case.json.
 """
-from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from .case import CASE
+from .plan import Plan, Step  # noqa: F401  (re-exported)
 
-@dataclass(frozen=True)
-class Step:
-    day: int
-    channel: str          # sms | voice | whatsapp | email | nurse
-    variant: str = "REMINDER"
-
-
-@dataclass(frozen=True)
-class Plan:
-    steps: tuple = field(default_factory=lambda: (
-        Step(0, "sms", "FIRST_INVITE"),
-        Step(3, "voice"),
-        Step(5, "voice"),
-        Step(8, "whatsapp"),
-        Step(12, "nurse"),
-    ))
-    pause_days: int = 90      # after "not now"
-    restart_variant: str = "MOTIVATION"
-
-
-PLAN = Plan()
-REPLY_STAGES = {"interested", "callback", "booked", "ldct", "result", "declined", "excluded", "new"}
+PLAN: Plan = CASE.cadence.PLAN
+REPLY_STAGES = set(CASE.manifest["terminal_reply_stages"])
+SENT = CASE.manifest["sent_stage"]
 
 
 def _d(s):
@@ -49,14 +28,15 @@ def next_touch(journey: list, plan: Plan = PLAN):
     if not staged:
         return None
     last = staged[-1]
-    if last["stage"] in REPLY_STAGES or last["stage"] == "nurse_call":
+    if last["stage"] in REPLY_STAGES or last["stage"] in plan.stop_stages:
         return None
-    if last["stage"] == "not_now":
+    pause = plan.pause_stage
+    if pause and last["stage"] == pause:
         return {"due": _d(last["date"]) + timedelta(days=plan.pause_days), "channel": plan.steps[0].channel,
                 "variant": plan.restart_variant, "step": 0}
-    # current cycle = sends after the last "not_now" (or all)
-    cut = max((i for i, e in enumerate(staged) if e["stage"] == "not_now"), default=-1)
-    sends = [e for e in staged[cut + 1:] if e["stage"] == "sent"]
+    # current cycle = sends after the last pause (or all)
+    cut = max((i for i, e in enumerate(staged) if pause and e["stage"] == pause), default=-1)
+    sends = [e for e in staged[cut + 1:] if e["stage"] == SENT]
     if not sends:
         return None
     done = len(sends)
@@ -68,6 +48,6 @@ def next_touch(journey: list, plan: Plan = PLAN):
     channel = step.channel
     # Never the same channel three times in a row (e.g. the first invitation was already a call).
     recent = [e.get("channel") for e in sends[-2:]]
-    if channel != "nurse" and len(recent) == 2 and recent[0] == recent[1] == channel:
+    if channel != plan.human and len(recent) == 2 and recent[0] == recent[1] == channel:
         channel = "sms" if channel != "sms" else "whatsapp"
     return {"due": start + timedelta(days=step.day), "channel": channel, "variant": variant, "step": done}

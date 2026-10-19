@@ -1,9 +1,15 @@
-"""Print the patient journey state machine (web/app/content/journey.json) as a Mermaid diagram for SPEC.md."""
+"""Print a case's journey state machine (cases/<id>/journey.json) as a Mermaid diagram for SPEC.md.
+
+  python scripts/fsm_diagram.py [case]        (default: env CASE or screening)
+"""
 import json
+import os
+import sys
 from collections import defaultdict
 from pathlib import Path
 
-J = json.loads((Path(__file__).resolve().parent.parent / "web/app/content/journey.json").read_text(encoding="utf-8"))
+CASE = sys.argv[1] if len(sys.argv) > 1 else os.getenv("CASE", "screening")
+J = json.loads((Path(__file__).resolve().parent.parent / "cases" / CASE / "journey.json").read_text(encoding="utf-8"))
 edges = defaultdict(list)
 for s, row in J["transitions"].items():
     for ev, t in row.items():

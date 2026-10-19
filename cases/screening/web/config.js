@@ -1,10 +1,7 @@
-// App configuration: everything that is a product decision, not code.
+// Screening configuration: everything that is a product decision, not code.
+// (Data file, storage key, default practice and title are in ../case.json.)
 
-export const DATA_URL = "data/patients.json";
-export const MESSAGES_URL = "content/messages.cs.json";
-export const DEFAULT_GP = "VPL-0142";
 export const NO_RESPONSE_DAYS = 14;
-export const STORAGE_KEY = "plice-vcas:v2";
 
 export const CHANNELS = ["sms", "voice", "whatsapp", "email", "portal", "letter"];
 
@@ -33,10 +30,5 @@ export const CRITERIA = "55–74 let, kuřák nebo bývalý kuřák, alespoň 20
 export const PRACTICES = {
   "VPL-0142": { phone: "" },
 };
-
-// Backend (FastAPI). When the page is served by the backend, the app switches to live mode automatically;
-// as a static page (artifact) it keeps working locally with simulated sending.
-export const API_BASE = "";
 // "Getting lost": days after which a patient needs a human (doctor's and mentor's input: paper results, slow pneumology).
 export const LOST = { replied: 7, booked: 42, bookedLate: 70, ldct: 21, pause: 90 };
-export const POLL_MS = 3000;

@@ -6,6 +6,11 @@ import secrets
 import threading
 from datetime import date
 
+from .case import CASE
+
+INITIAL = CASE.manifest["initial_stage"]
+SENT = CASE.manifest["sent_stage"]
+RESULT = CASE.manifest.get("result_stage")
 _lock = threading.Lock()
 
 
@@ -33,13 +38,13 @@ class Store:
             d = self.data["decisions"].setdefault(pid, {})
             e = {"stage": stage, "date": (day or date.today().isoformat()), **extra}
             d.setdefault("journey", []).append(e)
-            if stage == "new":  # doctor re-included the patient: back to the start, ready to invite
+            if stage == INITIAL:  # e.g. doctor re-included the patient: back to the start, ready to invite
                 d.pop("stage", None)
             elif stage:
                 d["stage"] = stage
-            if stage == "result":
+            if RESULT and stage == RESULT:
                 d["result"] = extra.get("result")
-            if stage == "sent":
+            if stage == SENT:
                 d["sent"] = {"channel": extra.get("channel"), "date": e["date"], "variant": extra.get("variant")}
                 d["skipped"] = False
             self._save()
