@@ -3,7 +3,7 @@
 import { T } from "../i18n.js";
 import { mineOf } from "core/case.js";
 import { esc, fmtDate } from "core/util.js";
-import { groups, itemLabel, ITEMS, needsOf } from "../domain.js";
+import { bySurname, groups, itemLabel, ITEMS, needsOf } from "../domain.js";
 import { section, tabs } from "../ui.js";
 
 const L = T.basket;
@@ -12,7 +12,7 @@ const match = { open: (n) => n.status !== "done", new: (n) => n.status === "new"
 
 /** Basket entries of the records, newest first: {…need, p}. */
 export const entries = (records) => records.flatMap((p) => needsOf(p).map((n) => ({ ...n, p })))
-  .sort((a, b) => b.date.localeCompare(a.date) || a.p.name.localeCompare(b.p.name, "cs"));
+  .sort((a, b) => b.date.localeCompare(a.date) || bySurname(a.p, b.p));
 
 function buttons(n) {
   const a = (status, label, kind = "") => `<button type="button" class="btn${kind ? ` btn--${kind}` : ""}" data-action="basket-status" data-id="${esc(n.p.id)}" data-need="${esc(n.id)}" data-status="${status}">${label}</button>`;

@@ -4,39 +4,45 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jsem v pořádku</title>
-<meta name="description" content="Jsem v pořádku pravidelně volá osamělým seniorům, sbírá jejich potřeby pro sociální službu a tíseň předá hned člověku. Rakathon 2026.">
-<meta name="theme-color" content="#6b3fa0" media="(prefers-color-scheme: light)">
+<meta name="description" content="Jsem v pořádku volá každý den osamělým seniorům: jak se mají, co potřebují. Potřeby jdou do košíku pro sociální pracovnici, tíseň hned člověku. Demo z Rakathonu 2026, vyzkoušíte na svém telefonu.">
+<meta property="og:title" content="Jsem v pořádku">
+<meta property="og:description" content="Každý den zavoláme osamělému seniorovi. Nálada, potřeby do košíku pro sociální službu, eskalace na blízkého, tíseň člověku. Demo: zavoláme na vaše číslo.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://seniori.jsemvcas.cz/">
+<meta property="og:locale" content="cs_CZ">
+<meta name="theme-color" content="#11615d" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#16181a" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 26 26' aria-hidden='true'%3E%3Crect width='26' height='26' rx='6' fill='%236b3fa0'/%3E%3Cpath d='M13 19.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='26' height='26' rx='6' fill='%2311615d'/%3E%3Cpath d='M13 19.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root {
-  --paper: #f4f4f2; --surface: #ffffff; --ink: #1e2124; --ink-2: #565b60; --hair: #d6d7d9;
-  --accent: #6b3fa0; --accent-soft: #ece4f6; --on-accent: #ffffff;
-  --alert: #b3261e; --alert-soft: #f8dedb; --warn: #9a5800;
+  --paper: #f4f4f2; --surface: #ffffff; --ink: #1e2124; --ink-2: #565b60; --hair: #d6d7d9; --field: #e9e9e6;
+  --accent: #11615d; --accent-soft: #dcebe9; --on-accent: #ffffff;
+  --alert: #b3261e; --alert-soft: #f8dedb; --warn: #9a5800; --warn-soft: #f6e9d6;
   --display: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --t-s: 0.8125rem; --t-m: 1.0625rem; --t-l: 1.375rem; --t-xl: clamp(1.9rem, 4.2vw, 3rem);
+  --t-s: 0.8125rem; --t-m: 1.0625rem; --t-l: 1.375rem; --t-xl: clamp(1.85rem, 4.2vw, 3rem);
   --max: 1200px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
-    --accent: #c3a6f2; --accent-soft: #2a2140; --on-accent: #111315;
-    --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+    --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a; --field: #24272a;
+    --accent: #4fb3ac; --accent-soft: #17302e; --on-accent: #0b1a19;
+    --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; --warn-soft: #3a2a12; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
-  --accent: #c3a6f2; --accent-soft: #2a2140; --on-accent: #111315;
-  --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+  --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a; --field: #24272a;
+  --accent: #4fb3ac; --accent-soft: #17302e; --on-accent: #0b1a19;
+  --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; --warn-soft: #3a2a12; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-m)/1.55 var(--display); -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+img, svg { max-width: 100%; }
 .wrap { max-width: var(--max); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
 p { margin: 0; }
@@ -47,6 +53,8 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .label { font-size: var(--t-s); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--surface); padding: 8px 12px; z-index: 5; }
 .skip:focus { left: 16px; }
+.tag { display: inline-block; font: 600 var(--t-s)/1.3 var(--display); padding: 1px 8px; border-radius: 999px; border: 1.5px solid currentColor; color: var(--warn); white-space: nowrap; vertical-align: 2px; }
+.tag.demo { color: var(--accent); }
 
 /* family strip */
 .family { background: var(--ink); color: var(--paper); font-size: var(--t-s); }
@@ -78,14 +86,29 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .cta { display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* hero */
-.hero .wrap { padding-block: 48px 52px; display: grid; gap: 28px; }
-.hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; max-width: 20ch; }
-.hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 50ch; color: var(--ink-2); }
-.hero .note { font-size: var(--t-s); color: var(--ink-2); max-width: 62ch; }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; padding: 0; margin: 8px 0 0; }
-.facts li { list-style: none; display: grid; gap: 4px; border-top: 1px solid var(--hair); padding-top: 12px; align-content: start; }
+.hero .wrap { padding-block: 44px 52px; display: grid; gap: 28px 48px; grid-template-columns: minmax(0, 1fr); }
+.hero .copy { display: grid; gap: 22px; align-content: start; min-width: 0; }
+.hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; max-width: 22ch; }
+.hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 46ch; color: var(--ink-2); }
+.hero .note { font-size: var(--t-s); color: var(--ink-2); max-width: 56ch; }
+.hero .note b { color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; padding: 0; margin: 4px 0 0; }
+.facts li { list-style: none; display: grid; gap: 4px; border-top: 1px solid var(--hair); padding-top: 12px; align-content: start; min-width: 0; }
 .facts b { font: 700 var(--t-l)/1.2 var(--display); font-variant-numeric: tabular-nums; color: var(--accent); }
-.src { font-size: var(--t-s); color: var(--ink-2); max-width: 70ch; }
+.facts span { font-size: 0.97rem; color: var(--ink-2); }
+@media (min-width: 900px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; }
+  .hero .copy { grid-column: 1; }
+  .hero .shot { grid-column: 2; grid-row: 1 / span 2; }
+  .hero .facts { grid-column: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) { .hero .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-column: 1 / -1; } .hero .shot { grid-row: 1; } }
+
+/* screenshot frame */
+.shot { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.shot .frame { background: var(--surface); border: 1px solid var(--hair); border-top: 4px solid var(--accent); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); overflow: hidden; }
+.shot img { display: block; width: 100%; height: auto; }
+.shot figcaption { font-size: var(--t-s); color: var(--ink-2); }
 
 /* sections */
 .section { border-top: 2px solid var(--ink); }
@@ -103,54 +126,18 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .three h3 { font-size: var(--t-l); font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
 .three.num h3::before { counter-increment: s; content: counter(s); font: 500 var(--t-s)/1 var(--mono); color: var(--accent); }
 .three ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.three .big { font: 700 2rem/1.1 var(--display); color: var(--accent); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 
-/* roles */
-.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.roles > div { background: var(--surface); border: 1px solid var(--hair); border-top: 4px solid var(--ink); padding: 16px; display: grid; gap: 8px; align-content: start; }
-.roles > div.ai { border-top-color: var(--ink-2); }
-.roles > div.rules { border-top-color: var(--accent); }
-.roles > div.human { border-top-color: var(--warn); }
-.roles h3 { font-size: var(--t-m); font-weight: 700; display: flex; gap: 8px; align-items: center; }
-.roles h3 svg { width: 20px; height: 20px; flex: none; }
-.roles ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.97rem; }
-
-/* diagram */
-.flow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
-.flow figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
-.flow svg.dg { width: 100%; height: auto; max-width: 560px; display: block; }
-@media (max-width: 900px) { .flow { grid-template-columns: 1fr; } }
-.dg text { font-family: var(--display); fill: var(--ink); }
-.dg .lb { font-size: 14.5px; font-weight: 700; }
-.dg .sb { font-size: 12px; fill: var(--ink-2); }
-.dg .ed { font-size: 11.5px; fill: var(--ink-2); font-style: italic; }
-.dg rect { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
-.dg rect.key { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
-.dg rect.human { fill: var(--surface); stroke: var(--warn); stroke-width: 2; stroke-dasharray: 5 3; }
-.dg rect.alert { fill: var(--alert-soft); stroke: var(--alert); stroke-width: 2; }
-.dg rect.final { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.2; }
-.dg .ln { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
-.dg .ln.main { stroke: var(--ink); stroke-width: 2; }
-.dg .ln.loop { stroke: var(--accent); stroke-dasharray: 4 4; stroke-width: 1.6; }
-.dg .ah { fill: var(--ink-2); }
-.dg .ah.main { fill: var(--ink); }
-.dg .ah.loop { fill: var(--accent); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--t-s); color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
-.legend li { display: inline-flex; gap: 6px; align-items: center; }
-.legend i { display: inline-block; width: 16px; height: 11px; border: 2px solid var(--ink); background: var(--surface); }
-.legend i.key { border-color: var(--accent); background: var(--accent-soft); }
-.legend i.human { border-color: var(--warn); border-style: dashed; }
-.legend i.alert { border-color: var(--alert); background: var(--alert-soft); }
-.legend i.final { border-color: var(--ink-2); background: var(--paper); border-width: 1px; }
-.legend i.loop { border: 0; border-top: 2px dashed var(--accent); height: 0; background: none; }
-.states { margin: 0; display: grid; gap: 0; }
-.states div { display: grid; gap: 2px; padding: 10px 0 10px 14px; border-left: 3px solid var(--hair); }
-.states div + div { margin-top: 6px; }
-.states div.key { border-left-color: var(--accent); }
-.states div.human { border-left-color: var(--warn); }
-.states div.alert { border-left-color: var(--alert); }
-.states dt { font-weight: 700; }
-.states dd { margin: 0; color: var(--ink-2); font-size: 0.97rem; }
-.code { display: inline-block; font: 500 var(--t-s)/1.3 var(--mono); padding: 1px 6px; background: var(--accent-soft); color: var(--accent); }
+/* steps of the service */
+.how { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: st; }
+.how > li { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 14px; padding: 16px 0; border-top: 1px solid var(--hair); }
+.how > li::before { counter-increment: st; content: counter(st); font: 700 1.2rem/1 var(--display); color: var(--on-accent); background: var(--accent); width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; }
+.how > li.alert::before { background: var(--alert); color: #fff; }
+.how > li > div { display: grid; gap: 6px; min-width: 0; }
+.how > li > div > b { font-size: var(--t-m); }
+.how > li > div > span { color: var(--ink-2); }
+.quote { display: block; border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; color: var(--ink); font-style: italic; max-width: 60ch; }
+.quote small { display: block; font-style: normal; color: var(--ink-2); font-size: var(--t-s); margin-top: 2px; }
 
 /* ladder (contact plan) */
 .ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); }
@@ -162,7 +149,7 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .ladder b { font-weight: 700; display: flex; gap: 6px; align-items: center; }
 .ladder b svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
 .ladder small { font-size: var(--t-s); color: var(--ink-2); line-height: 1.4; }
-@media (max-width: 760px) {
+@media (max-width: 1000px) {
   .ladder { grid-template-columns: 1fr; }
   .ladder li { border-top: 0; border-left: 3px solid var(--ink); padding: 0 0 18px 20px; }
   .ladder li::before { top: 2px; left: -8px; }
@@ -170,59 +157,51 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px s
   .ladder li:last-child { padding-bottom: 0; }
 }
 
-/* channels */
-.channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 18px; margin: 0; padding: 0; }
-.channels li { list-style: none; display: grid; gap: 4px; padding: 14px 0; border-top: 1px solid var(--hair); align-content: start; }
-.channels b { font-size: var(--t-m); font-family: var(--display); display: flex; gap: 8px; align-items: center; }
-.channels b svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
-.channels span { font-size: 0.97rem; color: var(--ink-2); }
-
-/* rows table that collapses on phones */
-.rtable { display: grid; border-top: 2px solid var(--ink); }
-.rtable .r { display: grid; grid-template-columns: 4.6rem minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.4fr) 7.5rem; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hair); align-items: baseline; }
-.rtable .r.head { font-size: var(--t-s); color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.rtable .rule { font: 500 var(--t-s)/1.3 var(--mono); color: var(--accent); }
-.rtable .seg { font-weight: 700; }
-.rtable .when { color: var(--ink-2); font-size: 0.97rem; }
-.pill { display: inline-block; font-size: var(--t-s); font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1.5px solid currentColor; white-space: nowrap; }
-.pill.auto { color: var(--accent); }
-.pill.person { color: var(--warn); }
-@media (max-width: 760px) {
-  .rtable .r { grid-template-columns: 2.6rem minmax(0, 1fr); gap: 4px 10px; }
-  .rtable .r.head { display: none; }
-  .rtable .r > :nth-child(n+3) { grid-column: 2; }
-}
-
-/* checks */
-.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 28px; }
-.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
-.checks svg { width: 22px; height: 22px; color: var(--accent); margin-top: 1px; }
-.checks div > b { display: block; }
-.checks span { color: var(--ink-2); font-size: 0.97rem; }
-
-/* demo steps */
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: st; }
-.steps li { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 14px; padding: 14px 0; border-top: 1px solid var(--hair); }
-.steps li::before { counter-increment: st; content: counter(st); font: 700 1.25rem/1 var(--display); color: var(--on-accent); background: var(--accent); width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; }
-.steps div > b { display: block; font-size: var(--t-m); }
-.steps span { color: var(--ink-2); }
+/* roles */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.roles > div { background: var(--surface); border: 1px solid var(--hair); border-top: 4px solid var(--ink); padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.roles > div.ai { border-top-color: var(--ink-2); }
+.roles > div.rules { border-top-color: var(--accent); }
+.roles > div.human { border-top-color: var(--warn); }
+.roles h3 { font-size: var(--t-m); font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.roles h3 svg { width: 20px; height: 20px; flex: none; }
+.roles ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.97rem; }
 .callout { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 16px 18px; display: grid; gap: 10px; max-width: 72ch; }
 .callout.alert { background: var(--alert-soft); border-left-color: var(--alert); }
+.callout.warn { background: var(--warn-soft); border-left-color: var(--warn); }
 
-/* stack */
+/* wow moments */
+.wow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; counter-reset: w; }
+.wow article { background: var(--surface); border: 1px solid var(--hair); padding: 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.wow h3 { font-size: var(--t-m); font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.wow h3::before { counter-increment: w; content: counter(w); font: 500 var(--t-s)/1 var(--mono); color: var(--accent); }
+.wow p { color: var(--ink-2); font-size: 0.97rem; }
+.bubble { background: var(--field); border-radius: 12px 12px 12px 3px; padding: 10px 12px; font-size: 0.95rem; max-width: 100%; }
+.bubble.me { background: var(--accent-soft); border-radius: 12px 12px 3px 12px; color: var(--ink); }
+.bubble small { display: block; font-size: var(--t-s); color: var(--ink-2); margin-bottom: 2px; }
+
+/* price */
+.price { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px 32px; }
+.price div { border-top: 1px solid var(--hair); padding-top: 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.price b { font: 700 2.2rem/1.1 var(--display); letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.price b.hum { color: var(--ink); }
+.price span { color: var(--ink-2); font-size: 0.97rem; }
+
+/* stack (legal, origin) */
 .stack { margin: 0; display: grid; }
-.stack div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--hair); }
+.stack div { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--hair); }
 .stack dt { font-weight: 700; }
 .stack dd { margin: 0; }
 .stack dd small { display: block; color: var(--ink-2); font-size: var(--t-s); margin-top: 2px; }
-@media (max-width: 520px) { .stack div { grid-template-columns: 1fr; gap: 2px; } }
+@media (max-width: 560px) { .stack div { grid-template-columns: 1fr; gap: 2px; } }
 
-/* mood / basket mini illustrations */
-.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-.mini figure { margin: 0; background: var(--surface); border: 1px solid var(--hair); padding: 16px; display: grid; gap: 10px; min-width: 0; }
-.mini figcaption { font-size: var(--t-s); color: var(--ink-2); }
-.mini svg { width: 100%; height: auto; display: block; }
-.mini h3 { font-size: var(--t-m); font-weight: 700; }
+/* hall / QR */
+.hall { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; }
+@media (min-width: 640px) { .hall { grid-template-columns: 240px minmax(0, 1fr); } }
+.qr { margin: 0; background: #fff; border: 1px solid var(--hair); padding: 14px; display: grid; gap: 8px; justify-items: center; width: 240px; max-width: 100%; }
+.qr svg { width: 100%; height: auto; display: block; color: #1e2124; }
+.qr figcaption { font-size: var(--t-s); color: #565b60; text-align: center; }
+.url { font: 500 0.95rem/1.4 var(--mono); word-break: break-all; }
 
 /* footer */
 footer { border-top: 2px solid var(--ink); }
@@ -241,113 +220,164 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
 <div class="family" role="navigation" aria-label="Tři ukázky jednoho systému"><div class="wrap"><span>Rakathon 2026, jedno jádro, tři ukázky:</span> <a href="https://jsemvcas.cz">Jsem včas</a> <a href="https://seniori.jsemvcas.cz" aria-current="page">Jsem v pořádku</a> <a href="https://vymahani.jsemvcas.cz">AI vymáhání</a></div></div>
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#main"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--accent)"/><path d="M13 19.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8z" fill="var(--on-accent)"/></svg>Jsem v pořádku</a>
-    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#reseni" class="nav-x">Řešení</a><a href="#jak">Jak to funguje</a><a href="#ukazka">Ukázka</a><a href="#technologie" class="nav-x">Technologie</a><a class="btn primary small" href="/login?next=/app/">Vyzkoušet ukázku</a></nav>
+    <a class="brand" href="#main"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--accent)"/><path d="M13 19.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8z" fill="var(--on-accent)"/></svg>Jsem v pořádku <span class="tag demo">demo</span></a>
+    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#jak">Jak to funguje</a><a href="#prokoho" class="nav-x">Pro koho</a><a href="#demo">Demo</a><a href="#cena" class="nav-x">Cena</a><a href="#pravo" class="nav-x">Právní rámec</a><a class="btn primary small" href="/login?next=/app/&amp;code=demo">Vyzkoušet demo</a></nav>
   </div>
 </header>
 <main id="main">
 <section class="hero" aria-labelledby="h-hero">
   <div class="wrap">
-    <p class="label">Rakathon 2026 · pravidelný kontakt s osamělými seniory</p>
-    <h1 id="h-hero">Pravidelný hovor, aby nikdo nezůstal sám bez povšimnutí.</h1>
-    <p class="lead">Jsem v pořádku pravidelně volá osamělým seniorům, zeptá se, jak se mají a co potřebují. Potřeby sbírá do košíku pro sociální službu, zdravotní potíže a tíseň předá hned člověku.</p>
-    <div class="cta">
-      <a class="btn primary" href="/login?next=/app/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Vyzkoušet ukázku</a>
-      <a class="btn ghost" href="#jak">Jak to funguje</a>
+    <div class="copy">
+      <p class="label">Rakathon 2026 · demo služby pro osamělé seniory</p>
+      <h1 id="h-hero">Paní Novákové je 84 a žije v Brně sama. Když jí dojdou léky, tři dny to nikdo neví.</h1>
+      <p class="lead">Jsem v pořádku jí zavolá každý den. Zeptá se, jak se má, zapíše náladu a co potřebuje, a pošle to sociální pracovnici. Když nezvedne, ještě ten den to ví dcera.</p>
+      <div class="cta">
+        <a class="btn primary" href="/login?next=/app/&amp;code=demo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Vyzkoušet demo</a>
+        <a class="btn ghost" href="#jak">Jak to funguje</a>
+      </div>
+      <p class="note"><b>Zavoláme na vaše číslo – vy budete paní Nováková.</b> Přístupový kód <b class="mono">demo</b> je předvyplněný, zadáte jen svůj kontakt. Hovory a zprávy jdou výhradně na něj. Paní Nováková je modelový příklad, senioři v aplikaci jsou smyšlení.</p>
     </div>
-    <p class="note">Ukázka běží na vašem telefonu. Zadáte přístupový kód <b class="mono">demo</b>, svůj telefon a e-mail. Systém vám pak píše a volá, jako byste byli senior, kterému služba volá. Zprávy jdou jen na kontakty, které jste zadali.</p>
-    <ul class="facts"><li><b>každý den</b><span>nebo ve vybrané dny, v čase, který si senior zvolí</span></li><li><b>1 až 5</b><span>nálada z každé odpovědi, průběh na kartě seniora</span></li><li><b>3 pokusy</b><span>pak SMS blízkému a návštěva sociálního pracovníka</span></li><li><b>155</b><span>v tísni asistent hned odkáže na záchrannou službu a předá to člověku</span></li></ul>
-    
+    <figure class="shot">
+      <div class="frame">
+        <img src="/landing/img/card.jpg" width="1360" height="1560" alt="Karta seniorky v aplikaci: Anna Králová, 87, potřebuje léky z lékárny a nákup, tlačítko Košík, poznámka večer po 19. hodině nevolat, příbuzný syn s tlačítkem Zavolat příbuznému, otevřené potřeby a poslední tři hovory s náladou a přepisem.">
+      </div>
+      <figcaption>Karta seniorky v aplikaci pro sociální pracovnici: co potřebuje, příbuzný, poslední hovory s náladou a přepisem. Snímek z dema, smyšlená data.</figcaption>
+    </figure>
+    <ul class="facts">
+      <li><b>1 hovor denně</b><span>v čase, který si senior zvolí, hlasem nebo klávesou 1 a 2</span></li>
+      <li><b>nálada 1 až 5</b><span>z každé odpovědi, průběh za 30 dní na kartě</span></li>
+      <li><b>tentýž den</b><span>SMS a hovor blízkému, když senior dvakrát nezvedne</span></li>
+      <li><b>155 volá člověk</b><span>tíseň jde hned pracovníkovi, asistent neradí</span></li>
+    </ul>
   </div>
 </section>
+
 <section class="section" id="problem" aria-labelledby="h-problem">
   <div class="wrap">
-    <div class="aside"><p class="label">Problém</p><h2 id="h-problem">Osamělost, kterou nikdo nevidí</h2></div>
+    <div class="aside"><p class="label">Problém</p><h2 id="h-problem">Tři dny, o kterých nikdo neví</h2></div>
     <div class="body">
-
-      <p>Přibližně pětina obyvatel Česka je starší 65 let a jejich podíl roste. Mnoho z nich žije samo, děti bydlí daleko a týdny mohou uplynout bez rozhovoru s kýmkoli. Osamělost zhoršuje zdraví i náladu a drobná potíž, třeba došlé léky nebo studený byt, se snadno změní ve vážnou.</p>
+      <p>Podle ČSÚ je přibližně pětina obyvatel Česka starší 65 let a podíl roste. Velká část z nich, hlavně žen nad 80 let, žije sama. Pečovatelka přijde dvakrát týdně, děti zavolají o víkendu. Mezi tím jsou dny, kdy nikdo neví, že došly léky, že je doma zima nebo že paní upadla.</p>
       <div class="three">
-        <article><h3>Málo lidí na pravidelný kontakt</h3><p>Sociální služby a pečovatelky mají plné kapacity. Obvolat desítky klientů každý den, poslechnout si, jak se mají, a nic nezapomenout zapsat, se ručně udělat nedá.</p></article>
-        <article><h3>Tísňové tlačítko čeká na stisk</h3><p>Tísňová péče pomůže, když senior sám zavolá. Kdo upadne bez tlačítka, je smutný nebo mu došly léky, se často neozve sám.</p></article>
-        <article><h3>Potřeby se ztrácejí</h3><p>Co senior zmíní v hovoru, často zůstane v hlavě toho, kdo volal. Sociální pracovník nemá přehled, co je potřeba objednat a co už je vyřízené.</p></article>
+        <article><span class="big">≈ 1/5</span><h3>obyvatel je 65+</h3><p>Podíl seniorů v populaci podle ČSÚ. Kolik z nich žije osaměle, přesně nikdo neměří; část bez pravidelného kontaktu je <span class="tag">odhad</span>.</p></article>
+        <article><span class="big">3 dny</span><h3>bez povšimnutí</h3><p>Typická mezera mezi návštěvou pečovatelky a telefonem rodiny u seniora, který žije sám. Modelový příklad paní Novákové, <span class="tag">odhad</span>.</p></article>
+        <article><span class="big">0 lidí</span><h3>na denní obvolání</h3><p>Obvolat 60 klientů denně, poslechnout si, jak se mají, a všechno zapsat ručně nejde. Pečovatelské služby mají plné kapacity, tísňové tlačítko čeká, až ho někdo stiskne.</p></article>
       </div>
     </div>
   </div>
 </section>
-<section class="section" id="reseni" aria-labelledby="h-reseni">
-  <div class="wrap">
-    <div class="aside"><p class="label">Řešení</p><h2 id="h-reseni">Zavolá, porozumí, předá</h2></div>
-    <div class="body">
 
-      <p>Jsem v pořádku seniorovi pravidelně zavolá v čase, který si zvolil, a zeptá se, jak se má a jestli něco nepotřebuje. Z odpovědi zapíše náladu a potřeby. Kdo neodpovídá, toho hledá dál. Zdravotní potíž a tíseň předá hned člověku.</p>
-      <div class="three num">
-        <article><h3>Zavolá</h3><p>Hlasový asistent nebo SMS podle domluveného rozvrhu, denně nebo ve vybrané dny. Krátký vlídný rozhovor, žádné zdravotní rady.</p></article>
-        <article><h3>Porozumí</h3><p>Pozná, zda je senior v pořádku, potřebuje pomoc, je smutný, má zdravotní potíž, nebo je v tísni. Zapíše náladu na škále 1 až 5 a konkrétní potřeby.</p></article>
-        <article><h3>Předá</h3><p>Potřeby jdou do košíku pro sociální službu, smutek a zdravotní potíže k pracovníkovi, tíseň okamžitě. Senior slyší, co se stane dál.</p></article>
-      </div>
-      <div class="three">
-        <article><h3>Operátor</h3><p>Obrazovka Dnes: komu se volá, kdo neodpověděl, kdo potřebuje pomoc a kde je upozornění. Vyřizuje zpětná volání a nejasné odpovědi.</p></article>
-        <article><h3>Sociální pracovník</h3><p>Karta seniora s průběhem nálady a historií hovorů, košík potřeb jeho klientů, návštěvy u těch, kdo se neozvali.</p></article>
-        <article><h3>Vedení služby</h3><p>Přehled: pokrytí za týden, podíl v pořádku, průměrná nálada, otevřené a naléhavé potřeby podle obvodu.</p></article>
-      </div>
-    </div>
-  </div>
-</section>
 <section class="section" id="jak" aria-labelledby="h-jak">
   <div class="wrap">
-    <div class="aside"><p class="label">Jak to funguje</p><h2 id="h-jak">Cesta seniora krok za krokem</h2></div>
+    <div class="aside"><p class="label">Jak to funguje</p><h2 id="h-jak">Každý den hovor, potřeby do košíku, tíseň člověku</h2></div>
     <div class="body">
-
-      <div class="flow">
-        <figure><svg class="dg" viewBox="0 0 400 604" role="img" aria-labelledby="dg-n-t dg-n-d"><title id="dg-n-t">Cesta seniora v programu Jsem v pořádku</title><desc id="dg-n-d">Zapsán, hovor podle rozvrhu, odpověď, v pořádku a další hovor podle rozvrhu. Bez odpovědi: znovu za dvě hodiny, SMS blízkému, další hovor, po třech neúspěšných pokusech návštěva pracovníka. Odpověď může vést do košíku potřeb, k člověku při smutku, k okamžité pomoci při tísni, nebo k pozdějšímu hovoru či ukončení.</desc><rect class="" x="26" y="12.0" width="166" height="60" rx="6"/><text class="lb" x="38" y="33.0">Zapsán</text><text class="sb" x="38" y="50.0">sociální služba domluví</text><text class="sb" x="38" y="65.0">rozvrh a čas hovoru</text><path class="ln main" d="M109.0,72.0 V137.5"/><polygon class="ah main" points="104.0,131.5 114.0,131.5 109.0,139.5"/><text class="ed" x="117.0" y="109.8">podle rozvrhu</text><rect class="" x="26" y="139.5" width="166" height="60" rx="6"/><text class="lb" x="38" y="160.5">Hovor podle rozvrhu</text><text class="sb" x="38" y="177.5">hlasový asistent</text><text class="sb" x="38" y="192.5">nebo SMS</text><path class="ln" d="M192,169.5 H202 V142.0 H212"/><polygon class="ah " points="206,137.0 206,147.0 214,142.0"/><rect class="" x="214" y="112.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="133.0">Bez odpovědi</text><text class="sb" x="226" y="150.0">znovu za 2 h, pak SMS</text><text class="sb" x="226" y="165.0">blízkému a další hovor</text><path class="ln" d="M192,169.5 H202 V204.5 H212"/><polygon class="ah " points="206,199.5 206,209.5 214,204.5"/><rect class="human" x="214" y="182.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="203.0">Návštěva pracovníka</text><text class="sb" x="226" y="220.0">3× bez odpovědi</text><path class="ln main" d="M109.0,199.5 V355.0"/><polygon class="ah main" points="104.0,349.0 114.0,349.0 109.0,357.0"/><text class="ed" x="117.0" y="282.2">senior odpoví</text><rect class="" x="26" y="357.0" width="166" height="60" rx="6"/><text class="lb" x="38" y="378.0">Odpověď</text><text class="sb" x="38" y="395.0">co řekl, nálada 1 až 5,</text><text class="sb" x="38" y="410.0">potřeby, zdraví</text><path class="ln" d="M192,387.0 H202 V297.0 H212"/><polygon class="ah " points="206,292.0 206,302.0 214,297.0"/><rect class="" x="214" y="267.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="288.0">Potřebuje pomoc</text><text class="sb" x="226" y="305.0">potřeby do košíku</text><text class="sb" x="226" y="320.0">pro sociální službu</text><path class="ln" d="M192,387.0 H202 V359.5 H212"/><polygon class="ah " points="206,354.5 206,364.5 214,359.5"/><rect class="human" x="214" y="337.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="358.0">Smutno, samota</text><text class="sb" x="226" y="375.0">ozve se člověk</text><path class="ln" d="M192,387.0 H202 V422.0 H212"/><polygon class="ah " points="206,417.0 206,427.0 214,422.0"/><rect class="alert" x="214" y="392.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="413.0">Zdraví nebo tíseň</text><text class="sb" x="226" y="430.0">tíseň: hned volat 155</text><text class="sb" x="226" y="445.0">a hned člověk</text><path class="ln" d="M192,387.0 H202 V484.5 H212"/><polygon class="ah " points="206,479.5 206,489.5 214,484.5"/><rect class="final" x="214" y="462.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="483.0">Zavolat později</text><text class="sb" x="226" y="500.0">nebo už nechce hovory</text><path class="ln main" d="M109.0,417.0 V545.0"/><polygon class="ah main" points="104.0,539 114.0,539 109.0,547"/><text class="ed" x="117.0" y="486.0">vše dobré</text><rect class="key" x="26" y="547.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="568.0">V pořádku</text><text class="sb" x="38" y="585.0">nálada se zapíše</text><path class="ln loop" d="M26,569.5 H10 V169.5 H24"/><polygon class="ah loop" points="18,164.5 18,174.5 26,169.5"/></svg><ul class="legend" aria-hidden="true">
-  <li><i></i>stav</li><li><i class="key"></i>cíl cesty</li><li><i class="human"></i>převezme člověk</li><li><i class="alert"></i>tíseň</li><li><i class="final"></i>konec</li><li><i class="loop"></i>nový cyklus</li>
-</ul></figure>
-        <dl class="states"><div class=""><dt>Pravidelný hovor</dt><dd>Asistent se představí jako automatický asistent služby, zeptá se, jak se senior má, a nabídne odpověď hlasem nebo klávesou: 1 v pořádku, 2 něco potřebuji.</dd></div><div class="key"><dt>V pořádku</dt><dd>Nálada se zapíše a cyklus se uzavře. Příští hovor podle rozvrhu začne zase od prvního pokusu.</dd></div><div class=""><dt>Potřebuje pomoc</dt><dd>Nákup, léky z lékárny, obědy, doprava, úklid, topení, prádlo, drobná oprava. Každá potřeba je samostatná položka v košíku.</dd></div><div class="human"><dt>Smutno nebo zdravotní potíž</dt><dd>Asistent poděkuje a řekne, že se ozve někdo ze služby. Záznam je v upozorněních, dokud ho člověk nevyřeší.</dd></div><div class="alert"><dt>Tíseň</dt><dd>Pád bez možnosti vstát, potíže s dechem, bolest na hrudi, myšlenky na smrt. Asistent řekne: zavěste a volejte hned 155, a předá to pracovníkovi.</dd></div><div class=""><dt>Zavolat později, nechce hovory</dt><dd>Asistent se domluví na jindy. Kdo hovory nechce, tomu služba přestane volat, znovu ho může zapsat jen člověk.</dd></div></dl>
-      </div>
-      <h3 class="sub">Když senior nezvedá telefon</h3>
-      <ol class="ladder" style="--n:5"><li><span class="day">den 0</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>v čase z rozvrhu seniora</small></li><li><span class="day">za 2 hodiny</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor znovu</b><small>druhý pokus téhož dne</small></li><li><span class="day">den 1</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS blízkému</b><small>dvakrát jsme se nedovolali, podíváte se prosím?</small></li><li><span class="day">den 1</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>třetí pokus</small></li><li class="person"><span class="day">den 2</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Návštěva</b><small>sociální pracovník jde na místo</small></li></ol>
-      <p class="prose muted">Jakákoli odpověď seniora nebo blízkého žebříček zastaví. Upozornění, které převzal člověk, systém sám nevolá, dokud ho člověk neuzavře.</p>
-      <h3 class="sub">Kanály</h3>
-      <ul class="channels"><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor s hlasovým asistentem</b><span>Hlavní kanál pro seniory. Český hlas, krátké věty, odpověď hlasem i klávesou.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS</b><span>Pro ty, kdo raději píšou, a pro blízké, když se senior neozývá. Stačí odpovědět ANO.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="m4 7 8 6 8-6"/></svg>E-mail</b><span>Pro blízké a pro seniory, kteří e-mail používají.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.7 16A8 8 0 1 1 8.3 18.5z"/><path d="M9 9.2c.3 2.3 2.2 4.4 4.8 5l1.2-1.3-1.8-1-1 .7a4 4 0 0 1-1.6-1.6l.7-1-1-1.8z"/></svg>WhatsApp</b><span>Pro rodinu, která je zvyklá psát přes WhatsApp.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Osobní stránka</b><span>Velká tlačítka: jsem v pořádku, potřebuji pomoc, zavolejte mi.</span></li></ul>
+      <ol class="how">
+        <li><div><b>Každý den zavoláme</b><span>Asistentka zavolá v okně, které si senior zvolil, nikdy před 9:00 ani po 19:00. Představí se jako automatická asistentka pečovatelské služby, ověří, s kým mluví, a zeptá se, jak se dnes cítí a zda s něčím nepotřebuje pomoct. Odpověď hlasem, nebo klávesou: 1 v pořádku, 2 něco potřebuji.</span><p class="quote">„Dobrý den, tady pečovatelská služba, pravidelný hovor, který Vám domluvila Vaše sociální pracovnice. Jsem automatická asistentka. Můžu se zeptat, s kým mluvím?“<small>úvodní věta hovoru, doslova</small></p></div></li>
+        <li><div><b>Zapíšeme náladu a potřeby</b><span>Z odpovědi vznikne nálada 1 až 5 a konkrétní potřeby: nákup, léky z lékárny, obědy, doprava k lékaři, úklid, topení, prádlo, drobná oprava. Na konci asistentka zopakuje, co pochopila, a zeptá se, zda je to tak.</span><p class="quote">„Rozuměla jsem, že potřebujete nákup a léky z lékárny. Je to tak?“<small>shrnutí před koncem hovoru</small></p></div></li>
+        <li><div><b>Potřeby přistanou v košíku pro sociální pracovnici</b><span>Každá potřeba je položka se stavem nové, objednáno, vyřízeno, seskupená podle pracovníka a obvodu, s exportem do CSV. Smutná nálada a zdravotní potíž jsou upozornění, které vyřeší člověk.</span></div></li>
+        <li><div><b>Když nezvedá, hledáme dál</b><span>Žebříček kontaktů běží sám, každý krok je vidět na kartě. Jakákoli odpověď seniora nebo blízkého ho zastaví.</span>
+          <ol class="ladder" style="--n:5" aria-label="Žebříček kontaktů, když senior nezvedá">
+            <li><span class="day">ráno</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>v okně z rozvrhu seniora</small></li>
+            <li><span class="day">asi za hodinu</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor znovu</b><small>druhý pokus téhož dne</small></li>
+            <li><span class="day">tentýž den</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS a hovor blízkému</b><small>„Dnes jsme se dvakrát nedovolali. Můžete se prosím podívat?“</small></li>
+            <li><span class="day">tentýž den</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>třetí pokus u seniora</small></li>
+            <li class="person"><span class="day">druhý den ráno</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>Návštěva</b><small>sociální pracovník jde na místo</small></li>
+          </ol>
+          <span class="muted" style="font-size:var(--t-s)">Pokus, který by vyšel po 19:00, jde až ráno v 9:00. V demu se čas neodvíjí v hodinách, ale tlačítkem Další den; každý krok žebříčku pak odejde na další klik.</span></div></li>
+        <li class="alert"><div><b>Tíseň: asistentka drží linku, pracovnice volá 155</b><span>Slova jako „nemůžu vstát“, „bolest na hrudi“ nebo „nemůžu dýchat“ zachytí sada pravidel ještě dřív, než odpověď uvidí jazykový model. Asistentka řekne jen schválenou větu, drží linku a hned předá hovor pracovnici, která volá záchrannou službu. Žádné shrnutí, žádné čekání na plán.</span><p class="quote">„Zůstaňte prosím na telefonu, nezavěšujte. Předávám Vás pracovnici, která Vám zavolá záchrannou službu.“<small>jediná věta, kterou asistentka v tísni řekne</small></p>
+          <div class="callout alert"><p><b>Asistent nikdy neradí zdravotně</b> a nenahrazuje záchrannou službu ani tísňovou péči. Je to pravidelný kontakt navíc. V každém hovoru i zprávě zazní, že v nouzi se volá 155.</p></div></div></li>
+      </ol>
       <h3 class="sub">Kdo co dělá</h3>
       <div class="roles">
-  <div class="ai"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 12h4"/></svg>Asistent rozumí</h3><ul><li>rozpozná odpověď: v pořádku, potřeba, smutek, zdravotní potíž, tíseň, zavolat později, nechci hovory</li><li>odhadne náladu 1 až 5 a vypíše konkrétní potřeby</li><li>nikdy neradí zdravotně; čemu nerozumí, předá operátorovi</li></ul></div>
-  <div class="rules"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Pravidla řídí</h3><ul><li>tíseň má přednost před vším, pozná ji sada pravidel ještě před modelem</li><li>kdy a komu se volá, kdy jde SMS blízkému a kdy návštěva</li><li>co je upozornění a co jen položka v košíku</li><li>asistent říká jen schválené věty</li></ul></div>
-  <div class="human"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Člověk rozhoduje</h3><ul><li>operátor volá zpět a vyřizuje upozornění</li><li>sociální pracovník objednává pomoc a chodí na návštěvy</li><li>v tísni vždy záchranná služba 155</li></ul></div>
-</div>
-    </div>
-  </div>
-</section>
-<section class="section" id="detail" aria-labelledby="h-detail">
-  <div class="wrap">
-    <div class="aside"><p class="label">Co z hovorů vzniká</p><h2 id="h-detail">Nálada, košík potřeb a eskalace</h2></div>
-    <div class="body">
-
-      <div class="mini">
-        <figure><h3>Průběh nálady</h3><svg viewBox="0 0 300 130" role="img" aria-label="Ukázkový průběh nálady jednoho seniora za 14 dní na škále 1 až 5: několik dní po sobě nálada 2, pak zlepšení po návštěvě."><line x1="26" x2="296" y1="112.0" y2="112.0" stroke="var(--hair)" stroke-width="1"/><text x="18" y="116.0" text-anchor="end" font-size="11" fill="var(--ink-2)">1</text><line x1="26" x2="296" y1="86.5" y2="86.5" stroke="var(--hair)" stroke-width="1"/><text x="18" y="90.5" text-anchor="end" font-size="11" fill="var(--ink-2)">2</text><line x1="26" x2="296" y1="61.0" y2="61.0" stroke="var(--hair)" stroke-width="1"/><text x="18" y="65.0" text-anchor="end" font-size="11" fill="var(--ink-2)">3</text><line x1="26" x2="296" y1="35.5" y2="35.5" stroke="var(--hair)" stroke-width="1"/><text x="18" y="39.5" text-anchor="end" font-size="11" fill="var(--ink-2)">4</text><line x1="26" x2="296" y1="10.0" y2="10.0" stroke="var(--hair)" stroke-width="1"/><text x="18" y="14.0" text-anchor="end" font-size="11" fill="var(--ink-2)">5</text><path d="M26.0,35.5 L46.5,35.5 L66.9,61.0 L87.4,35.5 L107.8,35.5 L128.3,61.0 L148.8,61.0 L169.2,86.5 L189.7,86.5 L210.2,61.0 L230.6,86.5 L251.1,86.5 L271.5,61.0 L292.0,35.5" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/><circle cx="26.0" cy="35.5" r="3" fill="var(--accent)"/><circle cx="46.5" cy="35.5" r="3" fill="var(--accent)"/><circle cx="66.9" cy="61.0" r="3" fill="var(--accent)"/><circle cx="87.4" cy="35.5" r="3" fill="var(--accent)"/><circle cx="107.8" cy="35.5" r="3" fill="var(--accent)"/><circle cx="128.3" cy="61.0" r="3" fill="var(--accent)"/><circle cx="148.8" cy="61.0" r="3" fill="var(--accent)"/><circle cx="169.2" cy="86.5" r="4.5" fill="var(--alert)"/><circle cx="189.7" cy="86.5" r="4.5" fill="var(--alert)"/><circle cx="210.2" cy="61.0" r="3" fill="var(--accent)"/><circle cx="230.6" cy="86.5" r="4.5" fill="var(--alert)"/><circle cx="251.1" cy="86.5" r="4.5" fill="var(--alert)"/><circle cx="271.5" cy="61.0" r="3" fill="var(--accent)"/><circle cx="292.0" cy="35.5" r="3" fill="var(--accent)"/><text x="189.7" y="127" text-anchor="middle" font-size="11" fill="var(--alert)">smutná nálada</text><text x="290.0" y="26.5" text-anchor="end" font-size="11" fill="var(--ink-2)">po návštěvě</text></svg><figcaption>Z každé odpovědi se zapíše nálada 1 až 5. Několik smutných dní po sobě je vidět dřív, než se to stane problémem. Hodnoty v grafu jsou ilustrační.</figcaption></figure>
-        <figure><h3>Košík pro sociální službu</h3><table class="bk"><caption class="label" style="text-align:left;padding-bottom:6px">Ukázka: Brno-střed, tento týden</caption>
-<thead><tr><th scope="col">Potřeba</th><th scope="col">nové</th><th scope="col">objednáno</th><th scope="col">vyřízeno</th></tr></thead><tbody><tr><th scope="row">nákup</th><td>3</td><td>1</td><td>2</td></tr><tr><th scope="row">léky z lékárny</th><td>2</td><td>1</td><td>1</td></tr><tr><th scope="row">obědy</th><td>1</td><td>1</td><td>0</td></tr><tr><th scope="row">doprava k lékaři</th><td>1</td><td>0</td><td>1</td></tr><tr><th scope="row">topení a otop</th><td>1</td><td>0</td><td>0</td></tr></tbody></table>
-<style>.bk{width:100%;border-collapse:collapse;font-size:.95rem;font-variant-numeric:tabular-nums}.bk th,.bk td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--hair)}.bk th[scope=row],.bk thead th:first-child{text-align:left;font-weight:600}.bk thead th{font-size:var(--t-s);color:var(--ink-2);font-weight:600}.bk td:nth-child(2){color:var(--accent);font-weight:700}</style><figcaption>Potřeby z hovorů seskupené podle sociálního pracovníka a obvodu. Stav nové, objednáno, vyřízeno a export do CSV. Čísla jsou ilustrační.</figcaption></figure>
+        <div class="ai"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 12h4"/></svg>AI jen rozumí</h3><ul><li>zařadí odpověď: v pořádku, potřeba, smutek, zdravotní potíž, zavolat později, nechci hovory</li><li>odhadne náladu 1 až 5 a vypíše konkrétní potřeby</li><li>čemu nerozumí, předá operátorovi; nic sama nerozhoduje a nikomu nepíše</li></ul></div>
+        <div class="rules"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Pravidla rozhodují</h3><ul><li>tísňová slova zachytí pravidla jako první, zbytek odpovědi rozumí model</li><li>kdy a komu se volá, kdy jde SMS blízkému a kdy návštěva</li><li>co je upozornění a co jen položka v košíku</li><li>asistent říká jen schválené věty; bez modelu služba funguje dál s volbou klávesou</li></ul></div>
+        <div class="human"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Člověk jedná</h3><ul><li>operátor volá zpět a vyřizuje upozornění</li><li>sociální pracovník objednává pomoc a chodí na návštěvy</li><li>v tísni volá 155 vždy člověk</li></ul></div>
       </div>
-      <h3 class="sub">Žebříček eskalace</h3>
-      <dl class="states"><div class=""><dt>1. Položka v košíku</dt><dd>Konkrétní potřeba bez naléhavosti. Sociální pracovník ji objedná a označí jako vyřízenou.</dd></div><div class="human"><dt>2. Ozve se člověk</dt><dd>Smutek, samota, zdravotní potíž, otázka nebo nejasná odpověď. Operátor zavolá zpět.</dd></div><div class="human"><dt>3. Blízký a návštěva</dt><dd>Senior se neozývá: SMS blízkému, další pokus a pak návštěva sociálního pracovníka.</dd></div><div class="alert"><dt>4. Tíseň: 155</dt><dd>Asistent seniorovi hned řekne, ať zavolá 155, a předá to pracovníkovi. Nic nečeká na plán.</dd></div></dl>
-      <div class="callout alert"><p><b>Asistent nenahrazuje záchrannou službu ani tísňovou péči.</b> Je to pravidelný kontakt navíc. Ve všech zprávách i v hovoru zazní, že v nouzi se volá 155.</p></div>
     </div>
   </div>
 </section>
-<section class="section" id="ukazka" aria-labelledby="h-ukazka">
+
+<section class="section" id="prokoho" aria-labelledby="h-prokoho">
   <div class="wrap">
-    <div class="aside"><p class="label">Ukázka</p><h2 id="h-ukazka">Co uvidíte na svém telefonu</h2></div>
+    <div class="aside"><p class="label">Pro koho</p><h2 id="h-prokoho">Pečovatelská služba, obec, rodina</h2></div>
     <div class="body">
-<ol class="steps"><li><div><b>Přihlásíte se kódem demo, svým telefonem a e-mailem</b><span>Po kliknutí na Vyzkoušet ukázku vyplníte jeden formulář: přístupový kód <b class="mono">demo</b>, své telefonní číslo a e-mail. Každý návštěvník má vlastní oddělenou ukázku.</span></div></li><li><div><b>Otevře se aplikace pro operátora a sociálního pracovníka</b><span>Obrazovky Dnes, Senioři, Hovory, Košík a Přehled, nad smyšlenými seniory z několika brněnských obvodů. Záznamy jsou smyšlené, aplikace je stejná jako naostro.</span></div></li><li><div><b>Spustíte celou ukázku</b><span>Tlačítko Spustit celou ukázku přidá do seznamu seniora s vaším telefonem a e-mailem a provede celý příběh krok za krokem: přijde SMS, zazvoní hovor, otevřete osobní odkaz. Na každém kroku vidíte, co systém udělal a proč.</span></div></li><li><div><b>Odpovíte jako skutečný člověk</b><span>Zvednete hovor a řeknete, jak se máte, nebo stisknete 1 či 2. Zkuste i „došly mi léky a potřebovala bych nakoupit“. V aplikaci uvidíte, jak systém odpověď pochopil, náladu a potřeby v košíku. Když hovor nezvednete, systém pokračuje dalším krokem žebříčku.</span></div></li><li><div><b>Posunete čas tlačítkem Další den</b><span>Plán kontaktů se v ukázce neodvíjí v hodinách, ale po dnech. Další den odešle, co je podle plánu na řadě, a na kartě je vidět celá komunikace od nejnovější.</span></div></li><li><div><b>Nebo zkoušíte sami</b><span>U libovolného záznamu můžete zprávu poslat hned zvoleným kanálem, nebo odpověď jen nasimulovat bez telefonu. Obnovit ukázková data vrátí vše na začátek.</span></div></li></ol>
+      <div class="three">
+        <article><h3>Pečovatelská služba</h3><p>Denní kontakt s klienty mezi návštěvami. Košík potřeb místo poznámek v hlavě, pokrytí za týden a nálada podle obvodu v přehledu. Jeden operátor dohlíží na hovory, pečovatelky chodí tam, kde je to potřeba.</p></article>
+        <article><h3>Obec</h3><p>Sociální odbor nebo tísňová péče obce dostane službu, která se ozve sama, ne až po stisku tlačítka. Obvody, sociální pracovníci a seznam seniorů jsou v aplikaci od začátku.</p></article>
+        <article><h3>Rodina</h3><p>Dcera v Praze ví, že se mamince v Brně někdo každý den ozve. Když maminka dvakrát nezvedne, přijde jí SMS a hovor ještě ten den. Souhlas obou je podmínkou.</p></article>
+      </div>
+      <p class="muted">Demo z hackathonu, zatím bez zákazníka. Žádná z organizací není partnerem projektu.</p>
     </div>
   </div>
 </section>
-<section class="section" id="technologie" aria-labelledby="h-technologie">
+
+<section class="section" id="demo" aria-labelledby="h-demo">
   <div class="wrap">
-    <div class="aside"><p class="label">Technologie</p><h2 id="h-technologie">Jedno jádro, tři ukázky</h2></div>
+    <div class="aside"><p class="label">Co uvidíte v demu</p><h2 id="h-demo">Tři okamžiky na vašem telefonu</h2></div>
     <div class="body">
-<dl class="stack"><div><dt>Jádro</dt><dd>Jeden server pro všechny tři ukázky<small>Python, FastAPI. Každá ukázka je balíček <span class="mono">cases/&lt;id&gt;</span>: stavy, texty zpráv, porozumění odpovědím, plán kontaktů a obrazovky. Jádro je společné.</small></dd></div><div><dt>Stavový automat</dt><dd>Tabulka přechodů v JSON<small>stejný soubor čte server i webová aplikace; událost, která v daném stavu nedává smysl, se zapíše, ale nic nezmění</small></dd></div><div><dt>Kanály</dt><dd>Twilio SMS, Voice a WhatsApp, e-mail<small>stav doručení u každé zprávy, odpovědi přes webhooky, osobní odkaz pro odpověď jedním klikem</small></dd></div><div><dt>Hlas</dt><dd>ElevenLabs<small>český hlas a konverzační agent; mluví jen schválenými větami, záložně pevný scénář s volbou klávesou</small></dd></div><div><dt>Porozumění</dt><dd>Pravidla, jazykový model jen pomáhá<small>model odpověď jen zařadí do kategorie; nejistá odpověď jde člověku, odhlášení vždy rozpoznají pravidla; bez modelu systém funguje dál</small></dd></div><div><dt>Data</dt><dd>Smyšlení senioři<small>deterministický generátor: věk, obvod, rozvrh hovorů, blízký, sociální pracovník a 30 dní historie hovorů</small></dd></div><div><dt>Web</dt><dd>ES moduly bez frameworku<small>světlý i tmavý režim, telefon i počítač</small></dd></div><div><dt>Kvalita</dt><dd>pytest<small>kontrola kontraktu každé ukázky: stavy, texty všech zpráv, plán kontaktů; vlastní testy každé ukázky</small></dd></div><div><dt>Soukromí</dt><dd>Smyšlená data, zprávy jen vám<small>Senioři v ukázce jsou smyšlení. Skutečné zprávy a hovory z ukázky jdou jen na telefon a e-mail, které návštěvník zadal při přihlášení, s denním limitem.</small></dd></div></dl>
+      <div class="wow">
+        <article><h3>Hovor zopakuje, co slyšel</h3><p>Zvednete a řeknete, jak se máte, třeba:</p><div class="bubble me"><small>vy jako paní Nováková</small>Došly mi léky a potřebovala bych nakoupit.</div><div class="bubble"><small>asistent</small>Rozuměla jsem, že potřebujete nákup a léky z lékárny. Je to tak?</div><p>Řeknete „ne“ a asistent se zeptá, co má opravit.</p></article>
+        <article><h3>Potřeby přistanou v košíku</h3><p>Během pár vteřin po hovoru je v aplikaci nálada, přepis odpovědi a dvě položky ve stavu nové: nákup a léky z lékárny. Sociální pracovnice je objedná jedním klikem.</p></article>
+        <article><h3>Eskalace na váš telefon</h3><p>Hovor nezvednete. Systém zkusí znovu a pak vám přijde SMS, jakou by dostala dcera:</p><div class="bubble"><small>SMS blízkému</small>Dobrý den, tady služba Jsem v pořádku. Dnes jsme se dvakrát nedovolali: paní Nováková. Můžete se prosím podívat, zda je vše v pořádku? Pokud ano, odpovězte ANO.</div></article>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="/login?next=/app/&amp;code=demo">Vyzkoušet demo</a>
+        <a class="btn ghost" href="#sal">QR kód pro sál</a>
+      </div>
+      <p class="note muted" style="font-size:var(--t-s);max-width:62ch">Přihlásíte se kódem <b class="mono">demo</b> a svým kontaktem, otevře se aplikace pro operátora a sociálního pracovníka nad smyšlenými seniory z Brna. Tlačítko Spustit celou ukázku přidá seniora s vaším číslem a zavolá vám. Každý návštěvník má vlastní oddělenou ukázku, zprávy jdou jen na jeho kontakty.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="cena" aria-labelledby="h-cena">
+  <div class="wrap">
+    <div class="aside"><p class="label">Cena a čas</p><h2 id="h-cena">Tři koruny místo šedesáti</h2></div>
+    <div class="body">
+      <div class="price">
+        <div><b>≈ 3 Kč</b><span>jeden automatický kontakt: hovor, hlas a porozumění <span class="tag">odhad</span></span></div>
+        <div><b class="hum">≈ 60 Kč</b><span>jeden hovor pracovníka včetně zápisu, asi 5 minut práce <span class="tag">odhad</span></span></div>
+        <div><b>1 operátor</b><span>dohlíží na hovory stovek seniorů; lidé jdou jen tam, kde je potřeba <span class="tag">odhad</span></span></div>
+      </div>
+      <p class="prose">Služba s 300 klienty a denním hovorem: ručně jsou to dva pracovní úvazky jen na telefonování. S asistentem zbývá lidem čas na návštěvy a na to, co z košíku skutečně objednat. Čísla jsou odhad z hackathonu, ne nabídka.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pravo" aria-labelledby="h-pravo">
+  <div class="wrap">
+    <div class="aside"><p class="label">Právní rámec</p><h2 id="h-pravo">Sociální služba podle zákona, data poctivě</h2></div>
+    <div class="body">
+      <dl class="stack">
+        <div><dt>Zákon 108/2006 Sb.</dt><dd>§ 40 pečovatelská služba, § 41 tísňová péče<small>Jsem v pořádku je nástroj poskytovatele těchto služeb, ne služba sama. Odpovědnost za klienta zůstává u poskytovatele.</small></dd></div>
+        <div><dt>GDPR</dt><dd>čl. 9 odst. 2 písm. h): zdravotní údaje v rámci sociální péče<small>Nálada a zmínky o zdraví jsou zvláštní kategorie údajů. Zpracovávají se pro poskytování sociální péče, pod odpovědností poskytovatele.</small></dd></div>
+        <div><dt>Souhlas</dt><dd>Senior i blízký souhlasí předem<small>Senior může službu kdykoli ukončit jednou větou v hovoru („už mi nevolejte“); od té chvíle se nevolá, znovu ho zapíše jen člověk. Blízký souhlasí s tím, že dostane SMS a hovor.</small></dd></div>
+        <div><dt>Kam jdou data</dt><dd>Mimo EU: Twilio, ElevenLabs, Google Gemini<small>Hovory a SMS zajišťuje Twilio, hlas a konverzační agent ElevenLabs, porozumění řeči v hovoru jazykový model Google Gemini. Části hovoru tedy opouštějí EU na základě standardních smluvních doložek. Říkáme to otevřeně; nasazení v EU by vyžadovalo jiné dodavatele.</small></dd></div>
+        <div><dt>Uchování</dt><dd>Přepisy hovorů 90 dní <span class="tag">návrh</span><small>Nálada a položky košíku zůstávají v kartě po dobu služby, přepis a nahrávka se po 90 dnech mažou. Kontakty návštěvníků dema se mažou po 30 dnech.</small></dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="vznik" aria-labelledby="h-vznik">
+  <div class="wrap">
+    <div class="aside"><p class="label">Vznik</p><h2 id="h-vznik">Rakathon 2026, na jádru Jsem včas</h2></div>
+    <div class="body">
+      <p>Jsem v pořádku vzniklo na Rakathonu 2026 v Praze. Stojí na jádru projektu <a href="https://jsemvcas.cz">Jsem včas</a>, který hlídá, aby pacienti došli na screening plic: stejný stavový automat, stejné kanály (hovor, SMS, WhatsApp, e-mail), stejná pravidla, že AI jen rozumí a člověk rozhoduje. Vyměnili jsme stavy, texty a obrazovky. Kód je otevřený na <a href="https://github.com/artigrib/rakathon2026">GitHubu</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sal" aria-labelledby="h-sal">
+  <div class="wrap">
+    <div class="aside"><p class="label">Pro sál</p><h2 id="h-sal">Vyzkoušejte si to teď</h2></div>
+    <div class="body">
+      <div class="hall">
+        <figure class="qr"><svg viewBox="0 0 37 37" role="img" aria-label="QR kód s odkazem na demo" shape-rendering="crispEdges"><path fill="currentColor" d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM11 2h1v1h-1zM13 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM31 2h1v1h-1zM32 2h1v1h-1zM33 2h1v1h-1zM34 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM17 3h1v1h-1zM24 3h1v1h-1zM28 3h1v1h-1zM34 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM12 4h1v1h-1zM14 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM18 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM25 4h1v1h-1zM28 4h1v1h-1zM30 4h1v1h-1zM31 4h1v1h-1zM32 4h1v1h-1zM34 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM14 5h1v1h-1zM19 5h1v1h-1zM24 5h1v1h-1zM25 5h1v1h-1zM26 5h1v1h-1zM28 5h1v1h-1zM30 5h1v1h-1zM31 5h1v1h-1zM32 5h1v1h-1zM34 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM15 6h1v1h-1zM16 6h1v1h-1zM17 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM21 6h1v1h-1zM22 6h1v1h-1zM23 6h1v1h-1zM25 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM31 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM11 7h1v1h-1zM12 7h1v1h-1zM15 7h1v1h-1zM16 7h1v1h-1zM19 7h1v1h-1zM20 7h1v1h-1zM22 7h1v1h-1zM28 7h1v1h-1zM34 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM31 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM10 9h1v1h-1zM16 9h1v1h-1zM18 9h1v1h-1zM22 9h1v1h-1zM23 9h1v1h-1zM25 9h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM19 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM25 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM29 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM32 10h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM15 11h1v1h-1zM18 11h1v1h-1zM19 11h1v1h-1zM20 11h1v1h-1zM21 11h1v1h-1zM22 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM31 11h1v1h-1zM32 11h1v1h-1zM33 11h1v1h-1zM34 11h1v1h-1zM3 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM9 12h1v1h-1zM11 12h1v1h-1zM12 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM22 12h1v1h-1zM27 12h1v1h-1zM28 12h1v1h-1zM30 12h1v1h-1zM32 12h1v1h-1zM2 13h1v1h-1zM3 13h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM14 13h1v1h-1zM15 13h1v1h-1zM18 13h1v1h-1zM22 13h1v1h-1zM23 13h1v1h-1zM24 13h1v1h-1zM26 13h1v1h-1zM27 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM32 13h1v1h-1zM34 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM5 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM11 14h1v1h-1zM14 14h1v1h-1zM16 14h1v1h-1zM18 14h1v1h-1zM20 14h1v1h-1zM21 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM30 14h1v1h-1zM31 14h1v1h-1zM33 14h1v1h-1zM34 14h1v1h-1zM2 15h1v1h-1zM4 15h1v1h-1zM6 15h1v1h-1zM9 15h1v1h-1zM10 15h1v1h-1zM14 15h1v1h-1zM17 15h1v1h-1zM20 15h1v1h-1zM21 15h1v1h-1zM22 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM28 15h1v1h-1zM29 15h1v1h-1zM31 15h1v1h-1zM33 15h1v1h-1zM34 15h1v1h-1zM2 16h1v1h-1zM5 16h1v1h-1zM7 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM14 16h1v1h-1zM15 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM26 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM29 16h1v1h-1zM31 16h1v1h-1zM33 16h1v1h-1zM4 17h1v1h-1zM5 17h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM11 17h1v1h-1zM12 17h1v1h-1zM16 17h1v1h-1zM17 17h1v1h-1zM22 17h1v1h-1zM23 17h1v1h-1zM24 17h1v1h-1zM26 17h1v1h-1zM27 17h1v1h-1zM28 17h1v1h-1zM31 17h1v1h-1zM32 17h1v1h-1zM3 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM14 18h1v1h-1zM17 18h1v1h-1zM19 18h1v1h-1zM26 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM34 18h1v1h-1zM2 19h1v1h-1zM6 19h1v1h-1zM7 19h1v1h-1zM9 19h1v1h-1zM10 19h1v1h-1zM11 19h1v1h-1zM12 19h1v1h-1zM15 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM28 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM32 19h1v1h-1zM34 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM9 20h1v1h-1zM10 20h1v1h-1zM12 20h1v1h-1zM14 20h1v1h-1zM16 20h1v1h-1zM17 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM26 20h1v1h-1zM27 20h1v1h-1zM28 20h1v1h-1zM29 20h1v1h-1zM30 20h1v1h-1zM32 20h1v1h-1zM33 20h1v1h-1zM2 21h1v1h-1zM3 21h1v1h-1zM4 21h1v1h-1zM5 21h1v1h-1zM12 21h1v1h-1zM13 21h1v1h-1zM20 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM28 21h1v1h-1zM29 21h1v1h-1zM30 21h1v1h-1zM31 21h1v1h-1zM32 21h1v1h-1zM33 21h1v1h-1zM4 22h1v1h-1zM5 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM11 22h1v1h-1zM12 22h1v1h-1zM13 22h1v1h-1zM14 22h1v1h-1zM15 22h1v1h-1zM20 22h1v1h-1zM24 22h1v1h-1zM25 22h1v1h-1zM27 22h1v1h-1zM30 22h1v1h-1zM31 22h1v1h-1zM34 22h1v1h-1zM2 23h1v1h-1zM3 23h1v1h-1zM4 23h1v1h-1zM5 23h1v1h-1zM6 23h1v1h-1zM7 23h1v1h-1zM14 23h1v1h-1zM15 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM22 23h1v1h-1zM25 23h1v1h-1zM28 23h1v1h-1zM31 23h1v1h-1zM34 23h1v1h-1zM2 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM9 24h1v1h-1zM12 24h1v1h-1zM15 24h1v1h-1zM19 24h1v1h-1zM20 24h1v1h-1zM22 24h1v1h-1zM24 24h1v1h-1zM26 24h1v1h-1zM29 24h1v1h-1zM33 24h1v1h-1zM2 25h1v1h-1zM6 25h1v1h-1zM10 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM15 25h1v1h-1zM16 25h1v1h-1zM18 25h1v1h-1zM22 25h1v1h-1zM23 25h1v1h-1zM26 25h1v1h-1zM27 25h1v1h-1zM28 25h1v1h-1zM29 25h1v1h-1zM30 25h1v1h-1zM31 25h1v1h-1zM32 25h1v1h-1zM34 25h1v1h-1zM2 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM18 26h1v1h-1zM19 26h1v1h-1zM20 26h1v1h-1zM21 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM27 26h1v1h-1zM28 26h1v1h-1zM29 26h1v1h-1zM30 26h1v1h-1zM33 26h1v1h-1zM10 27h1v1h-1zM14 27h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 27h1v1h-1zM21 27h1v1h-1zM22 27h1v1h-1zM23 27h1v1h-1zM26 27h1v1h-1zM30 27h1v1h-1zM32 27h1v1h-1zM34 27h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM4 28h1v1h-1zM5 28h1v1h-1zM6 28h1v1h-1zM7 28h1v1h-1zM8 28h1v1h-1zM11 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM17 28h1v1h-1zM18 28h1v1h-1zM19 28h1v1h-1zM22 28h1v1h-1zM23 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM28 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM33 28h1v1h-1zM2 29h1v1h-1zM8 29h1v1h-1zM10 29h1v1h-1zM11 29h1v1h-1zM12 29h1v1h-1zM13 29h1v1h-1zM15 29h1v1h-1zM19 29h1v1h-1zM20 29h1v1h-1zM21 29h1v1h-1zM23 29h1v1h-1zM25 29h1v1h-1zM26 29h1v1h-1zM30 29h1v1h-1zM31 29h1v1h-1zM32 29h1v1h-1zM33 29h1v1h-1zM34 29h1v1h-1zM2 30h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM12 30h1v1h-1zM13 30h1v1h-1zM16 30h1v1h-1zM17 30h1v1h-1zM18 30h1v1h-1zM22 30h1v1h-1zM24 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM28 30h1v1h-1zM29 30h1v1h-1zM30 30h1v1h-1zM31 30h1v1h-1zM33 30h1v1h-1zM2 31h1v1h-1zM4 31h1v1h-1zM5 31h1v1h-1zM6 31h1v1h-1zM8 31h1v1h-1zM10 31h1v1h-1zM13 31h1v1h-1zM14 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM20 31h1v1h-1zM21 31h1v1h-1zM25 31h1v1h-1zM26 31h1v1h-1zM27 31h1v1h-1zM30 31h1v1h-1zM31 31h1v1h-1zM32 31h1v1h-1zM33 31h1v1h-1zM34 31h1v1h-1zM2 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM12 32h1v1h-1zM13 32h1v1h-1zM14 32h1v1h-1zM15 32h1v1h-1zM17 32h1v1h-1zM18 32h1v1h-1zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM29 32h1v1h-1zM31 32h1v1h-1zM32 32h1v1h-1zM2 33h1v1h-1zM8 33h1v1h-1zM17 33h1v1h-1zM20 33h1v1h-1zM22 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM30 33h1v1h-1zM31 33h1v1h-1zM32 33h1v1h-1zM2 34h1v1h-1zM3 34h1v1h-1zM4 34h1v1h-1zM5 34h1v1h-1zM6 34h1v1h-1zM7 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM12 34h1v1h-1zM13 34h1v1h-1zM17 34h1v1h-1zM19 34h1v1h-1zM22 34h1v1h-1zM24 34h1v1h-1zM25 34h1v1h-1zM26 34h1v1h-1zM27 34h1v1h-1zM29 34h1v1h-1zM31 34h1v1h-1zM33 34h1v1h-1z"/></svg><figcaption>Naskenujte, kód demo se vyplní sám</figcaption></figure>
+        <div style="display:grid;gap:10px;min-width:0">
+          <p class="url">seniori.jsemvcas.cz/login?next=/app/&amp;code=demo</p>
+          <p>Zadáte svůj telefon a za chvíli vám zavoláme. Vy jste paní Nováková: řekněte, jak se máte, nebo co potřebujete, a v aplikaci sledujte, co se stalo. Hovor nezvedněte, když chcete vidět eskalaci na blízkého.</p>
+          <p class="muted" style="font-size:var(--t-s)">Hovory a zprávy chodí jen na kontakt, který zadáte, s denním limitem. Kontakty mažeme po 30 dnech.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -356,7 +386,7 @@ footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
   <div class="wrap">
     <p class="label">Tři ukázky, jedno jádro</p>
     <ul class="others"><li><a href="https://jsemvcas.cz"><b>Jsem včas</b><span>screening plic · jsemvcas.cz</span></a></li><li><a href="https://seniori.jsemvcas.cz" aria-current="page"><b>Jsem v pořádku</b><span>hovory se seniory · seniori.jsemvcas.cz</span></a></li><li><a href="https://vymahani.jsemvcas.cz"><b>AI vymáhání</b><span>férové vymáhání · vymahani.jsemvcas.cz</span></a></li></ul>
-    <div class="foot"><span>Rakathon 2026 · Praha · všechna data v ukázkách jsou smyšlená</span><a href="https://github.com/artigrib/rakathon2026">Zdrojový kód na GitHubu</a></div>
+    <div class="foot"><span>Rakathon 2026 · Praha · demo, všechna data v ukázkách jsou smyšlená</span><a href="https://github.com/artigrib/rakathon2026">Zdrojový kód na GitHubu</a></div>
   </div>
 </footer>
 </body>

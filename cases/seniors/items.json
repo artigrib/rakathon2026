@@ -1,5 +1,5 @@
 {
- "_about": "Vocabulary shared by dialog.py (extract) and the web app (labels, static-mode extraction). Patterns run on lower-case text without diacritics. mood: 1 (very bad) … 5 (very good); the lowest match wins.",
+ "_about": "Vocabulary shared by dialog.py (extract) and the web app (labels, static-mode extraction). Patterns run on lower-case text without diacritics. mood: 1 (very bad) … 5 (very good); the lowest match wins. mood_delta: answers to 'spíš dobře, nebo spíš hůř než obvykle?' relative to the last stored mood (-1 / 0 / +1). health: any mention of the senior's own health (a note on the card); health_acute: new or worsening (intent health_problem, a worker calls).",
  "items": {
   "nakup": {
    "label": "nákup",
@@ -42,12 +42,21 @@
    "patterns": [
     "odvez",
     "odvoz",
-    "doprav",
+    "doprav(a|u|it|y)\\b",
     "k lekari",
     "k doktorovi",
     "na postu",
-    "na urad",
+    "na urad\\b",
     "taxi"
+   ]
+  },
+  "doprovod": {
+   "label": "doprovod k lékaři, na úřad",
+   "patterns": [
+    "doprovod",
+    "doprovaz",
+    "(jit|jel|jela|sel|sla|jet) se mnou",
+    "nekdo se mnou"
    ]
   },
   "uklid": {
@@ -72,7 +81,10 @@
     "je mi zima",
     "kamna",
     "radiator",
-    "plyn"
+    "plyn (mi |nam )?(nejde|nefunguje|nehori)",
+    "(nejde|nefunguje|vypnuli|nemam|nemame) (mi |nam )?plyn",
+    "plynu v kuchyni",
+    "plynov(y|a|e) (kotel|sporak|karma)"
    ]
   },
   "pradlo": {
@@ -95,14 +107,101 @@
     "zamek"
    ]
   },
+  "finance": {
+   "label": "peníze, důchod",
+   "patterns": [
+    "nemam na (leky|jidlo|najem|zaplaceni|zaplatit|elektrinu|plyn)",
+    "nemam penize",
+    "nemam z ceho",
+    "dosly (mi )?penize",
+    "duchod (mi )?(neprisel|nedosel|nedostal)",
+    "neprisel (mi )?duchod",
+    "nemuzu zaplatit",
+    "nezaplacen",
+    "\\bdluh",
+    "exekuc"
+   ]
+  },
+  "urad": {
+   "label": "úřad, dopisy, doklady",
+   "patterns": [
+    "dopis",
+    "z uradu",
+    "\\burad\\b",
+    "uradu\\b",
+    "formular",
+    "zadost",
+    "doklad",
+    "obcank",
+    "slozenk",
+    "nerozumim (tomu )?(dopisu|papiru|formulari|slozence|rozhodnuti)",
+    "vyplnit"
+   ]
+  },
+  "pet": {
+   "label": "zvíře (krmení, veterinář)",
+   "patterns": [
+    "\\bpes\\b",
+    "\\bpsa\\b",
+    "\\bpsovi\\b",
+    "pejs",
+    "kocka",
+    "kocku",
+    "kocce",
+    "kocour",
+    "veterin",
+    "krmeni",
+    "granule",
+    "vencit",
+    "venceni"
+   ]
+  },
+  "hygiena": {
+   "label": "hygiena, koupání",
+   "patterns": [
+    "koupan",
+    "vykoupat",
+    "osprchovat",
+    "sprchov",
+    "do vany",
+    "z vany",
+    "hygien",
+    "umyt se",
+    "umyt vlasy",
+    "ostrihat"
+   ]
+  },
+  "pomucky": {
+   "label": "pomůcky (sluchadlo, brýle, hůl, chodítko)",
+   "patterns": [
+    "sluchadl",
+    "naslouchad",
+    "\\bbryl",
+    "\\bhul\\b",
+    "\\bhulk",
+    "choditk",
+    "berl",
+    "vozik",
+    "baterk",
+    "\\bbateri"
+   ]
+  },
   "navsteva": {
-   "label": "návštěva, popovídat si",
+   "label": "návštěva",
    "patterns": [
     "navstev",
-    "popovidat",
     "nekdo prisel",
-    "nekdo za mnou",
-    "spolecnost"
+    "nekdo za mnou"
+   ]
+  },
+  "spolecnost": {
+   "label": "společnost, popovídat si",
+   "patterns": [
+    "popovidat",
+    "spolecnost",
+    "promluvit si s nekym",
+    "s nekym si (promluvit|povidat|popovidat)",
+    "chybi mi (lidi|spolecnost|nekdo)"
    ]
   },
   "jine": {
@@ -113,24 +212,34 @@
  "mood": {
   "1": [
    "nechce se mi zit",
-  "nechce (se mi )?zit",
-   "nema to smysl",
+   "nechce (se mi )?zit",
+   "nema to (smysl|cenu)",
    "uplne na dne",
    "nejhur",
-   "zoufal"
+   "zoufal",
+   "hrozne",
+   "strasne",
+   "chci umrit",
+   "radeji bych (umrel|umrela|nebyl|nebyla)"
   ],
   "2": [
    "smutn",
    "smutno",
    "osamel",
    "spatne",
+   "\\bhur\\b",
+   "\\bhure\\b",
    "brecim",
    "stysk",
    "nic me nebavi",
    "je mi tezko",
    "nemam silu",
    "nikoho nemam",
-   "\\bzle\\b"
+   "\\bzle\\b",
+   "mizern",
+   "bidne",
+   "neni mi dobre",
+   "nejsem v poradku"
   ],
   "3": [
    "nic moc",
@@ -139,42 +248,143 @@
    "jde to",
    "napul",
    "unaven",
-   "jak kdy"
+   "jak kdy",
+   "celkem",
+   "\\btak nejak\\b"
   ],
   "4": [
    "\\bdobre\\b",
+   "\\bdobry\\b",
    "v poradku",
    "\\bfajn\\b",
    "\\bok\\b",
-   "cajk"
+   "cajk",
+   "spokojen",
+   "nic mi neni"
   ],
   "5": [
    "vyborn",
    "skvel",
    "moc dobre",
    "krasne",
-   "tesim se"
+   "tesim se",
+   "bajecn",
+   "nadhern"
+  ]
+ },
+ "mood_delta": {
+  "-1": [
+   "(spis|trochu|o neco|asi|dnes|nejak) hur",
+   "hur nez (obvykle|jindy|minule|posledne)",
+   "horsi nez (obvykle|jindy|minule)",
+   "(je|bylo) to horsi",
+   "dnes (je to|to je) horsi"
+  ],
+  "0": [
+   "jako vzdycky",
+   "jako obvykle",
+   "jako jindy",
+   "porad stejne",
+   "stejne jako",
+   "nic se nezmenilo",
+   "vsechno pri starem",
+   "\\bpri starem\\b"
+  ],
+  "1": [
+   "(spis|trochu|o neco|asi|dnes|nejak) (lip|lepe|lepsi)",
+   "(lip|lepe|lepsi) nez (obvykle|jindy|minule|posledne)",
+   "uz je to lepsi",
+   "zlepsil",
+   "dnes (je to|to je) lepsi"
   ]
  },
  "health": [
   "\\bboli\\b",
   "\\bbolest",
-  "nemocn",
+  "\\bbolel",
+  "nemocn(y|a|e|ej)\\b",
   "horeck",
   "teplot",
   "zavrat",
   "toci se mi hlava",
   "\\bupadl",
+  "\\bspadl",
   "kasl",
+  "kasel",
   "nevolno",
   "zvracim",
+  "zvracel",
   "otekl",
+  "otok",
   "je mi zle",
   "neni mi dobre",
+  "nejsem v poradku",
   "dycha",
   "dychat",
   "hrudi",
   "krvac",
-  "omdlel"
+  "omdlel",
+  "\\bkolen",
+  "\\bzada\\b",
+  "\\bzadech\\b",
+  "kloub",
+  "kycl",
+  "\\bnoh[ay]\\b",
+  "\\bnohou\\b",
+  "\\bruce\\b",
+  "\\bruka\\b",
+  "\\btlak\\b",
+  "cukrovk",
+  "\\bsrdce\\b",
+  "\\bsrdcem\\b",
+  "nespim",
+  "spatne spim",
+  "\\bprujem",
+  "\\bchripk",
+  "nachlaz",
+  "\\bryma\\b",
+  "zdravotn",
+  "\\bzdravi\\b"
+ ],
+ "health_acute": [
+  "od vcera",
+  "od rana",
+  "od dneska",
+  "od (nedele|pondeli|utery|stredy|ctvrtka|patku|soboty|vikendu)",
+  "od (minuleho|tohoto) tydne",
+  "(dnes|ted|najednou|zrovna|nove|nahle)[^.]{0,20}\\b(boli|bolest|spatne|zle)",
+  "je mi hur",
+  "mam se hur",
+  "zhorsil",
+  "porad hur",
+  "cim dal (hur|hor)",
+  "(mam|dostal[a]? jsem) (teplotu|horecku|zimnici)",
+  "horecka",
+  "zimnic",
+  "zvracim",
+  "zvracel[a]? jsem",
+  "\\bprujem",
+  "toci se mi hlava",
+  "zavrat",
+  "nevolno",
+  "je mi zle",
+  "neni mi dobre",
+  "nejsem v poradku",
+  "neni to v poradku",
+  "(spatne|hur|tezko) se mi dycha",
+  "(velk(e|ou|a)|siln(e|ou|a)|hrozn(e|ou|a)|strasn(e|ou|a)|nesnesiteln(e|ou|a)) bolest",
+  "(hrozne|strasne|moc) (me )?boli",
+  "jsem nemocn[yae]",
+  "mam chripku",
+  "\\botekl",
+  "\\botok",
+  "\\bomdl",
+  "nemuzu (chodit|se postavit|se hnout|hybat)",
+  "\\bupadl",
+  "\\bspadl",
+  "\\bkrvac",
+  "\\bzlomil",
+  "\\bzlomen",
+  "spatne se mi (chodi|hybe|stoji|vstava)"
  ]
 }

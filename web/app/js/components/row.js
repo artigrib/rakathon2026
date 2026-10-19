@@ -23,7 +23,8 @@ export function row(p, { composing, chosenChannel, plan, link, demo, open, outbo
   const d = store.get(p.id);
   const { title, sub } = rows.describe(p, d, plan);
   const why = lost ? T.lost[lost.code](lost.days, p) : "";
-  const showDemo = demo && dom.stageOf(p) === CASE.sent_stage; // simulated replies while we wait for one
+  // simulated replies while we wait for one; a case may keep them out of the rows (case.json "row_demo": false → its card shows them)
+  const showDemo = demo && CASE.row_demo !== false && dom.stageOf(p) === CASE.sent_stage;
   return `<article class="row${rows.rowClass ? rows.rowClass(p, d) : ""}" id="pt-${p.id}">
     <div class="row__main">
       <button type="button" class="who" data-action="open-card" data-id="${p.id}" aria-haspopup="dialog" title="${T.actions.open}">${esc(T.who(p))}</button>

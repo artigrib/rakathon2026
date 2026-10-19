@@ -73,7 +73,9 @@ def test_full_scenario_in_mock_mode(app):
         assert [x["status"] for x in st["steps"]][:3] == ["noreply", "simulated", "done"]
     elif cid == "seniors":
         assert d.get("needs") and "visit" in events and d["stage"] == "escalated"
-        assert [m["variant"] for m in out] == ["CHECKIN", "CHECKIN", "RETRY", "RELATIVE"]
+        assert [m["variant"] for m in out] == ["CHECKIN", "CHECKIN", "RETRY", "RELATIVE", "RETRY"]  # three unanswered before the visit
+        replies = [e for e in d["journey"] if e.get("text")]
+        assert replies and all(e["via"] == "sim" for e in replies)                 # simulated answers are labelled so
     elif cid == "collections":
         assert d["verified"] and d["promises"][-1]["status"] == "broken"
         assert "broken" in events and out[-1]["variant"] == "BROKEN_PROMISE"

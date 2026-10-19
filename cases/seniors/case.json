@@ -18,11 +18,13 @@
   "domain": "jsemvporadku.cz",
   "voice": { "mode": "gather", "lang": "cs-CZ", "name": "Google.cs-CZ-Standard-A" },
   "demo_user": "seniori",
+  "login": { "email": "optional" },
   "ref_date": "2026-10-19",
   "initial_stage": "new",
   "sent_stage": "no_answer",
   "result_stage": null,
   "terminal_reply_stages": ["new", "enrolled", "ok", "needs_help", "low_mood", "callback", "escalated", "resolved", "paused", "declined"],
+  "row_demo": false,
   "marks": ["basket"],
   "data": "cases/seniors/synthetic/seniors.json",
   "storage_key": "jsem-v-poradku:v1"

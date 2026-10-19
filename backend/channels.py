@@ -40,14 +40,16 @@ def send_whatsapp(body: str, live: bool) -> dict:
     return {"sid": m.sid, "live": True, "to": recipient.phone(), "status": m.status}
 
 
-def start_call(patient_id: str, live: bool) -> dict:
+def start_call(patient_id: str, live: bool, progress: bool = False) -> dict:
+    """progress: Twilio also reports initiated / ringing / in-progress to /twilio/call-status (the guided demo shows
+    them live); by default only the end of the call, as before."""
     if not live:
         return {"sid": None, "live": False, "to": None, "status": "simulated"}
     c = _client().calls.create(
         to=recipient.phone(), from_=settings.from_number,
         url=ctx.url(f"/twilio/voice/{patient_id}"),
         status_callback=ctx.url(f"/twilio/call-status/{patient_id}"),
-        status_callback_event=["completed"],
+        status_callback_event=["initiated", "ringing", "answered", "completed"] if progress else ["completed"],
     )
     return {"sid": c.sid, "live": True, "to": recipient.phone(), "status": c.status}
 

@@ -35,11 +35,21 @@ $error
   <input type="hidden" name="next" value="$next">
   <label>Přístupový kód<input name="code" autocomplete="off" autocapitalize="none" required value="$code"></label>
   <label>Telefon<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+420 601 234 567" required value="$phone"></label>
-  <label>E-mail<input name="email" type="email" autocomplete="email" required value="$email"></label>
+  <label>E-mail <span class="muted">$email_hint</span><input name="email" type="email" autocomplete="email" $email_required value="$email"></label>
   <button type="submit">Vstoupit do ukázky</button>
 </form>
 <p class="muted">$note</p>
 $back
 </main>
+<script>
+// ?code=… in the link (e.g. a QR code in the hall) prefills the access code; nothing else changes.
+(function () {
+  try {
+    var c = new URLSearchParams(location.search).get("code");
+    var el = document.querySelector('input[name="code"]');
+    if (c && el && !el.value) el.value = c;
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>

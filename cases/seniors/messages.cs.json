@@ -1,5 +1,5 @@
 {
- "_about": "Texts for seniors and their relatives (Czech). Warm, short, no exclamation marks, no dashes, no medical advice. Emergency: call 155, a person takes over. Placeholders (cases/seniors/hooks.py, web/domain.js): {name} = ', paní Nováková' / ', pane Nováku' (vocative, may be empty), {senior} = 'paní Marie Nováková', {worker} = social worker; core: {call_us} {link} {link_short}.",
+ "_about": "Texts for seniors and their relatives (Czech). Warm, short, polite Vy, no exclamation marks, no dashes, no medical advice, no threats. Emergency on the phone: the line stays open, a worker calls 155 (never 'zavěste a volejte 155'); in written texts the senior is told to call 155 in need. Crisis (does not want to live): warm handover + the crisis lines (sms CRISIS). Placeholders (cases/seniors/hooks.py extra_placeholders, web/domain.js): {name} = ', paní Nováková' / ', pane Nováku' (vocative, may be empty), {senior} = 'paní Marie Nováková', {worker} = social worker (fallback 'Vaše sociální pracovnice'), {relative} = the relative's name (may be empty), {crisis_lines} = the crisis phone lines; core: {call_us} {link} {link_short}.",
  "parts": {
   "call_us": " na tel. {phone}",
   "link": "\n\nOdpovědět můžete i zde: {url}",
@@ -15,54 +15,67 @@
   "portal": "email"
  },
  "sms": {
-  "FIRST_INVITE": "Dobrý den{name}, tady Jsem v pořádku, pravidelný kontakt od Vaší sociální služby. Je u Vás vše v pořádku? Odpovězte prosím ANO, nebo napište, co potřebujete.{link_short}",
-  "CHECKIN": "Dobrý den{name}, tady Jsem v pořádku. Jak se dnes máte? Odpovězte prosím ANO, když je vše v pořádku, nebo napište, co potřebujete. V nouzi volejte 155.{link_short}",
-  "RETRY": "Dobrý den{name}, zkoušeli jsme Vám dnes zavolat. Je u Vás vše v pořádku? Odpovězte prosím ANO, nebo napište, co potřebujete.{link_short}",
-  "RELATIVE": "Dobrý den, tady služba Jsem v pořádku. Dnes jsme se dvakrát nedovolali: {senior}. Můžete se prosím podívat, zda je vše v pořádku? Pokud ano, odpovězte ANO. Děkujeme.",
-  "WELCOME": "Dobrý den{name}, Vaše sociální služba Vás zapsala do pravidelných hovorů Jsem v pořádku. Budeme Vám volat podle domluvy. V nouzi volejte vždy 155.",
-  "TRIAL": "Dobry den, tady Jsem v poradku. Je u Vas vse v poradku? Odpovezte ANO, nebo napiste, co potrebujete."
+  "FIRST_INVITE": "Dobrý den{name}, tady pečovatelská služba, pravidelný kontakt, který Vám domluvila {worker}. Je u Vás vše v pořádku? Odpovězte prosím ANO, nebo napište, co potřebujete.{link_short}",
+  "CHECKIN": "Dobrý den{name}, tady pečovatelská služba. Jak se dnes cítíte? Odpovězte prosím ANO, když je vše v pořádku, nebo napište, co potřebujete. V nouzi volejte 155.{link_short}",
+  "RETRY": "Dobrý den{name}, tady pečovatelská služba. Zkoušeli jsme Vám dnes zavolat. Je u Vás vše v pořádku? Odpovězte prosím ANO, nebo napište, co potřebujete.{link_short}",
+  "RELATIVE": "Dobrý den, tady pečovatelská služba. Dnes jsme se dvakrát nedovolali: {senior}. Můžete se prosím podívat nebo zavolat, zda je vše v pořádku? Pokud ano, odpovězte ANO. Děkujeme.",
+  "EMERGENCY_RELATIVE": "Dobrý den, tady pečovatelská služba. Důležité: {senior} nám při dnešním hovoru řekl(a), že potřebuje okamžitou pomoc. Naše pracovnice {worker} právě volá záchranáře a hned se Vám ozve. Prosíme, buďte na telefonu.",
+  "CRISIS": "Dobrý den{name}, děkujeme, že jste s námi dnes mluvili. Naše pracovnice {worker} se Vám hned ozve. Kdykoli, ve dne i v noci, můžete zdarma zavolat: {crisis_lines}",
+  "PAUSED": "Dobrý den{name}, tady pečovatelská služba. Rozumíme, zatím Vám volat nebudeme. Až budete zase doma, dejte prosím vědět {worker}, a hovory obnovíme. Přejeme hezké dny.",
+  "WELCOME": "Dobrý den{name}, {worker} Vás zapsala do pravidelných hovorů pečovatelské služby. Budeme Vám volat podle domluvy. V nouzi volejte vždy 155.",
+  "TRIAL": "Dobry den, tady pecovatelska sluzba. Je u Vas vse v poradku? Odpovezte ANO, nebo napiste, co potrebujete."
  },
  "voice": {
-  "FIRST_INVITE": "Dobrý den{name}, tady Jsem v pořádku, pravidelný hovor od Vaší sociální služby. Jsem automatický asistent.\n\nJak se dnes máte? Pokud je všechno v pořádku, stiskněte 1 nebo řekněte v pořádku. Pokud něco potřebujete, stiskněte 2 nebo řekněte, co potřebujete.\n\nV nouzi volejte hned 155.",
-  "CHECKIN": "Dobrý den{name}, tady Jsem v pořádku, pravidelný hovor od Vaší sociální služby. Jsem automatický asistent.\n\nJak se dnes máte? Pokud je všechno v pořádku, stiskněte 1 nebo řekněte v pořádku. Pokud něco potřebujete, stiskněte 2 nebo řekněte, co potřebujete.\n\nV nouzi volejte hned 155.",
-  "RETRY": "Dobrý den{name}, tady znovu Jsem v pořádku. Před chvílí jsme Vám volali.\n\nJe u Vás všechno v pořádku? Pokud ano, stiskněte 1 nebo řekněte v pořádku. Pokud něco potřebujete, stiskněte 2 nebo řekněte, co potřebujete.\n\nV nouzi volejte hned 155.",
-  "RELATIVE": "Dobrý den, tady služba Jsem v pořádku. Dnes jsme se dvakrát nedovolali: {senior}.\n\nMůžete se prosím podívat, zda je vše v pořádku? Pokud ano, stiskněte 1. Děkujeme, na shledanou."
+  "FIRST_INVITE": "Dobrý den{name}, tady pečovatelská služba, pravidelný hovor, který Vám domluvila {worker}. Jsem automatická asistentka.\n\nJak se dnes cítíte? Řekněte mi to, nebo stiskněte jedničku, když je všechno v pořádku, a dvojku, když něco potřebujete.",
+  "CHECKIN": "Dobrý den{name}, tady pečovatelská služba, pravidelný hovor, který Vám domluvila {worker}. Jsem automatická asistentka.\n\nJak se dnes cítíte? Řekněte mi to, nebo stiskněte jedničku, když je všechno v pořádku, a dvojku, když něco potřebujete.",
+  "RETRY": "Dobrý den{name}, tady znovu pečovatelská služba. Před chvílí jsme Vám volali.\n\nJe u Vás všechno v pořádku? Řekněte mi to, nebo stiskněte jedničku, když je všechno v pořádku, a dvojku, když něco potřebujete.",
+  "RELATIVE": "Dobrý den, tady pečovatelská služba. Dnes jsme se dvakrát nedovolali: {senior}.\n\nMůžete se prosím podívat, zda je vše v pořádku? Pokud ano, stiskněte jedničku. Děkujeme, na shledanou.",
+  "EMERGENCY_RELATIVE": "Dobrý den, tady pečovatelská služba. Důležité: {senior} nám při dnešním hovoru řekl nebo řekla, že potřebuje okamžitou pomoc.\n\nNaše pracovnice {worker} právě volá záchranáře a hned se Vám ozve. Prosíme, buďte na telefonu. Děkujeme.",
+  "CRISIS": "Dobrý den{name}, tady pečovatelská služba. Děkujeme, že jste s námi dnes mluvili. Naše pracovnice {worker} se Vám hned ozve.\n\nKdykoli, ve dne i v noci, můžete zdarma zavolat: {crisis_lines}",
+  "PAUSED": "Dobrý den{name}, tady pečovatelská služba. Rozumíme, zatím Vám volat nebudeme. Až budete zase doma, dejte prosím vědět {worker}, a hovory obnovíme. Přejeme hezké dny, na shledanou."
  },
  "email": {
-  "FIRST_INVITE": "Dobrý den{name},\n\nVaše sociální služba Vám zajišťuje pravidelný kontakt Jsem v pořádku. Rádi bychom věděli, jak se máte a zda něco nepotřebujete.\n\nOdpovězte prosím na tento e-mail, nebo nám zavolejte{call_us}.{link}\n\nV nouzi volejte vždy hned 155.\n\nS pozdravem\nJsem v pořádku",
-  "CHECKIN": "Dobrý den{name},\n\njak se dnes máte? Pokud je vše v pořádku, stačí odpovědět ANO. Pokud něco potřebujete, například nákup, léky z lékárny nebo dopravu, napište nám to.{link}\n\nV nouzi volejte vždy hned 155.\n\nS pozdravem\nJsem v pořádku",
-  "RELATIVE": "Dobrý den,\n\npíšeme ze služby Jsem v pořádku, která pravidelně volá Vašemu blízkému. Dnes jsme se dvakrát nedovolali: {senior}.\n\nMůžete se prosím podívat, zda je vše v pořádku? Pokud ano, odpovězte prosím na tento e-mail. Pokud se nikomu nepodaří spojit, navštíví jej sociální pracovník.\n\nDěkujeme\nJsem v pořádku"
+  "FIRST_INVITE": "Dobrý den{name},\n\n{worker} Vám domluvila pravidelný kontakt pečovatelské služby. Rádi bychom věděli, jak se máte a zda něco nepotřebujete.\n\nOdpovězte prosím na tento e-mail, nebo nám zavolejte{call_us}.{link}\n\nV nouzi volejte vždy hned 155.\n\nS pozdravem\npečovatelská služba",
+  "CHECKIN": "Dobrý den{name},\n\njak se dnes cítíte? Pokud je vše v pořádku, stačí odpovědět ANO. Pokud něco potřebujete, například nákup, léky z lékárny nebo dopravu, napište nám to.{link}\n\nV nouzi volejte vždy hned 155.\n\nS pozdravem\npečovatelská služba",
+  "RELATIVE": "Dobrý den,\n\npíšeme z pečovatelské služby, která pravidelně volá Vašemu blízkému. Dnes jsme se dvakrát nedovolali: {senior}.\n\nMůžete se prosím podívat nebo zavolat, zda je vše v pořádku? Pokud ano, odpovězte prosím na tento e-mail. Pokud se nikomu nepodaří spojit, zítra ráno jej navštíví sociální pracovnice.\n\nDěkujeme\npečovatelská služba",
+  "EMERGENCY_RELATIVE": "Dobrý den,\n\npíšeme z pečovatelské služby. Důležité: {senior} nám při dnešním hovoru řekl(a), že potřebuje okamžitou pomoc. Naše pracovnice {worker} právě volá záchranáře a hned se Vám ozve telefonem.\n\nProsíme, buďte na telefonu.\n\npečovatelská služba",
+  "CRISIS": "Dobrý den{name},\n\nděkujeme, že jste s námi dnes mluvili. Naše pracovnice {worker} se Vám hned ozve.\n\nKdykoli, ve dne i v noci, můžete zdarma zavolat: {crisis_lines}\n\nS pozdravem\npečovatelská služba",
+  "PAUSED": "Dobrý den{name},\n\nrozumíme, zatím Vám volat nebudeme. Až budete zase doma, dejte prosím vědět {worker}, a hovory obnovíme.\n\nPřejeme hezké dny\npečovatelská služba"
  },
  "sms_reply": {
   "ok": "Děkujeme, to rádi slyšíme. Ozveme se zase příště.",
-  "needs_help": "Děkujeme. Vaše přání předáme sociální službě a ozveme se Vám.",
+  "needs_help": "Děkujeme. Vaše přání předáme pečovatelské službě a ozveme se Vám.",
   "low_mood": "Děkujeme, že jste nám to napsali. Brzy se Vám ozve někdo z naší služby.",
-  "escalated": "Děkujeme. Hned to předáváme pracovníkovi, který se Vám ozve. Pokud jde o život nebo zdraví, volejte prosím hned 155.",
+  "escalated": "Děkujeme. Hned to předáváme pracovnici, která se Vám ozve. Pokud jde o život nebo zdraví, volejte prosím hned 155. Kdykoli můžete zdarma zavolat i Linku seniorů 800 200 007.",
   "callback": "Děkujeme. Zavoláme Vám znovu.",
+  "paused": "Rozumíme, zatím Vám volat nebudeme. Až budete zase doma, dejte prosím vědět, a hovory obnovíme.",
   "declined": "Rozumíme. Další hovory Vám volat nebudeme. Děkujeme."
  },
- "sender": "Jsem v pořádku",
- "email_subject": "Jak se máte?",
+ "sender": "Pečovatelská služba",
+ "email_subject": "Jak se dnes cítíte?",
  "voice_ui": {
-  "_about": "Fixed sentences of the keys-1/2 call (backend/app.py, channels.py).",
-  "no_answer": "Neslyšeli jsme odpověď. Zavoláme Vám znovu. V nouzi volejte 155. Na shledanou.",
+  "_about": "Fixed sentences of the keys-1/2 call (backend/app.py, channels.py). thanks is keyed by the stage the answer led to, so escalated covers emergency, a new health problem and a request for a person: the line stays open, a worker takes over.",
+  "no_answer": "Neslyšeli jsme odpověď. Zavoláme Vám znovu za hodinu. V nouzi volejte 155. Na shledanou.",
   "no_digit": "Děkujeme. Zavoláme Vám zase příště. V nouzi volejte 155. Na shledanou.",
   "follow_up": "Potřebujete ještě něco?",
+  "recap_fix": "Co mám opravit?",
   "thanks": {
-   "ok": "To rádi slyšíme. Zavoláme zase příště. Na shledanou.",
-   "needs_help": "Děkujeme. Předáme to sociální službě a ozveme se Vám. Na shledanou.",
-   "low_mood": "Děkujeme, že jste nám to řekli. Brzy se Vám ozve někdo z naší služby. Na shledanou.",
-   "escalated": "Prosím zavěste a hned volejte 155. Zároveň to předáváme pracovníkovi, který se Vám ozve.",
-   "callback": "Dobře, zavoláme Vám později. Na shledanou."
+   "ok": "To ráda slyším. Děkuji Vám a zavolám zase příště, podle naší domluvy. Mějte se hezky, na shledanou.",
+   "needs_help": "Děkuji. Předám to pečovatelské službě a ozveme se Vám. Mějte se hezky, na shledanou.",
+   "low_mood": "Děkuji, že jste mi to řekli. Brzy se Vám ozve někdo z naší služby. Držte se, na shledanou.",
+   "escalated": "Zůstaňte prosím na telefonu, nezavěšujte. Předávám Vás pracovnici, která se o vše postará a v případě ohrožení Vám hned zavolá záchrannou službu.",
+   "callback": "Dobře, zavolám Vám později. Na shledanou.",
+   "paused": "Rozumím, zatím Vám volat nebudeme a pak se zase ozveme. Přeji hezké dny, na shledanou.",
+   "declined": "Rozumím, další hovory Vám volat nebudeme. Kdybyste si to rozmysleli, stačí říct Vaší sociální pracovnici. Na shledanou."
   }
  },
  "page": {
   "_about": "Personal reply page /p/{token} (backend/app.py). Never shows personal data. answers: button value → journey event, intent, thank-you text (HTML).",
-  "invalid": "<h1>Odkaz už neplatí</h1><p>Pokud něco potřebujete, obraťte se prosím na svou sociální službu. V nouzi volejte 155.</p>",
-  "head": "<p class=\"muted\">Jsem v pořádku</p>\n<h1>Jak se dnes máte?</h1>\n<p>Vyberte prosím jednu možnost. Odpověď uvidí jen Vaše sociální služba.</p>",
+  "invalid": "<h1>Odkaz už neplatí</h1><p>Pokud něco potřebujete, obraťte se prosím na svou sociální pracovnici. V nouzi volejte 155.</p>",
+  "head": "<p class=\"muted\">Pečovatelská služba</p>\n<h1>Jak se dnes máte?</h1>\n<p>Vyberte prosím jednu možnost. Odpověď uvidí jen Vaše sociální pracovnice.</p>",
   "foot": "<p class=\"muted\">V nouzi volejte vždy hned 155.</p>",
   "thanks_title": "Děkujeme",
-  "title": "Jsem v pořádku",
+  "title": "Pečovatelská služba",
   "answers": [
    {
     "value": "ok",
@@ -77,7 +90,7 @@
     "label": "Potřebuji pomoct, například s nákupem nebo léky",
     "event": "need_items",
     "intent": "need_items",
-    "thanks": "Děkujeme. Sociální služba se Vám ozve a domluví, s čím pomůže."
+    "thanks": "Děkujeme. Pečovatelská služba se Vám ozve a domluví, s čím pomůže."
    },
    {
     "value": "low",
@@ -91,7 +104,7 @@
     "label": "Je mi zle, potřebuji pomoc hned",
     "event": "emergency",
     "intent": "emergency",
-    "thanks": "<b>Prosím hned volejte 155.</b> Zároveň jsme to předali pracovníkovi, který se Vám ozve."
+    "thanks": "<b>Pokud jde o život nebo zdraví, volejte prosím hned 155.</b> Zároveň jsme to předali pracovnici, která se Vám hned ozve."
    },
    {
     "value": "callback",
@@ -106,7 +119,7 @@
     "class": "quiet",
     "event": "opt_out",
     "intent": "opt_out",
-    "thanks": "Rozumíme. Další hovory Vám volat nebudeme. Pokud si to rozmyslíte, ozvěte se své sociální službě."
+    "thanks": "Rozumíme. Další hovory Vám volat nebudeme. Pokud si to rozmyslíte, ozvěte se své sociální pracovnici."
    }
   ]
  },
@@ -143,7 +156,7 @@
   "steps": {
    "checkin": {
     "title": "Pravidelný hovor",
-    "look": "Zvedněte telefon. Řekněte třeba: Došly mi léky. Nebo stiskněte 2."
+    "look": "Zvedněte telefon a odpovězte vlastními slovy. Řekněte třeba: Ujde to, ale došly mi léky. Na konci asistentka zopakuje, co slyšela."
    },
    "basket": {
     "title": "Potřeby v košíku",
@@ -159,11 +172,11 @@
    },
    "visit": {
     "title": "Návštěva sociálního pracovníka",
-    "look": "Nikdo se neozval, a tak aplikace naplánovala návštěvu. Je v pohledu Dnes."
+    "look": "Ani třetí hovor nikdo nezvedl, a tak aplikace naplánovala návštěvu. Je v pohledu Dnes."
    },
    "emergency": {
     "title": "Tíseň",
-    "look": "Kdyby senior řekl například: Upadla jsem a nemůžu vstát, asistent hned řekne, ať volá 155, a předá to pracovníkovi."
+    "look": "Když senior řekne: Upadla jsem a nemůžu vstát, asistentka drží linku, řekne mu, ať nezavěšuje, a pracovnice volá 155."
    }
   }
  },

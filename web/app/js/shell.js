@@ -7,11 +7,13 @@ import { api } from "./api.js";
 import { loadMessages, message, section } from "./messages.js";
 import { loadJourney, refusals, softEvent } from "./fsm.js";
 import { card } from "./components/card.js";
+import { setVoice } from "./components/comm.js";
 import { demoPanel } from "./components/demo.js";
 import { scenarioBlock } from "./components/scenario.js";
 import { toast, hideToast } from "./components/toast.js";
 
 const POLL_MS = 3000;
+const POLL_FAST_MS = 1000; // while a step of the guided demo waits for the visitor's answer (a call in progress)
 const ui = { view: VIEWS[0].id, gp: CASE.group?.default ?? null, filter: "all", composing: null, chosenChannel: null, demoReplies: false, open: null };
 let data;
 let backend = null; // {mode, ai} when served by the backend; null = static page with local simulation
@@ -40,7 +42,8 @@ function render() {
   const a = document.activeElement; // keep keyboard focus inside the card across re-renders (polling, outbox load)
   const keep = a && a.closest && a.closest("#card") ? a.id || "card-title" : ui.focusCard ? "card-title" : null;
   ui.focusCard = false;
-  $("card").innerHTML = open ? card(open, { ...rowCtx.of(open), owner: dom.ownerOf(open, today(), data.live?.plans), lost: dom.lostOf(open, today(), data.live?.plans) }) : "";
+  $("card").innerHTML = open ? card(open, { ...rowCtx.of(open), owner: dom.ownerOf(open, today(), data.live?.plans), lost: dom.lostOf(open, today(), data.live?.plans),
+    scenario: data.live?.scenario?.running ? data.live.scenario : null }) : "";
   document.body.classList.toggle("has-card", !!open);
   if (open && keep) document.getElementById(keep)?.focus();
   footer();
@@ -51,7 +54,8 @@ function renderDemo() {
   const typing = document.activeElement?.closest?.("#demo") && document.activeElement.matches("input[type=tel], input[type=email]");
   if (typing) return; // keep what is being typed
   const sc = data.live?.scenario;
-  const scenario = backend ? scenarioBlock(sc, section("scenario"), { link: sc && data.live.links[sc.pid], mock: backend.mode !== "live" }) : "";
+  const who = (id) => { const p = id && find(id); return p ? T.who(p) : ""; }; // name of a record a step acted on
+  const scenario = backend ? scenarioBlock(sc, section("scenario"), { link: sc && data.live.links[sc.pid], mock: backend.mode !== "live", who }) : "";
   $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir, hall: !!CASE.features?.hall, recipient, recipientError: ui.recipientError, scenario });
 }
 
@@ -76,25 +80,63 @@ async function loadOutbox(id) {
 const today = () => data.live?.clock || data.refDate;
 
 let scnSeen = "";
+let scnShown = null; // index of the last guided-demo step whose presentation (view, card) the shell applied; null = not yet seen
 
 /** The guided demo's persona is a record of this visitor only: it comes with the state, not with the data file. */
 function personas(list = []) {
   data.patients = [...list, ...data.patients.filter((p) => !p.demo)];
 }
 
+/** Open a record's card (the row click and the guided demo). */
+function openCard(id) {
+  if (!find(id)) return;
+  ui.open = id; ui.composing = null;
+  try { history.pushState({ card: id }, ""); } catch { /* sandboxed preview */ }
+  ui.focusCard = true;
+}
+
+/** A step of the guided demo may say where to look: "view" (a view of the case), "card" (true = the persona's card,
+ *  false = close it, "other" = the record the step acted on). Applied once, when the step has started. */
+function presentScenario(sc) {
+  if (!sc?.steps) { scnShown = null; return false; }
+  let last = -1;
+  sc.steps.forEach((s, i) => { if (s.status !== "pending") last = i; });
+  if (scnShown === null) { scnShown = last; return false; } // a reload in the middle: show nothing twice
+  if (last <= scnShown) return false;
+  scnShown = last;
+  const step = sc.steps[last];
+  let changed = false;
+  if (step.view && VIEWS.some((v) => v.id === step.view) && ui.view !== step.view) { ui.view = step.view; window.scrollTo(0, 0); changed = true; }
+  const target = step.card === true ? sc.pid : step.card === "other" ? step.who : null;
+  if (target && ui.open !== target && find(target)) { openCard(target); changed = true; }
+  else if (step.card === false && ui.open) { ui.open = null; ui.composing = null; changed = true; }
+  return changed;
+}
+
 async function pull() {
   const s = await api.state();
   const scn = JSON.stringify(s.scenario || null);
   if (s.version === seen && data.live?.clock === s.clock) {
-    if (scn !== scnSeen && data.live) { scnSeen = scn; data.live.scenario = s.scenario; renderDemo(); } // countdown only
+    if (scn !== scnSeen && data.live) { // countdown only, unless a step started and says where to look
+      scnSeen = scn; data.live.scenario = s.scenario;
+      if (presentScenario(s.scenario)) { await loadOutbox(ui.open); return true; }
+      renderDemo();
+    }
     return false;
   }
   seen = s.version; scnSeen = scn;
   store.merge(s.decisions);
   personas(s.personas);
   data.live = { clock: s.clock, plans: s.plans || {}, links: s.links || {}, scenario: s.scenario };
+  presentScenario(s.scenario);
   if (ui.open) await loadOutbox(ui.open); // delivery and replies of the open patient stay current
   return true;
+}
+
+/** Poll faster while the guided demo waits for the visitor (a call rings, runs or is being analysed). */
+function pollDelay() {
+  const sc = data.live?.scenario;
+  return sc?.running && sc.steps?.[sc.step]?.status === "waiting" ? POLL_FAST_MS : POLL_MS;
 }
 
 /** Send invitations: through the backend when present (real SMS/calls), otherwise recorded locally. */
@@ -113,7 +155,7 @@ async function mark(id, field, value) {
 /** Journey step or patient reply: the backend runs the same logic as a real webhook. */
 async function step(id, body) {
   if (!backend) {
-    return body.text ? store.step(id, body.reply, today(), { via: "ui", text: body.text }) : store.step(id, body.stage, today(), body.result ? { result: body.result, via: "ui" } : { via: "ui" });
+    return body.text ? store.step(id, body.reply, today(), { via: body.sim ? "sim" : "ui", text: body.text }) : store.step(id, body.stage, today(), body.result ? { result: body.result, via: "ui" } : { via: "ui" });
   }
   await api.step({ id, date: today(), ...body });
   await pull();
@@ -124,9 +166,7 @@ const actions = {
   "pick-filter": (el) => { ui.filter = el.dataset.filter; ui.composing = null; },
   "open-compose": (el) => { ui.composing = el.dataset.id; ui.chosenChannel = null; },
   "open-card": async (el) => {
-    ui.open = el.dataset.id; ui.composing = null;
-    try { history.pushState({ card: ui.open }, ""); } catch { /* sandboxed preview */ }
-    ui.focusCard = true; render(); await loadOutbox(ui.open);
+    openCard(el.dataset.id); render(); await loadOutbox(ui.open);
   },
   "close-card": (el, e) => closeCard(),
   "pick-channel": (el) => { ui.chosenChannel = el.dataset.channel; },
@@ -157,10 +197,10 @@ const actions = {
   },
   skip: async (el) => { await mark(el.dataset.id, "skipped", true); toast(T.toast.skipped, { undo: !backend }); },
   unskip: async (el) => { await mark(el.dataset.id, "skipped", false); toast(T.toast.unskipped, { undo: !backend }); },
-  // Simulated patient reply; with the backend the sample text goes through the real reply understanding.
+  // Simulated patient reply (via "sim", not an operator's note); with the backend the sample text goes through the real reply understanding.
   reply: async (el) => {
     const r = el.dataset.reply;
-    await step(el.dataset.id, { reply: r, text: T.demo.replyText[r] });
+    await step(el.dataset.id, { reply: r, text: T.demo.replyText[r], sim: true });
     toast(T.toast.reply(T.demo.reply[r]), { undo: !backend });
   },
   step: async (el) => {
@@ -189,13 +229,14 @@ const actions = {
   undo: () => { store.undo(); hideToast(); },
   "scenario-start": async () => {
     await api.scenarioStart();
-    seen = -1; await pull();
+    seen = -1; scnShown = -1; await pull();
     const p = find(data.live.scenario?.pid);
     if (p && CASE.group) ui.gp = p[CASE.group.field]; // the persona's group, so its row is in every view
+    if (p && !ui.open) { openCard(p.id); await loadOutbox(p.id); } // the visitor watches their own card from the first call
     $("demo").open = true;
   },
   "scenario-next": async () => { await api.scenarioNext(); seen = -1; await pull(); },
-  "scenario-reset": async () => { await api.scenarioReset(); seen = -1; await pull(); if (ui.open && !find(ui.open)) closeCard(); },
+  "scenario-reset": async () => { await api.scenarioReset(); seen = -1; scnShown = -1; await pull(); if (ui.open && !find(ui.open)) closeCard(); },
   reset: async () => { if (backend) await api.reset(); store.reset(); seen = -1; if (backend) await pull(); hideToast(); },
   "open-practice": (el) => { ui.gp = el.dataset.gp; ui.view = VIEWS[0].id; window.scrollTo(0, 0); },
 };
@@ -238,6 +279,7 @@ async function init() {
   }
   backend = await api.health();
   if (backend) recipient = await api.recipient().catch(() => null); // where live demo messages go
+  setVoice({ mode: backend?.voiceMode, greeting: backend?.agentGreeting }); // what a live call really says (agent mode)
   await loadMessages({ withLink: !!backend, trial: !!backend?.trial });
   await loadJourney(contentUrl("journey.json"));
   $("brand").textContent = CASE.brand;
@@ -268,7 +310,9 @@ async function init() {
     await pull().catch(() => {});
     if (data.live?.scenario?.running) $("demo").open = true; // the guided demo goes on after a reload
     // Replies arrive by webhook at any time: refresh, but never while the nurse is editing a message.
-    setInterval(() => pull().then((changed) => changed && !ui.composing && !busy && render()).catch(() => {}), POLL_MS);
+    const tick = () => pull().then((changed) => changed && !ui.composing && !busy && render()).catch(() => {})
+      .finally(() => setTimeout(tick, pollDelay()));
+    setTimeout(tick, pollDelay());
   }
   render();
 }

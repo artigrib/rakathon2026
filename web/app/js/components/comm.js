@@ -9,7 +9,13 @@ const C = T.comm;
 const D = T.detail;
 const ch = (c) => T.channel[c] || c || "";
 const hhmm = (ts) => (ts && ts.length > 10 ? ts.slice(11, 16) : "");
-const VIA = { sms: "sms", voice: "voice", "voice-ai": "voice", whatsapp: "whatsapp" }; // link and ui: said in the title
+const VIA = { sms: "sms", voice: "voice", "voice-ai": "voice", whatsapp: "whatsapp" }; // link, ui, sim: said in the title
+const SIM = "simulovaná odpověď"; // via "sim" (the demo panel, the guided demo); a case overrides it with T.comm.via.sim
+const viaLabel = (v) => C.via[v] ?? (v === "sim" ? SIM : "");
+let VOICE = {}; // {mode, greeting}: how a live call is held (gather = the stored script; agent = the agent's first sentence)
+export const setVoice = (v) => { VOICE = v || {}; };
+/** What a live call really said: in agent mode the agent's greeting (the keys-1/2 script was never read out). */
+const callText = (m) => (m.channel === "voice" && m.live && VOICE.mode === "agent" && VOICE.greeting ? VOICE.greeting : m.text);
 
 /** The whole call as a dialogue (turns [{who: bot|user, text}] stored with a voice reply). */
 export function dialogue(turns, open = false) {
@@ -39,7 +45,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
   for (const m of outbox || []) {
     const st = m.live ? (C.status[m.status] || m.status) : C.simulated;
     items.push({ date: m.day || (m.ts || "").slice(0, 10), time: hhmm(m.ts), actor: m.auto ? "system" : "nurse", channel: m.channel,
-      title: m.auto ? C.autoSent(m.step) : C.sent, bodyText: m.text, textLabel: m.channel === "voice" ? C.showScript : C.showText, status: st + (m.duration ? `, ${C.duration(m.duration)}` : ""), fail: ["failed", "undelivered", "no-answer", "busy"].includes(m.status) });
+      title: m.auto ? C.autoSent(m.step) : C.sent, bodyText: callText(m), textLabel: m.channel === "voice" ? C.showScript : C.showText, status: st + (m.duration ? `, ${C.duration(m.duration)}` : ""), fail: ["failed", "undelivered", "no-answer", "busy"].includes(m.status) });
   }
   for (const e of d.journey || []) {
     const isSend = e.stage === CASE.sent_stage && (!e.event || e.event === "send"); // not a reply that keeps the stage
@@ -57,7 +63,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
     if (e.event === "booked" && !e.text && e.via === "ui") label = T.state.booked(p);
     items.push({
       date: e.date, actor, channel: reply ? VIA[e.via] : null,
-      title: reply ? C.replied(C.via[e.via] || "", p) : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
+      title: reply ? C.replied(viaLabel(e.via), p) : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
       quote: reply ? e.text : null,
       transcript: reply ? e.transcript : null,
       summary: reply ? e.summary : null, confirmed: e.confirmed,

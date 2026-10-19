@@ -8,6 +8,7 @@ The case defaults to env CASE, else screening. The agent may only say the approv
 improvises; anything else goes to a human. The result of the call comes back as data collection field `decision`
 (+ `preferred_time`, the case's AGENT_DATA fields,
 `summary` (case override: dialog.AGENT_SUMMARY) and `recap_confirmed`), which the backend turns into a journey event (backend/agent_call.py).
+Voice settings: dialog.AGENT_TTS (optional dict, e.g. {"speed": 0.9, "voice_id": …}) is merged over the default tts config.
 """
 import argparse
 import importlib
@@ -58,8 +59,9 @@ def config(case: str = "") -> dict:
                 "prompt": {"prompt": d.agent_prompt(), "llm": "gemini-2.0-flash", "temperature": 0.0,
                            "tools": [{"type": "system", "name": "end_call", "description": "Ukonči hovor po závěrečné větě."}]},
             },
+            # a case may override voice settings (e.g. seniors: slower, a Czech-native voice) with dialog.AGENT_TTS
             "tts": {"voice_id": VOICE, "model_id": "eleven_flash_v2_5", "agent_output_audio_format": "ulaw_8000",
-                    "stability": 0.6, "similarity_boost": 0.75, "speed": 0.95},
+                    "stability": 0.6, "similarity_boost": 0.75, "speed": 0.95, **getattr(d, "AGENT_TTS", {})},
             "asr": {"user_input_audio_format": "ulaw_8000", "quality": "high"},
             "turn": {"turn_timeout": 10, "turn_eagerness": "normal", "speculative_turn": True, "silence_end_call_timeout": 20,
                      "transcribe_on_disabled_interruptions": True},   # words said over the greeting still reach the transcript

@@ -3,12 +3,15 @@
 import { T } from "./i18n.js";
 import { fmtDate } from "core/util.js";
 import { btn, stepBtn } from "core/components/row.js";
-import { alertOf, callsOf, dueToday, itemLabel, lastAnswered, latestMood, openNeeds, plannedContact, stageDate, stageOf } from "./domain.js";
+import { allowed } from "core/fsm.js";
+import { alertOf, callsOf, dueToday, itemLabel, lastAnswered, latestMood, missedStreak, openNeeds, plannedContact, stageDate, stageOf } from "./domain.js";
 
 const S = T.state;
 const A = T.actions;
 let current = null; // stage of the row being drawn: only events the state machine allows get a button
 const step = (id, ev, label, kind = "", extra = "") => stepBtn(current, id, ev, label, kind, extra);
+// "Vyřešeno" is the case action "resolve" (actions.js): the journey event plus closing the senior's open needs in the basket.
+const resolve = (id, kind = "") => (allowed(current, "resolve") ? btn(A.resolve, `data-action="resolve" data-id="${id}"`, kind) : "");
 
 export const rowClass = (p, d) => (d.skipped && dueToday(p) ? " row--skipped" : "");
 
@@ -32,7 +35,7 @@ export function stateLine(p, d, plan) {
     }
     case "escalated": {
       const why = alertOf(p);
-      const title = why === "emergency" ? S.emergency : why === "health" ? S.health : why === "visit" ? S.visit(p) : S.escalated;
+      const title = why === "emergency" ? S.emergency : why === "health" ? S.health : why === "visit" ? S.visit(p, missedStreak(p)) : S.escalated;
       return { title, sub: why === "visit" || why === "escalate" ? fmtDate(stageDate(p)) : [quote(last), when(last)].filter(Boolean).join(" ") };
     }
     case "low_mood": return { title: S.lowMood(last?.mood), sub: [quote(last), when(last)].filter(Boolean).join(" ") };
@@ -67,11 +70,11 @@ export function actions(p, d) {
   const today = dueToday(p) ? (d.skipped ? btn(A.unskip, `data-action="unskip" data-id="${id}"`, "link")
     : btn(A.call, `data-action="open-compose" data-id="${id}"`) + btn(A.skip, `data-action="skip" data-id="${id}"`, "link")) : "";
   switch (stage) {
-    case "escalated": return step(id, "resolve", A.resolve, "primary");
-    case "low_mood": return step(id, "escalate", A.escalate, "primary") + step(id, "resolve", A.resolve, "link");
+    case "escalated": return resolve(id, "primary");
+    case "low_mood": return step(id, "escalate", A.escalate, "primary") + resolve(id, "link");
     // today's call of these goes out with the batch; the row keeps only the one decision that is specific to it
-    case "needs_help": return btn(A.basket, `data-action="pick-view" data-view="basket"`) + step(id, "resolve", A.resolve, "link");
-    case "callback": return btn(A.call, `data-action="open-compose" data-id="${id}"`, "primary") + step(id, "resolve", A.resolve, "link");
+    case "needs_help": return btn(A.basket, `data-action="pick-view" data-view="basket"`) + resolve(id, "link");
+    case "callback": return btn(A.call, `data-action="open-compose" data-id="${id}"`, "primary") + resolve(id, "link");
     case "no_answer": return step(id, "visit", A.visit) + step(id, "ok", A.reached, "link");
     case "paused": return step(id, "resume", A.resume, "link");
     case "declined": return step(id, "enroll", A.enroll, "link");

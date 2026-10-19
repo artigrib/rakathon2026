@@ -185,7 +185,8 @@ def test_data_shape(cid):
         assert all(m["group"]["field"] in p for p in d["patients"])
 
 
-SCENARIO_STEP_KEYS = {"id", "after", "do", "wait", "timeout", "fallback", "if_stage", "optional"}
+SCENARIO_STEP_KEYS = {"id", "after", "do", "wait", "timeout", "fallback", "if_stage", "optional",
+                      "view", "card", "text", "while_waiting"}  # the last four: presentation hints (backend/scenario.py PRESENT)
 SCENARIO_UI = {"title", "intro", "start", "next", "reset", "restart", "openCard", "openLink", "unavailable", "mock",
                "finished", "now", "left", "status", "note", "steps"}
 SCENARIO_STATUS = {"pending", "active", "waiting", "done", "simulated", "noreply", "skipped"}
@@ -227,12 +228,22 @@ def test_scenario(cid):
             assert set(a["tick_until"]) <= states and int(a.get("max", 14)) > 0
         if "reply" in a:
             assert isinstance(a["reply"], str) and a["reply"]
+            assert set(a) <= {"reply", "who"}, f"{where}: a reply has only reply and who"
+            assert a.get("who", "other") == "other" or isinstance(a["who"], str), where  # another record of the visitor's set
         if "patch" in a:
             assert isinstance(a["patch"], dict)
 
     for s in steps:
         w = f"{cid}:{s['id']}"
         assert set(s) <= SCENARIO_STEP_KEYS, f"{w}: unknown keys {set(s) - SCENARIO_STEP_KEYS}"
+        if "view" in s:
+            assert s["view"] in {v["id"] for v in m["views"]}, f"{w}: unknown view {s['view']}"
+        if "card" in s:
+            assert s["card"] in (True, False, "other"), w
+        if "while_waiting" in s:
+            assert "wait" in s and set(s["while_waiting"]) <= {"title", "text", "bullets"}, w
+        for t in _strings([s.get("text", ""), s.get("while_waiting", {})]):
+            assert "!" not in t, t
         for a in s.get("do", []):
             action(a, w)
         fb = s.get("fallback")

@@ -6,7 +6,17 @@ visitor, a staff event, the demo clock), then waits for the visitor (a reply by 
 the personal page, a case field such as `verified`) or for `timeout` seconds; then its `fallback` runs, so the demo
 never stalls. The web app polls /api/state, which moves the scenario on (poll); "Další krok" forces the current step.
 
-The core runs the actions through `ops` (backend/app.py): send, event, allowed, reply, tick, patch, stage, today."""
+A step's live call (Twilio) is followed through the outbox entry it created: while the call rings, runs or is being
+analysed (ElevenLabs agent outcome) the wait does not time out (up to HARD_WAIT); when the call ends without a
+conversation (no answer, busy, failed, hung up without a word) the fallback runs at once.
+
+A step may also carry presentation hints for the web app (PRESENT): "view" (switch to this view of the case),
+"card" (true = open the persona's card, false = close it, "other" = the record the step acted on), "text" (extra
+paragraph), "while_waiting" ({text, bullets} shown while the step waits). A reply action may target another record of
+the visitor's set: {"reply": "…", "who": "other" | "<record id>"} (the persona's story stays clean).
+
+The core runs the actions through `ops` (backend/app.py): send, event, allowed, reply, tick, patch, stage, today,
+other, call."""
 import json
 import logging
 import threading
@@ -20,7 +30,10 @@ SPEC = json.loads(_FILE.read_text(encoding="utf-8")) if _FILE.exists() else None
 STEPS = SPEC["steps"] if SPEC else []
 ACTIONS = ("send", "event", "reply", "tick", "tick_until", "patch")
 WAITS = ("reply", "stages", "field")
+PRESENT = ("view", "card", "text", "while_waiting")   # step keys passed through to the web app as they are
 DEFAULT_TIMEOUT = 60
+HARD_WAIT = 300          # a live call in progress suspends the timeout, but never longer than this
+CALL_FINAL = ("completed", "no-answer", "busy", "failed", "canceled")
 _locks: dict = {}
 _log = logging.getLogger("uvicorn.error")
 
@@ -52,10 +65,13 @@ def _lock(st) -> threading.Lock:
 
 
 def clear(st):
-    """Remove the persona and everything that happened to it (scenario reset)."""
-    st.data.pop("scenario", None)
+    """Remove the persona and everything that happened to it (scenario reset), and what the scenario did to other
+    records of the visitor's set ("who": "other")."""
+    sc = st.data.pop("scenario", None) or {}
     st.data.pop("personas", None)
     st.data["decisions"].pop(PID, None)
+    for pid in sc.get("others", []):
+        st.data["decisions"].pop(pid, None)
     st.data["tokens"] = {t: p for t, p in st.data.get("tokens", {}).items() if p != PID}
     st.data["outbox"] = [m for m in st.data["outbox"] if m.get("patient") != PID]
 
@@ -65,7 +81,8 @@ def start(st, visitor: dict, ops):
         clear(st)
         now = time.time()
         st.data["personas"] = {PID: persona(visitor)}
-        st.data["scenario"] = {"at": now, "step": 0, "steps": [{"id": s["id"], "status": "pending", "since": now} for s in STEPS]}
+        st.data["scenario"] = {"at": now, "step": 0, "others": [],
+                               "steps": [{"id": s["id"], "status": "pending", "since": now} for s in STEPS]}
         st._save()
     poll(st, ops)
 
@@ -77,8 +94,11 @@ def reset(st):
 
 
 def _replies(st, mark: int, vias=None) -> list:
+    """Replies of the persona since `mark`. A call that connected but nobody said a word (empty text of a voice reply)
+    is not an answer: the step falls back as if the call was not answered."""
     new = st.get(PID).get("journey", [])[mark:]
-    return [e for e in new if e.get("intent") and not e.get("ignored") and (vias is None or e.get("via") in vias)]
+    return [e for e in new if e.get("intent") and not e.get("ignored") and (vias is None or e.get("via") in vias)
+            and (e.get("text") or not str(e.get("via") or "").startswith("voice"))]
 
 
 def _met(wait: dict, s: dict, st) -> bool:
@@ -91,13 +111,35 @@ def _met(wait: dict, s: dict, st) -> bool:
     return bool(wait.get("field") and d.get(wait["field"]))
 
 
-def _act(a: dict, s: dict, ops) -> bool:
+def _call(s: dict, ops) -> dict | None:
+    """The outbox entry of the step's live call ({status, analysing, …}) or None."""
+    sid = s.get("sid")
+    return ops.call(sid) if sid else None
+
+
+def call_state(entry: dict | None) -> str | None:
+    """dialing | in_progress | analysing | over | None (no live call)."""
+    if not entry:
+        return None
+    if entry.get("analysing"):
+        return "analysing"
+    st = entry.get("status")
+    if st in CALL_FINAL:
+        return "over"
+    if st == "in-progress":
+        return "in_progress"
+    return "dialing"
+
+
+def _act(a: dict, s: dict, sc: dict, ops) -> bool:
     """One action; False = the state machine does not allow it now (the step is skipped)."""
     if "send" in a:
         r = ops.send(PID, a["send"], a.get("variant", "FIRST_INVITE"), live=not a.get("simulate"), delivery=a.get("delivery"))
         s["live"] = bool(r.get("live")) or s.get("live", False)
         if r.get("status") in ("daily_limit", "failed"):
             s["note"] = r["status"]
+        if r.get("live") and r.get("sid") and a["send"] == "voice":
+            s["sid"] = r["sid"]  # the call is followed through its outbox entry (call_state)
         return r.get("status") != "not_allowed"
     if "event" in a:
         if not ops.allowed(PID, a["event"]):
@@ -105,7 +147,15 @@ def _act(a: dict, s: dict, ops) -> bool:
         ops.event(PID, a["event"], **{k: v for k, v in a.items() if k != "event"})
         return True
     if "reply" in a:
-        ops.reply(PID, a["reply"])
+        pid = PID
+        if a.get("who"):
+            pid = ops.other(PID, a["who"])
+            if not pid:
+                return False
+            s["who"] = pid
+            if pid not in sc.setdefault("others", []):
+                sc["others"].append(pid)
+        ops.reply(pid, a["reply"])
         return True
     if "tick" in a:
         ops.tick(int(a["tick"]))
@@ -122,26 +172,40 @@ def _act(a: dict, s: dict, ops) -> bool:
     raise ValueError(f"unknown scenario action {a}")
 
 
-def _begin(spec: dict, s: dict, st, ops, now: float):
+def _begin(spec: dict, s: dict, sc: dict, st, ops, now: float):
     s.update(at=now, mark=len(st.get(PID).get("journey", [])), status="active")
     if "if_stage" in spec and ops.stage(PID) not in spec["if_stage"]:
         s["status"] = "skipped"
         return
     st._save()  # marked active before anything goes out: a step never runs twice
     for a in spec.get("do", []):
-        if not _act(a, s, ops):
+        if not _act(a, s, sc, ops):
             s["status"] = "skipped"
             return
     s["status"] = "waiting" if spec.get("wait") else "done"
 
 
-def _fallback(spec: dict, s: dict, ops) -> str:
+def _fallback(spec: dict, s: dict, sc: dict, ops) -> str:
     fb = spec.get("fallback")
     if not fb:  # nobody answered in time; "optional": only something to look at, not a question
         return "done" if spec.get("optional") else "noreply"
     for a in fb if isinstance(fb, list) else [fb]:
-        _act(a, s, ops)
+        _act(a, s, sc, ops)
     return "simulated"
+
+
+def _give_up(spec: dict, s: dict, ops, now: float) -> bool:
+    """Stop waiting: the step's call ended without an answer, or the timeout passed (suspended while the call rings,
+    runs or is analysed, never beyond HARD_WAIT)."""
+    waited = now - s["at"]
+    if waited >= HARD_WAIT:
+        return True
+    state = call_state(_call(s, ops))
+    if state == "over" and spec["wait"].get("reply"):
+        return True
+    if state in ("dialing", "in_progress", "analysing"):
+        return False
+    return waited >= spec.get("timeout", DEFAULT_TIMEOUT)
 
 
 def poll(st, ops, force: bool = False):
@@ -164,17 +228,17 @@ def poll(st, ops, force: bool = False):
                     break
                 force = False
                 try:
-                    _begin(spec, s, st, ops, now)
+                    _begin(spec, s, sc, st, ops, now)
                 except Exception:  # a failing step must not stop the demo
                     _log.exception("scenario step %s failed", spec["id"])
                     s["status"] = "skipped"
             if s["status"] == "waiting":
                 if _met(spec["wait"], s, st):
                     s["status"] = "done"
-                elif force or now - s["at"] >= spec.get("timeout", DEFAULT_TIMEOUT):
+                elif force or _give_up(spec, s, ops, now):
                     force = False
                     try:
-                        s["status"] = _fallback(spec, s, ops)
+                        s["status"] = _fallback(spec, s, sc, ops)
                     except Exception:
                         _log.exception("scenario fallback %s failed", spec["id"])
                         s["status"] = "skipped"
@@ -191,7 +255,15 @@ def poll(st, ops, force: bool = False):
         lock.release()
 
 
-def public(st, available: bool) -> dict:
+def _public_step(spec: dict, s: dict, ops) -> dict:
+    out = {k: s[k] for k in ("id", "status", "note", "live", "who") if k in s}
+    out.update({k: spec[k] for k in PRESENT if k in spec})
+    if s.get("sid"):
+        out["call"] = call_state(_call(s, ops))
+    return out
+
+
+def public(st, available: bool, ops=None) -> dict:
     """Progress for the demo panel (texts are in messages.cs.json "scenario", the web app has them)."""
     out = {"available": bool(available and SPEC), "pid": PID}
     sc = st.data.get("scenario")
@@ -202,8 +274,14 @@ def public(st, available: bool) -> dict:
     left = None
     if i < len(STEPS):
         s, spec = sc["steps"][i], STEPS[i]
-        left = (spec.get("after", 0) - (now - s["since"]) if s["status"] == "pending"
-                else spec.get("timeout", DEFAULT_TIMEOUT) - (now - s.get("at", now)))
+        if s["status"] == "pending":
+            left = spec.get("after", 0) - (now - s["since"])
+        elif ops and call_state(_call(s, ops)) in ("dialing", "in_progress", "analysing"):
+            left = HARD_WAIT - (now - s.get("at", now))
+        else:
+            left = spec.get("timeout", DEFAULT_TIMEOUT) - (now - s.get("at", now))
         left = max(0, round(left))
+    steps = [_public_step(spec, s, ops) if ops else {k: s[k] for k in ("id", "status", "note", "live") if k in s}
+             for spec, s in zip(STEPS, sc["steps"])]
     return {**out, "running": not sc.get("finished"), "finished": bool(sc.get("finished")), "step": i, "left": left,
-            "steps": [{k: s[k] for k in ("id", "status", "note", "live") if k in s} for s in sc["steps"]]}
+            "steps": steps}

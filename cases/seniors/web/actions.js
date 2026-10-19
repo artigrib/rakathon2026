@@ -2,16 +2,49 @@
 // app = {ui, data, store, T, toast, send, mark, step, find, today, backend}.
 import { mineOf } from "core/case.js";
 import { entries } from "./views/basket.js";
-import { itemLabel } from "./domain.js";
+import { itemLabel, openNeeds, stageOf } from "./domain.js";
 
 const csvCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
+/** Basket statuses of every open need of the senior set to `status` (the mark "basket"). */
+async function closeNeeds(app, id, status = "done") {
+  const p = app.find(id);
+  const open = p ? openNeeds(p) : [];
+  if (!open.length) return 0;
+  const basket = { ...(app.store.get(id).basket || {}) };
+  for (const n of open) basket[n.id] = status;
+  await app.mark(id, "basket", basket);
+  return open.length;
+}
+
 export const actions = {
   // Basket status of one need: new → ordered (objednáno) → done (vyřízeno). Stored as the mark "basket" (case.json marks).
+  // When the last open need of a senior waiting for help is done, the senior's row is resolved too (one truth).
   "basket-status": async (el, app) => {
     const { id, need, status } = el.dataset;
     await app.mark(id, "basket", { ...(app.store.get(id).basket || {}), [need]: status });
+    const p = app.find(id);
+    if (status === "done" && p && stageOf(p) === "needs_help" && !openNeeds(p).length) {
+      await app.step(id, { stage: "resolve" });
+      app.toast(app.T.toast.needsDone, { undo: false });
+      return;
+    }
     app.toast(app.T.toast.basket[status], { undo: !app.backend });
+  },
+  // "Vyřešeno" on a row or the card: the journey event and the senior's open needs in the basket closed together.
+  resolve: async (el, app) => {
+    const { id } = el.dataset;
+    await app.step(id, { stage: "resolve" });
+    await closeNeeds(app, id);
+    app.toast(app.T.toast.step.resolve, { undo: !app.backend });
+  },
+  // Simulated answer of a senior from the card (demo): the sentence agrees with the senior's gender and goes through
+  // the real reply understanding, like the core "reply" action.
+  "sim-reply": async (el, app) => {
+    const { id, reply } = el.dataset;
+    const p = app.find(id);
+    await app.step(id, { reply, text: app.T.demo.replyTextOf(reply, p) });
+    app.toast(app.T.toast.reply(app.T.demo.replyOf(reply, p)), { undo: !app.backend });
   },
   "basket-filter": (el, app) => { app.ui.basketFilter = el.dataset.filter; },
   "calls-filter": (el, app) => { app.ui.callsFilter = el.dataset.filter; },

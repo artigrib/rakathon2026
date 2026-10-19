@@ -16,3 +16,4 @@ submission/*.webm
 data_fhir/
 *.log
 deploy/.cf
+backend/sessions*.json

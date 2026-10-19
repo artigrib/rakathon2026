@@ -37,6 +37,9 @@ ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
 app = FastAPI(title=CASE.manifest["title"])
 REDIRECTS = CASE.manifest.get("redirects", {})  # public short links of the case, e.g. /centra
+# case.json "login": {"email": "optional"}: the case sends nothing by e-mail, so the sign-in asks only for the phone
+# (the login template may use $email_required = the input attribute and $email_hint = "nepovinný" or empty).
+EMAIL_OPTIONAL = CASE.manifest.get("login", {}).get("email") == "optional"
 
 OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/", "/j/",
         "/internal/", "/landing/")  # Twilio, ElevenLabs and patients need these without a password; /internal/ checks INTERNAL_TOKEN
@@ -169,6 +172,7 @@ class StepRequest(BaseModel):
     date: str | None = None
     result: str | None = None
     text: str | None = None
+    sim: bool = False   # a simulated reply from the demo panel (via "sim"), not something an operator wrote down
 
 
 class MarkRequest(BaseModel):
@@ -204,6 +208,11 @@ def health():
             "trial": settings.live and settings.trial,
             "email": settings.email_live,
             "case": CASE.id,
+            # how a call is held: gather = script + keys, relay = rules, agent = ElevenLabs voice agent (its first
+            # sentence, so the web app shows what the agent really said instead of the keys-1/2 script)
+            "voiceMode": settings.voice_mode,
+            "agentGreeting": (getattr(CASE.dialog, "GREETING", None)
+                              if settings.voice_mode == "agent" and agent_call.agent_id() else None),
             "fhir": ({"server": settings.fhir_base.split("//")[-1].split("/")[0], "sync": store.data.get("fhir_sync"),
                       "written": fhir_sink.state["sent"], "errors": fhir_sink.state["errors"], "lastError": fhir_sink.state["last_error"]}
                      if settings.fhir_base and CASE.feature("fhir") else None)}
@@ -228,9 +237,12 @@ def state():
         n = next_touch(d.get("journey", []))
         if n:
             plans[pid] = {**n, "due": n["due"].isoformat()}
-    links = {pid: f"/p/{t}" for t, pid in store.data.get("tokens", {}).items()}  # relative: works on any host
+    # relative: works on any host; a visitor's link carries their session (?s=), so it opens in their demo (also from
+    # another browser or phone); the shared demo keeps the bare link
+    sid = ctx.session_id.get()
+    links = {pid: f"/p/{t}" + (f"?s={sid}" if sid else "") for t, pid in store.data.get("tokens", {}).items()}
     out = {"version": store.version, "clock": today(), "decisions": store.decisions(), "plans": plans, "links": links,
-           "scenario": scenario.public(store, _scenario_ok())}
+           "scenario": scenario.public(store, _scenario_ok(), OPS)}
     if store.data.get("personas"):  # the guided demo's persona: a record only this visitor has
         out["personas"] = list(store.data["personas"].values())
     return out
@@ -243,8 +255,9 @@ def send(req: SendRequest):
     return {"sent": [_send(it.id, it.channel, it.variant, it.text, req.date or today(), budget) for it in req.items]}
 
 
-def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
-    """One outbound touch. budget[0] = how many may still go out for real in this request."""
+def _send(pid, channel, variant, text, day, budget, auto=False, step=None, progress=False):
+    """One outbound touch. budget[0] = how many may still go out for real in this request.
+    progress: a live call also reports ringing / in progress (the guided demo shows them); otherwise only its end."""
     if not fsm.allowed(fsm.state_of(store.get(pid)), "send"):  # e.g. referred, refused, excluded: never contact
         return {"id": pid, "sid": None, "live": False, "status": "not_allowed"}
     text = messages.with_link(text, patient_link(pid), channel)
@@ -256,7 +269,7 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None):
         if channel == "voice":
             if live:  # generate the Czech audio before dialling, so the call starts without a pause
                 tts.ensure(text.strip())
-            r = channels.start_call(pid, live)
+            r = channels.start_call(pid, live, progress=progress)
         elif channel == "whatsapp":
             r = channels.send_whatsapp(text, live)
         elif channel == "email":
@@ -331,7 +344,7 @@ def tick(req: TickRequest):
 def step(req: StepRequest):
     """Nurse action or simulated patient reply from the UI (same path as a real webhook)."""
     if req.text is not None:
-        return _apply_reply(req.id, req.text, "ui", req.date or today())
+        return _apply_reply(req.id, req.text, "sim" if req.sim else "ui", req.date or today())
     extra = {"result": req.result} if req.result else {}
     # Nurse or doctor action = an event of the state machine (first "declined" is soft, see journey.json).
     return transition(req.id, req.stage, req.date or today(), via="ui", **extra)
@@ -340,14 +353,14 @@ def step(req: StepRequest):
 @app.get("/api/patient/{pid}")
 def patient_messages(pid: str):
     """Everything we sent to one patient, for the communication timeline. No phone number, no link token."""
-    keep = ("day", "ts", "channel", "text", "live", "status", "error", "auto", "step", "variant", "duration")
+    keep = ("day", "ts", "channel", "text", "live", "status", "error", "auto", "step", "variant", "duration", "analysing")
     out = []
     for m in store.data["outbox"]:
         if m.get("patient") != pid:
             continue
         item = {k: m.get(k) for k in keep if m.get(k) is not None}
         if "text" in item:
-            item["text"] = re.sub(r"/p/[A-Za-z0-9_-]+", "/p/…", item["text"])
+            item["text"] = re.sub(r"/p/[A-Za-z0-9_-]+(\?s=[A-Za-z0-9_-]+)?", "/p/…", item["text"])
         if "error" in item:
             item["error"] = str(item["error"])[:120]
         out.append(item)
@@ -417,31 +430,49 @@ def reset():
 def _scenario_ok() -> bool:
     """Only for a signed-in visitor with own contacts: never the shared demo or the default DEMO_TO."""
     v = recipient.visitor()
-    return bool(scenario.SPEC and _current.get() is not None and v and v.get("phone") and v.get("email"))
+    return bool(scenario.SPEC and _current.get() is not None and v and v.get("phone") and (v.get("email") or EMAIL_OPTIONAL))
 
 
 def _scenario_send(pid, channel, variant, live=True, delivery=None):
     """A step's send. Bypasses LIVE_LIMIT (one real message per step), still only to the visitor's own contacts and
-    within DEMO_DAILY_LIMIT (_send → recipient.take)."""
+    within DEMO_DAILY_LIMIT (_send → recipient.take). A live call reports its progress (ringing, in progress)."""
     real = settings.email_live if channel == "email" else settings.live
     budget = [1 if live and real and _scenario_ok() else 0]
     day = today()
     text = messages.render(record(pid), channel, variant, patient_link(pid))
-    r = _send(pid, channel, variant, text, day, budget)
+    r = _send(pid, channel, variant, text, day, budget, progress=True)
     if delivery and r.get("status") != "not_allowed":  # e.g. seniors: the check-in call was not answered
         store.event(pid, None, day, delivery=delivery, channel=channel, note="no-answer", simulated=True)
     return r
+
+
+def _scenario_other(persona_id: str, who) -> str | None:
+    """Another record of the visitor's set for a step's reply ({"who": "<id>" | "other"}): that record, or the first
+    record of the persona's group that nothing happened to yet and whose registry stage still allows contact."""
+    if who != "other":
+        return who if who in PATIENTS else _scenario_other(persona_id, "other")  # the id is not in this data: pick one
+    g = CASE.manifest.get("group")
+    group = record(persona_id).get(g["field"]) if g else None
+    for p in PATIENTS.values():
+        if g and p.get(g["field"]) != group or store.get(p["id"]).get("journey"):
+            continue
+        if p.get("stage") and not fsm.allowed(p["stage"], "send"):  # e.g. escalated, paused, declined in the registry
+            continue
+        return p["id"]
+    return None
 
 
 OPS = SimpleNamespace(
     send=_scenario_send,
     allowed=lambda pid, ev: fsm.next_state(fsm.state_of(store.get(pid)), ev, _refusals(pid)) is not None,
     event=lambda pid, ev, **extra: transition(pid, ev, today(), via="ui", scenario=True, **extra),
-    reply=lambda pid, text: _apply_reply(pid, text, "ui"),
+    reply=lambda pid, text: _apply_reply(pid, text, "sim"),   # a simulated answer, not one an operator wrote down
     tick=lambda days: tick(TickRequest(days=days)),
     patch=lambda pid, fields: store.patch(pid, **fields),
     stage=lambda pid: fsm.state_of(store.get(pid)),
     today=lambda: today(),
+    other=_scenario_other,
+    call=lambda sid: next((m for m in store.data["outbox"] if m.get("sid") == sid), None),  # the step's live call
 )
 
 
@@ -862,15 +893,21 @@ async def call_status(pid: str, request: Request):
     if st == "completed" and form.get("CallSid") in _CALLS:  # hung up during a follow-up: keep what was said
         _finish_call(form["CallSid"])
     if st == "completed" and settings.voice_mode == "agent" and agent_call.agent_id():
+        store.outbox_update(form.get("CallSid"), analysing=True)  # the outcome is being read from ElevenLabs
         asyncio.get_running_loop().create_task(_agent_outcome(pid, form.get("CallSid", "")))
     return Response(status_code=204)
 
 
 async def _agent_outcome(pid: str, call_sid: str):
-    """After an agent call: its decision → the same journey event as a reply (state machine, FHIR write-back)."""
-    o = await asyncio.to_thread(agent_call.outcome, call_sid)
+    """After an agent call: its decision → the same journey event as a reply (state machine, FHIR write-back).
+    The outbox entry says `analysing` meanwhile; `outcome: "none"` when no conversation was found."""
+    try:
+        o = await asyncio.to_thread(agent_call.outcome, call_sid)
+    finally:
+        store.outbox_update(call_sid, analysing=False)
     _rlog.info("agent %s outcome %s", pid, {k: v for k, v in (o or {}).items() if k != "text"})
     if not o:
+        store.outbox_update(call_sid, outcome="none")
         return
     _record_reply(pid, o["text"], {"intent": o["intent"], "why": f"hlasový asistent: {o['intent']}", "source": "elevenlabs-agent",
                                    **({"when": o["when"]} if o["when"] else {}), **({"extra": o["extra"]} if o.get("extra") else {})},
@@ -1074,6 +1111,8 @@ def _login_page(nxt="/app/", error="", code="", phone="", email="", status=200):
     back = '<p class="muted"><a href="/">Zpět na stránku projektu</a></p>' if LANDING_ON or _case_landing() else ""
     return HTMLResponse(LOGIN.safe_substitute(next=h(_safe_next(nxt)), code=h(code), phone=h(phone), email=h(email),
                                               brand=h(CASE.manifest["brand"]), back=back,
+                                              email_required="" if EMAIL_OPTIONAL else "required",
+                                              email_hint="nepovinný" if EMAIL_OPTIONAL else "",
                                               **{k: h(v) for k, v in LOGIN_TEXT.items() if not k.startswith("_")},
                                               error=f'<p class="err" role="alert">{h(error)}</p>' if error else ""), status_code=status)
 
@@ -1091,7 +1130,12 @@ async def login(request: Request):
     if not settings.demo_password or not secrets.compare_digest(code.lower(), settings.demo_password.lower()):
         return _login_page(nxt, "Nesprávný přístupový kód.", "", phone, email, 401)
     try:
-        p, e = recipient.validate(phone, email, required=True)
+        if EMAIL_OPTIONAL and not email:
+            p, e = recipient.validate(phone, "", required=False)
+            if not p:
+                raise ValueError("Zadejte telefon, na který pošleme ukázkové SMS a zavoláme.")
+        else:
+            p, e = recipient.validate(phone, email, required=True)
     except ValueError as err:
         return _login_page(nxt, str(err), code, phone, email, 400)
     token = sessions.create(p, e)

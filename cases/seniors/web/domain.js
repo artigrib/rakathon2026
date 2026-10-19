@@ -137,6 +137,7 @@ export function lostOf(p, clk, plans) {
   if (stage === "escalated" && since >= LOST.escalated) return { code: "escalated", days: since, sev: "late" };
   const heard = lastAnswered(p);
   const silent = heard ? daysBetween(heard.date, clk) : 0;
+  if (plans?.[p.id]) return null; // the contact plan is still running: the system is handling the silence
   if (stage === SENT && (store.get(p.id).journey || []).length && plans && !plans[p.id]) return { code: "noAnswer", days: silent, sev: "warn" };
   // scheduled call days that passed without hearing the senior (a Tue/Thu senior is not lost over the weekend)
   let missed = 0;
@@ -145,14 +146,14 @@ export function lostOf(p, clk, plans) {
   return null;
 }
 
-/** Who acts now: lost | social (escalated, low mood, open needs) | operator (call back, today's call, no answer and
- *  no automatic step) | system (the plan runs or all is well) | paused | done (opted out). */
+/** Who acts now: social (escalated, low mood, open needs; an emergency wins over "lost") | lost | operator (call back,
+ *  today's call, no answer and no automatic step) | system (the plan runs or all is well) | paused | done (opted out). */
 export function ownerOf(p, clk, plans) {
   const stage = stageOf(p);
   if (stage === "declined") return "done";
   if (stage === "paused") return "paused";
-  if (lostOf(p, clk, plans)) return "lost";
   if (stage === "escalated" || stage === "low_mood") return "social";
+  if (lostOf(p, clk, plans)) return "lost";
   if (stage === "needs_help") return openNeeds(p).length ? "social" : "system";
   if (stage === "callback") return "operator";
   if (stage === SENT) return plans?.[p.id] ? "system" : "operator";
@@ -160,8 +161,20 @@ export function ownerOf(p, clk, plans) {
   return "system";
 }
 
+/** Surname for sorting (the last word of the name), Czech collation. */
+export const surname = (p) => (p.name || "").trim().split(/\s+/).at(-1) || "";
+export const bySurname = (a, b) => surname(a).localeCompare(surname(b), "cs") || (a.name || "").localeCompare(b.name || "", "cs");
+
+/** Calls of a senior without an answer since the last one heard (the relative's SMS not counted). */
+export function missedStreak(p) {
+  const calls = callsOf(p);
+  const heard = calls.findIndex((c) => c.answered);
+  return (heard < 0 ? calls : calls.slice(0, heard)).filter((c) => !c.relative).length;
+}
+
 /** Districts for the header selector (case.json group.field = "district"). */
 export const groups = (records) => [...new Set(records.map((p) => p.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, "cs"));
 
 /** Message placeholders (same as ../hooks.py extra_placeholders). */
-export const placeholders = (p) => ({ name: p.vocative ? `, ${p.vocative}` : "", senior: p.title || "Váš blízký", worker: p.worker || "" });
+export const placeholders = (p) => ({ name: p.vocative ? `, ${p.vocative}` : "", senior: p.title || "Váš blízký", worker: p.worker || "Vaše sociální pracovnice",
+  relative: p.relative?.name || "", crisis_lines: "Linka seniorů 800 200 007 a Senior telefon 800 157 157, zdarma, kdykoli ve dne i v noci." });

@@ -1,5 +1,5 @@
 {
-  "_about": "Guided demo (backend/scenario.py, cases/README.md 'scenario.json'): the visitor is the senior and also the relative. Check-in call, the needs land in the basket, next day two unanswered calls (simulated), SMS to the relative, the social worker's visit, the emergency path explained. Texts: messages.cs.json 'scenario'.",
+  "_about": "Guided demo (backend/scenario.py, cases/README.md 'scenario.json'): the visitor is the senior and also the relative. Check-in call (agent), the needs land in the basket, next day two unanswered calls (simulated), SMS to the relative, a third unanswered call and the social worker's visit, then an emergency answer of another senior of the district (the persona's story stays clean). Texts: messages.cs.json 'scenario'; step-specific extras inline (text, while_waiting). Persona: 30 days of calls relative to case.json ref_date 2026-10-19, the newest yesterday, mood slowly going down.",
   "persona": {
     "worker": "Bc. Petra Malá",
     "name": "Marie Nováková",
@@ -15,23 +15,49 @@
     "channel": "voice",
     "relative": {"name": "Petr Novák", "rel": "syn", "phone": "{phone}"},
     "since": "2026-09-01",
-    "flags": [],
+    "flags": [{"sev": "warning", "text": "Klíče od bytu má sousedka paní Horáková"}],
     "history": [],
     "calls": [
-      {"date": "2026-10-14", "time": "10:02", "answered": true, "text": "Dobře, děkuji, všechno v pořádku.", "intent": "ok", "mood": 4},
-      {"date": "2026-10-16", "time": "10:11", "answered": true, "text": "Ujde to, nic nepotřebuji.", "intent": "ok", "mood": 3}
+      {"date": "2026-09-20", "time": "10:04", "answered": true, "text": "Dobře, děkuji, všechno v pořádku.", "intent": "ok", "mood": 4},
+      {"date": "2026-09-23", "time": "10:10", "answered": true, "text": "Dobře, děkuji za zavolání.", "intent": "ok", "mood": 4},
+      {"date": "2026-09-26", "time": "10:02", "answered": true, "text": "Fajn, byla jsem na procházce.", "intent": "ok", "mood": 4},
+      {"date": "2026-09-29", "time": "10:15", "answered": true, "text": "Ujde to, trochu mě bolí kolena.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-02", "time": "10:07", "answered": true, "text": "Dobře, děkuji, dcera tu byla.", "intent": "ok", "mood": 4},
+      {"date": "2026-10-05", "time": "10:01", "answered": false},
+      {"date": "2026-10-05", "time": "12:03", "answered": true, "text": "Ujde to, spala jsem špatně.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-08", "time": "10:09", "answered": true, "text": "Dá se to, nic nepotřebuji.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-11", "time": "10:12", "answered": true, "text": "Jde to, jen jsem trochu unavená.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-13", "time": "10:05", "answered": true, "text": "Ujde to, dcera nevolala.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-15", "time": "10:08", "answered": true, "text": "Dnes nic moc, dcera nevolala a je mi smutno.", "intent": "low_mood", "mood": 2},
+      {"date": "2026-10-16", "time": "10:03", "answered": true, "text": "Ujde to, trochu lépe než včera.", "intent": "ok", "mood": 3},
+      {"date": "2026-10-18", "time": "10:06", "answered": true, "text": "Ujde to, trochu mě bolí kolena.", "intent": "ok", "mood": 3}
     ],
-    "needs": []
+    "needs": [],
+    "stage": "ok"
   },
   "steps": [
-    {"id": "checkin", "do": [{"send": "voice", "variant": "CHECKIN"}], "wait": {"reply": true}, "timeout": 150,
-     "fallback": {"reply": "Došly mi léky a potřebovala bych nákup"}},
-    {"id": "basket", "after": 2, "if_stage": ["needs_help"]},
-    {"id": "missed", "after": 10, "do": [{"tick": 1},
+    {"id": "checkin", "card": true,
+     "do": [{"send": "voice", "variant": "CHECKIN"}], "wait": {"reply": true}, "timeout": 60,
+     "fallback": {"reply": "Ujde to, ale došly mi léky a potřebovala bych nákup"},
+     "while_waiting": {
+       "title": "Co se právě děje",
+       "text": "Asistentka začíná: „Dobrý den, tady pečovatelská služba, pravidelný hovor, který Vám domluvila Vaše sociální pracovnice. Jsem automatická asistentka. Můžu se zeptat, s kým mluvím?“ Pak se zeptá, jak se cítíte, a na konci zopakuje, co slyšela.",
+       "bullets": [
+         "Říká jen schválené věty, nic si nevymýšlí.",
+         "Neradí zdravotně, každou zdravotní potíž předá člověku.",
+         "Při tísni drží linku, řekne, ať nezavěšujete, a pracovnice volá 155."
+       ]
+     }},
+    {"id": "basket", "after": 2, "if_stage": ["needs_help"], "view": "basket", "card": false},
+    {"id": "missed", "after": 10, "card": true, "do": [{"tick": 1},
       {"send": "voice", "variant": "CHECKIN", "simulate": true, "delivery": "failed"},
       {"send": "voice", "variant": "RETRY", "simulate": true, "delivery": "failed"}]},
     {"id": "relative", "after": 4, "do": [{"send": "sms", "variant": "RELATIVE"}], "wait": {"reply": true}, "timeout": 60},
-    {"id": "visit", "after": 3, "if_stage": ["no_answer"], "do": [{"event": "visit"}]},
-    {"id": "emergency", "after": 12}
+    {"id": "visit", "after": 3, "if_stage": ["no_answer"], "view": "today", "card": false,
+     "do": [{"send": "voice", "variant": "RETRY", "simulate": true, "delivery": "failed"}, {"event": "visit"}],
+     "text": "Třetí hovor zůstal bez odpovědi, a tak jde za paní Novákovou sociální pracovnice."},
+    {"id": "emergency", "after": 12, "view": "today", "card": "other",
+     "do": [{"reply": "Upadla jsem a nemůžu vstát", "who": "S-007"}],
+     "text": "Tísňová odpověď přišla od jiné seniorky, {who}. Asistentka jí řekla, ať zůstane na telefonu a nezavěšuje, a předala ji pracovnici, která volá 155 a ví, že klíče má sousedka. Je nahoře v pohledu Dnes."}
   ]
 }
