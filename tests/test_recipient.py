@@ -37,7 +37,7 @@ def test_live_send_goes_to_the_panel_number_and_stops_at_the_daily_limit(client,
     import backend.app as m
     from dataclasses import replace
     monkeypatch.setattr(m, "settings", replace(m.settings, account_sid="AC1", auth_token="t", from_number="+1",
-                                               demo_to="+420602000879", public_url="https://x"))
+                                               demo_to="+420602000879", public_url="https://x", case_live=True))
     monkeypatch.setenv("DEMO_DAILY_LIMIT", "2")
     sent = []
     monkeypatch.setattr(m.channels, "send_sms", lambda body, live: sent.append(rec.phone()) or

@@ -8,16 +8,29 @@ ROOT = Path(__file__).resolve().parents[1]
 CASE_ID = os.getenv("CASE", "screening").strip() or "screening"
 
 
+def _case_live(case_id: str) -> bool:
+    """Real traffic is opt-in for every case but screening (production): backend/.env holds the live screening keys,
+    PUBLIC_URL and ElevenLabs agent, so a seniors/collections run must not send with them by accident.
+    CASE_LIVE=1 (environment or cases/<id>/.env) turns real SMS, calls and e-mail on for that case."""
+    return case_id == "screening" or os.getenv("CASE_LIVE", "") == "1"
+
+
+def _read(p: Path):
+    if p.exists():
+        for line in p.read_text(encoding="utf-8").splitlines():
+            if line.strip() and not line.lstrip().startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"'))
+
+
 def _env_file():
-    """cases/<id>/.env first (its own agent id, password …), then the shared backend/.env; the environment wins."""
+    """cases/<id>/.env first (its own agent id, password, CASE_LIVE …), then the shared backend/.env, which a case other
+    than screening reads only with CASE_LIVE=1; the environment wins."""
     if os.getenv("PLICE_SKIP_ENV_FILE") == "1":  # tests: never read the server's real keys, password or FHIR server
         return
-    for p in (ROOT / "cases" / CASE_ID / ".env", Path(__file__).with_name(".env")):
-        if p.exists():
-            for line in p.read_text(encoding="utf-8").splitlines():
-                if line.strip() and not line.lstrip().startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    os.environ.setdefault(k.strip(), v.strip().strip('"'))
+    _read(ROOT / "cases" / CASE_ID / ".env")
+    if _case_live(CASE_ID):
+        _read(Path(__file__).with_name(".env"))
 
 
 _env_file()
@@ -73,16 +86,17 @@ class Settings:
     voice_mode: str = os.getenv("VOICE_MODE", _V.get("mode", "gather"))       # gather = script + keys 1/2; relay = rules over ConversationRelay; agent = ElevenLabs voice agent
     voice_lang: str = os.getenv("VOICE_LANG", _V.get("lang", "cs-CZ"))
     state_file: Path = Path(os.getenv("STATE_FILE", str(_STATE)))
+    case_live: bool = _case_live(CASE_ID)   # False = MOCK whatever keys are in the environment (see _case_live)
 
     @property
     def email_live(self) -> bool:
         smtp = self.smtp_host and self.smtp_user and self.smtp_password
-        return bool(self.demo_email and ((self.sendgrid_key and self.email_from) or smtp))
+        return bool(self.case_live and self.demo_email and ((self.sendgrid_key and self.email_from) or smtp))
 
     @property
     def live(self) -> bool:
         creds = self.auth_token or (self.api_key and self.api_secret)
-        return bool(self.account_sid and creds and self.from_number and self.demo_to and self.public_url)
+        return bool(self.case_live and self.account_sid and creds and self.from_number and self.demo_to and self.public_url)
 
 
 settings = Settings()

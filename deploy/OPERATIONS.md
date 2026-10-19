@@ -58,8 +58,10 @@ curl -s localhost:8001/api/health; curl -s localhost:8002/api/health      # "cas
 ```
 `make up-all` does the same plus screening (it rebuilds and recreates `app` too). Naming the services keeps `app` untouched.
 
-Env: every case container reads `backend/.env`, then `cases/<id>/.env`, which wins. Without a case `.env` the case inherits
-the screening values, so before going live set in `cases/<id>/.env` at least:
+Env: every case container reads `backend/.env`, then `cases/<id>/.env`, which wins. **A case other than screening is
+always MOCK unless `CASE_LIVE=1`** (`backend/settings.py`): with the screening keys inherited it sends nothing real, and
+`make run CASE=seniors` locally does not even read `backend/.env`. `curl localhost:8001/api/health` shows `"mode"`.
+To go live set in `cases/<id>/.env` `CASE_LIVE=1` and at least:
 - `PUBLIC_URL=https://seniori.jsemvcas.cz` (patient links, Twilio status and voice callbacks go there; otherwise to jsemvcas.cz),
 - `DEMO_USER` / `DEMO_PASSWORD` (access code of that stand),
 - `ELEVENLABS_AGENT_ID` of the case's own agent (`make agent CASE=seniors` creates it from `cases/seniors/dialog.py`),
