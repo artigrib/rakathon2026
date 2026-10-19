@@ -43,6 +43,7 @@ def config(case: str = "") -> dict:
         "conversation_config": {
             "agent": {
                 "first_message": d.GREETING,
+                "disable_first_message_interruptions": True,   # the greeting (who calls and why) is always heard to the end
                 "language": "cs",
                 "prompt": {"prompt": d.agent_prompt(), "llm": "gemini-2.0-flash", "temperature": 0.0,
                            "tools": [{"type": "system", "name": "end_call", "description": "Ukonči hovor po závěrečné větě."}]},
@@ -50,7 +51,8 @@ def config(case: str = "") -> dict:
             "tts": {"voice_id": VOICE, "model_id": "eleven_flash_v2_5", "agent_output_audio_format": "ulaw_8000",
                     "stability": 0.6, "similarity_boost": 0.75, "speed": 0.95},
             "asr": {"user_input_audio_format": "ulaw_8000", "quality": "high"},
-            "turn": {"turn_timeout": 10, "turn_eagerness": "normal", "speculative_turn": True, "silence_end_call_timeout": 20},
+            "turn": {"turn_timeout": 10, "turn_eagerness": "normal", "speculative_turn": True, "silence_end_call_timeout": 20,
+                     "transcribe_on_disabled_interruptions": True},   # words said over the greeting still reach the transcript
             "conversation": {"max_duration_seconds": 180},
         },
         "platform_settings": {"data_collection": data},
