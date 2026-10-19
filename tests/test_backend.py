@@ -83,7 +83,34 @@ def test_voice_twiml_and_digit_answer(client):
     x = c.post("/twilio/voice/P4").text
     assert "<Gather" in x and "cs-CZ" in x and "Stiskněte 1 nebo 2." in x
     a = c.post("/twilio/voice/P4/answer", data={"Digits": "1"}).text
+    assert "<Gather" in a and "Je to tak?" in a and store.get("P4")["stage"] == "sent"  # the recap, nothing recorded yet
+    a = c.post("/twilio/voice/P4/answer?recap=1", data={"Digits": "1"}).text
     assert "ozve" in a and store.get("P4")["stage"] == "interested"
+    e = store.get("P4")["journey"][-1]
+    assert e["confirmed"] is True and e["summary"] == "Rozuměla jsem, že chcete, aby se Vám ozvala sestra z ordinace."
+    assert e["transcript"][2]["text"].endswith("Je to tak?")
+
+
+def test_voice_recap_denied_takes_one_more_answer(client):
+    c, store = client
+    c.post("/api/send", json={"items": [{"id": "P4", "channel": "voice", "text": "Dobrý den.\n\nStiskněte 1 nebo 2."}]})
+    c.post("/twilio/voice/P4", data={"CallSid": "CR1"})
+    c.post("/twilio/voice/P4/answer", data={"CallSid": "CR1", "Digits": "1"})
+    a = c.post("/twilio/voice/P4/answer?recap=1", data={"CallSid": "CR1", "SpeechResult": "Ne"}).text
+    assert "<Gather" in a and "Co mám opravit?" in a and store.get("P4")["stage"] == "sent"
+    a = c.post("/twilio/voice/P4/answer?recap=2", data={"CallSid": "CR1", "SpeechResult": "Teď ne, až po Novém roce"}).text
+    assert "<Gather" not in a
+    e = store.get("P4")["journey"][-1]
+    assert e["confirmed"] is False and e["summary"] == "Rozuměla jsem, že teď ne a máme se ozvat později."
+    assert [t["who"] for t in e["transcript"]] == ["bot", "user", "bot", "user", "bot", "user", "bot"]
+
+
+def test_voice_no_recap_after_a_final_answer(client):
+    c, store = client
+    c.post("/api/send", json={"items": [{"id": "P4", "channel": "voice", "text": "Dobrý den."}]})
+    c.post("/twilio/voice/P4")
+    a = c.post("/twilio/voice/P4/answer", data={"SpeechResult": "Nevolejte mi, odhlašuji se"}).text
+    assert "<Gather" not in a and "summary" not in store.get("P4")["journey"][-1]
 
 
 def test_inbound_sms_unknown_number_is_ignored(client):
@@ -370,3 +397,14 @@ def test_whatsapp_reply_goes_to_the_whatsapp_patient_not_the_last_call(client):
     e = store.get("P15")["journey"][-1]
     assert store.get("P15")["stage"] == "interested" and e["via"] == "whatsapp"
     assert store.get("P16")["stage"] != "interested"
+
+
+def test_screening_recap_sentences():
+    from cases.screening import dialog as d
+    assert d.recap("interested", {"when": "odpoledne"}) == \
+        "Rozuměla jsem, že chcete, aby se Vám ozvala sestra z ordinace. Hodí se Vám odpoledne. Je to tak?"
+    assert d.recap("not_now", {"when": "po Vánocích"}) == "Rozuměla jsem, že teď ne a máme se ozvat později. Je to tak?"
+    assert d.recap("declined", {}) == d.recap("opt_out", {}) == ""
+    p = d.agent_prompt()
+    assert d.RECAP["interested"] in p and d.RECAP_FIX in p and "recap_confirmed" in p
+    assert all("!" not in s for s in (*d.RECAP.values(), d.RECAP_ASK, d.RECAP_FIX, d.RECAP_WHEN))

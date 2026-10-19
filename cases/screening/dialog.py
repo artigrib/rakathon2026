@@ -93,6 +93,27 @@ AGENT_DECISIONS = {
 }
 AGENT_WHEN = "Kdy se pacientovi hodí telefonát sestry (dopoledne, odpoledne, konkrétní den), jinak prázdné."
 AGENT_DATA = {}  # extra data collection fields → journey event `extra` (none in screening)
+# ---------- recap at the end of a call: say back what was understood, ask to confirm (agent + scripted call) ----------
+RECAP_ASK = "Je to tak?"
+RECAP_FIX = "Co mám opravit?"
+RECAP = {
+    "interested": "Rozuměla jsem, že chcete, aby se Vám ozvala sestra z ordinace.",
+    "callback": "Rozuměla jsem, že Vám má zavolat sestra z ordinace.",
+    "not_now": "Rozuměla jsem, že teď ne a máme se ozvat později.",
+    "booked": "Rozuměla jsem, že už máte termín vyšetření.",
+}
+RECAP_WHEN = "Hodí se Vám {when}."
+
+
+def recap(intent: str, extra: dict) -> str:
+    """Deterministic recap of a scripted call (backend/app.py): '' = no recap (declined, opt-out, handoff …)."""
+    s = RECAP.get(intent)
+    if not s:
+        return ""
+    when = str((extra or {}).get("when") or "").strip().rstrip(".")
+    return " ".join([s, *([RECAP_WHEN.format(when=when)] if when and intent in ("interested", "callback") else []), RECAP_ASK])
+
+
 # Doctor's feedback 17.10. (bridge 1000): the patient may book the pneumologist directly, no GP referral needed.
 DIRECT = "Objednat se můžete i sami přímo u plicního lékaře, doporučení nepotřebujete."
 
@@ -114,15 +135,27 @@ PRAVIDLA, která nesmíš porušit:
 Postup:
 - Úvodní věta už zazněla: "{GREETING}"
 - Když odpoví ano: zeptej se "Kdy se Vám hodí, aby sestra zavolala, spíš dopoledne, nebo odpoledne?"
-  Odpověď si zapamatuj, pak řekni "{CLOSING['interested'].replace(' Na shledanou.', '')} {DIRECT} Na shledanou." a ukonči hovor.
-- Když řekne, že už má termín nebo byl vyšetřen: "{CLOSING['booked']}" a ukonči hovor.
-- Když chce, aby mu sestra zavolala: "{CLOSING['callback']}" a ukonči hovor.
-- Když řekne teď ne nebo později: "{CLOSING['not_now']}" a ukonči hovor.
+  Odpověď si zapamatuj, udělej shrnutí (níže), pak řekni "{CLOSING['interested'].replace(' Na shledanou.', '')} {DIRECT} Na shledanou." a ukonči hovor.
+- Když řekne, že už má termín nebo byl vyšetřen: udělej shrnutí, pak "{CLOSING['booked']}" a ukonči hovor.
+- Když chce, aby mu sestra zavolala: udělej shrnutí, pak "{CLOSING['callback']}" a ukonči hovor.
+- Když řekne teď ne nebo později: udělej shrnutí, pak "{CLOSING['not_now']}" a ukonči hovor.
 - Když nemá zájem: "{CLOSING['declined']}" a ukonči hovor.
 - Když se ptá na vyšetření, použij jen tyto odpovědi a potom se znovu zeptej: "{ASK_AGAIN}"
 {faq}
 - Když se ptá, kam nebo ke komu jít, nebo jestli potřebuje doporučení: "{DIRECT}"
 - Když nerozumíš: "{NOT_UNDERSTOOD}" Po druhém nedorozumění řekni "{CLOSING['handoff']}" a ukonči hovor.
+
+Shrnutí před závěrečnou větou:
+- Řekni jednu krátkou větu, co jsi pochopila, a zeptej se "{RECAP_ASK}" Použij jen tyto věty:
+  - ano: "{RECAP['interested']}" Když řekl, kdy se mu to hodí, přidej "Hodí se Vám" a čas tak, jak ho řekl.
+  - zavolat jindy: "{RECAP['callback']}" Když řekl čas, přidej "Hodí se Vám" a ten čas.
+  - teď ne: "{RECAP['not_now']}"
+  - už má termín: "{RECAP['booked']}"
+- Když souhlasí nebo neodpoví, řekni závěrečnou větu a ukonči hovor.
+- Když řekne, že to tak není, zeptej se "{RECAP_FIX}" Opravu si zapamatuj, zopakuj jednou krátce opravené shrnutí
+  bez další otázky a řekni závěrečnou větu podle opravy.
+- Když nemá zájem nebo nechce být kontaktován, shrnutí nedělej, jen poděkuj a ukonči hovor.
+- Do pole recap_confirmed zapiš ano, když shrnutí potvrdil, ne, když ho opravil.
 
 Schválené závěrečné věty:
 {closing}

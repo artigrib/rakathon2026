@@ -78,12 +78,28 @@ def read(c: dict) -> dict:
         extra = dict(u.get("extra") or {})
         when = when or str(u.get("when") or "")
     extra.update({k: (dc.get(k) or {}).get("value") for k in DATA if (dc.get(k) or {}).get("value") not in (None, "")})
+    # the recap: data collection `summary` (Czech, 1–2 sentences), else ElevenLabs' own transcript summary
+    summary = str((dc.get("summary") or {}).get("value") or "").strip() or str(c["analysis"].get("transcript_summary") or "").strip()
+    confirmed = _yes_no((dc.get("recap_confirmed") or {}).get("value"))
     return {"intent": intent, "text": " | ".join(said), "when": when, "conversation_id": c.get("conversation_id"),
-            "transcript": tr, **({"extra": extra} if extra else {})}
+            "transcript": tr, **({"extra": extra} if extra else {}), **({"summary": summary} if summary else {}),
+            **({"confirmed": confirmed} if confirmed is not None else {})}
+
+
+def _yes_no(v):
+    """Data collection `recap_confirmed` (ano / ne / empty, or a boolean) → True / False / None (not asked)."""
+    if isinstance(v, bool):
+        return v
+    t = str(v or "").strip().lower()
+    if t in ("ano", "yes", "true", "1", "potvrzeno", "potvrdil", "potvrdila"):
+        return True
+    if t in ("ne", "no", "false", "0", "nepotvrzeno", "opraveno"):
+        return False
+    return None
 
 
 def outcome(call_sid: str, wait_s: float = 90, step_s: float = 5):
-    """{'intent', 'text', 'when', 'conversation_id', 'transcript'[, 'extra']} once the agent's analysis is ready, else None."""
+    """{'intent', 'text', 'when', 'conversation_id', 'transcript'[, 'extra', 'summary', 'confirmed']} once the agent's analysis is ready, else None."""
     deadline = time.time() + wait_s
     while time.time() < deadline:
         try:

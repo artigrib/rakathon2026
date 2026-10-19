@@ -62,6 +62,7 @@ export function callsOf(p) {
     const x = e.extra || extract(e.text);
     const answer = {
       answered: true, intent: e.intent, text: e.text || "", via: e.via, live: true, transcript: e.transcript || null,
+      summary: e.summary || "", confirmed: e.confirmed,
       mood: x.mood ? +x.mood || null : MOOD_OF_INTENT[e.intent] || null,
       items: Array.isArray(x.items) ? x.items : typeof x.items === "string" ? x.items.split(/[,;]\s*/).filter(Boolean) : [],
       health: !!x.health_flag || ["health_problem", "emergency"].includes(e.intent),

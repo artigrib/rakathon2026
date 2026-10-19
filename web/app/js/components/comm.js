@@ -19,6 +19,14 @@ export function dialogue(turns, open = false) {
     `<li class="dialog--${t.who === "user" ? "user" : "bot"}"><b>${who[t.who === "user" ? "user" : "bot"]}:</b> ${esc(t.text || "")}</li>`).join("")}</ol></details>`;
 }
 
+/** What the call agreed / collected (the recap said back at the end) and whether the person confirmed it. */
+export function recapLine(summary, confirmed) {
+  if (!summary) return "";
+  const mark = confirmed === true ? `<span class="recap__ok">${C?.confirmed || "potvrzeno"}</span>`
+    : confirmed === false ? `<span class="recap__no">${C?.notConfirmed || "nepotvrzeno"}</span>` : "";
+  return `<p class="recap"><b>${C?.summary || "Shrnutí"}:</b> ${esc(summary)}${mark ? ` ${mark}` : ""}</p>`;
+}
+
 /** Timeline items {date, time, actor, channel, title, body, quote, note, status, planned}. */
 export function timeline(p, d = {}, plan = null, outbox = null) {
   const items = [];
@@ -52,6 +60,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
       title: reply ? C.replied(C.via[e.via] || "", p) : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
       quote: reply ? e.text : null,
       transcript: reply ? e.transcript : null,
+      summary: reply ? e.summary : null, confirmed: e.confirmed,
       note: reply ? (e.ignored ? C.ignored : `${C.understood} ${label.toLowerCase()}${e.source === "ai" && e.why ? `. ${e.why}` : ""}`)
         : e.ignored ? C.ignored : "",
       muted: !!e.ignored,
@@ -73,7 +82,7 @@ export function comm(p, d, plan, outbox) {
       <div>${esc(i.title)}</div>
       ${i.quote ? `<q>${esc(i.quote)}</q>` : ""}
       ${i.note ? `<div class="muted">${esc(i.note)}</div>` : ""}
-      ${dialogue(i.transcript)}
+      ${recapLine(i.summary, i.confirmed)}${dialogue(i.transcript)}
       ${i.bodyText ? `<details><summary>${i.textLabel}</summary><p>${esc(i.bodyText)}</p></details>` : ""}
     </div></li>`).join("")}</ol>`;
 }

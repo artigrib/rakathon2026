@@ -3,7 +3,7 @@
 import { T } from "../i18n.js";
 import { mineOf } from "core/case.js";
 import { esc, fmtDate } from "core/util.js";
-import { dialogue } from "core/components/comm.js";
+import { dialogue, recapLine } from "core/components/comm.js";
 import { addDays, callsOf, itemLabel } from "../domain.js";
 import { moodBadge, tabs } from "../ui.js";
 
@@ -38,7 +38,7 @@ export function render(ui, data) {
     <td>${result(c)}</td>
     <td>${c.answered ? moodBadge(c.mood) : ""}</td>
     <td>${esc((c.items || []).map(itemLabel).join(", "))}</td>
-    <td class="sn-hide-s">${c.text ? `<q>${esc(c.text)}</q>` : ""}${c.note ? `<br><span class="sn-muted">${esc(c.note)}</span>` : ""}${dialogue(c.transcript)}</td>
+    <td class="sn-hide-s">${c.text ? `<q>${esc(c.text)}</q>` : ""}${c.note ? `<br><span class="sn-muted">${esc(c.note)}</span>` : ""}${recapLine(c.summary, c.confirmed)}${dialogue(c.transcript)}</td>
   </tr>`).join("");
   const rangeTabs = `<nav class="tabs" aria-label="Období">${[7, 30].map((r) => `<button type="button" data-action="calls-range" data-range="${r}" aria-pressed="${range === r}">${L.range[r]}</button>`).join("")}</nav>`;
   return `<header class="pagehead"><h1>${L.title}</h1><p>${L.sub(all.length, fmtDate(from))}</p></header>

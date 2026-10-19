@@ -516,12 +516,14 @@ def _on_reply(pid, intent, extra):
         _rlog.exception("case hooks.on_reply failed (%s)", intent)
 
 
-def _record_reply(pid, text, understood, via, day=None, transcript=None):
-    """transcript: the whole call as turns [{who: bot|user, text, …}] (shown as a dialogue in the timeline)."""
+def _record_reply(pid, text, understood, via, day=None, transcript=None, summary=None, confirmed=None):
+    """transcript: the whole call as turns [{who: bot|user, text, …}] (shown as a dialogue in the timeline);
+    summary: what the call agreed / collected (the recap), confirmed: did the person confirm it (None = not asked)."""
     c = understood
     d = transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
                    why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}),
-                   **({"extra": c["extra"]} if c.get("extra") else {}), **({"transcript": transcript} if transcript else {}))
+                   **({"extra": c["extra"]} if c.get("extra") else {}), **({"transcript": transcript} if transcript else {}),
+                   **({"summary": summary} if summary else {}), **({"confirmed": confirmed} if confirmed is not None else {}))
     _on_reply(pid, c["intent"], c.get("extra") or {})  # case side effects (needs basket, promise to pay …)
     return d
 
@@ -677,6 +679,13 @@ _NOTHING_MORE = re.compile(r"^(ne|nic|uz nic|nic dalsiho|nic jineho|to je vse|to
                            r"ne nic|ne nepotrebuji|nepotrebuji|nepotrebuju|ne nepotrebuju|ne to je vse|ne to je vsechno)( dekuji| diky)?$")
 
 
+# recap at the end of a scripted call (optional case hook dialog.recap(intent, extra) -> str, '' = none)
+RECAP = getattr(CASE.dialog, "recap", None)
+VOICE_RECAP_FIX = messages.text("voice_ui.recap_fix", getattr(CASE.dialog, "RECAP_FIX", "Co mám opravit?"))
+_YES = re.compile(r"^(ano|jo|jj|jojo|presne|spravne|souhlasi|je to tak|tak je|to je tak|ok|dobre)\b")
+_NO = re.compile(r"^(ne|nee|neni|to neni|to neni tak|nesouhlasi|spatne|nespravne)\b")
+
+
 def _call_key(pid, form) -> str:
     return form.get("CallSid") or f"pid:{pid}"
 
@@ -694,6 +703,25 @@ def _understood(call) -> dict:
     return call["u"]
 
 
+def _recap_of(call) -> str:
+    """The case's recap of what this call collected (dialog.recap), '' = none (no hook, a final intent, nothing to say)."""
+    if RECAP is None or not call["said"]:
+        return ""
+    u = _understood(call)
+    if u["intent"] in VOICE_FINAL:
+        return ""
+    try:
+        return (RECAP(u["intent"], {**(u.get("extra") or {}), **({"when": u["when"]} if u.get("when") else {})}) or "").strip()
+    except Exception:  # noqa: BLE001 – a recap is a nicety, the call goes on without it
+        _rlog.exception("case dialog.recap failed")
+        return ""
+
+
+def _summary(recap: str) -> str:
+    """The recap without its closing question ("… nákup a léky. Je to tak?" → "… nákup a léky.")."""
+    return re.sub(r"\s*[^.?]*\?\s*$", "", recap).strip()
+
+
 def _finish_call(key: str):
     """Record the call's answers as one reply (whole conversation understood at once). None = nothing was said."""
     call = _CALLS.pop(key, None)
@@ -701,19 +729,55 @@ def _finish_call(key: str):
         return None
     pid = call["pid"]
     turns = call["turns"]
-    d = _record_reply(pid, " | ".join(call["keys"]), _understood(call), "voice", transcript=turns)
+    confirmed = call.get("confirmed")
+    summary = None
+    if "recap" in call:  # after a correction: the corrected understanding (none when it became e.g. a handoff)
+        summary = _summary(call["recap"] if confirmed is not False else _recap_of(call)) or None
+    d = _record_reply(pid, " | ".join(call["keys"]), _understood(call), "voice", transcript=turns,
+                      summary=summary, confirmed=confirmed)
     thanks = VOICE_THANKS.get(d["stage"], VOICE_NO_DIGIT)
     turns.append({"who": "bot", "text": thanks})  # the closing sentence depends on the stage the reply led to
     store.patch(pid)  # saves the journey event that holds `turns`
     if not key.startswith("pid:"):
-        store.outbox_update(key, transcript=turns)
+        store.outbox_update(key, transcript=turns, **({"summary": d["summary"]} if d.get("summary") else {}),
+                            **({"confirmed": confirmed} if confirmed is not None else {}))
     return thanks
 
 
+def _recap_answer(key: str, call: dict, step: int, digits: str, speech: str, end: int):
+    """The answer to the recap question (step 1: yes / no / a correction) or to "what should I correct?" (step 2).
+    "ne" alone → one more open answer; anything else said is taken as the correction. Then the call is recorded."""
+    p = _plain(speech)
+    if step == 1 and not end and (digits or speech):
+        if digits == "1" or (not digits and _YES.match(p)):
+            call["confirmed"] = True
+        elif digits == "2" or (not digits and _NO.match(p)):
+            call["confirmed"] = False
+            rest = _NO.sub("", p).strip() if speech else ""
+            if len(rest.split()) >= 2:  # "ne, potřebuju jen léky": the correction is already here
+                call["said"].append(speech)
+                call["keys"].append(speech)
+            else:
+                call["turns"].append({"who": "bot", "text": VOICE_RECAP_FIX})
+                if not key.startswith("pid:"):
+                    store.outbox_update(key, transcript=call["turns"])
+                return channels.ask_twiml(call["pid"], VOICE_RECAP_FIX, recap=2)
+        elif speech:  # neither yes nor no: what they said is the correction (another key: not answered)
+            call["confirmed"] = False
+            call["said"].append(speech)
+            call["keys"].append(speech)
+    elif step == 2 and speech and not end:
+        call["said"].append(speech)
+        call["keys"].append(speech)
+    return channels.twiml_say(_finish_call(key) or VOICE_NO_DIGIT)
+
+
 @app.post("/twilio/voice/{pid}/answer")
-async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0):
+async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0, recap: int = 0):
     form = await _form(request)
     key = _call_key(pid, form)
+    if recap and key not in _CALLS:  # the call was already recorded (hung up): nothing more to do
+        return Response(channels.twiml_say(VOICE_NO_DIGIT), media_type="application/xml")
     call = _CALLS.setdefault(key, {"pid": pid, "turns": [], "said": [], "keys": []})
     digits, speech = form.get("Digits") or "", (form.get("SpeechResult") or "").strip()
     said = digits or speech
@@ -722,6 +786,10 @@ async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0):
         conf = form.get("Confidence")
         call["turns"].append({"who": "user", "text": said, **({"dtmf": True} if digits else {}),
                               **({"confidence": conf} if conf and not digits else {})})
+    if recap:
+        _rlog.info("voice %s recap %s %s", pid, recap, "keys" if digits else "speech" if speech else "silence")
+        return Response(_recap_answer(key, call, recap, digits, speech, end), media_type="application/xml")
+    if said:
         if n > 1 and _NOTHING_MORE.match(_plain(said) or ""):
             more = False  # "ne, nic" to "anything else?": nothing new to understand
         else:
@@ -736,6 +804,13 @@ async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0):
         if not key.startswith("pid:"):
             store.outbox_update(key, transcript=call["turns"])
         return Response(channels.followup_twiml(pid, VOICE_FOLLOW_UP, n + 1), media_type="application/xml")
+    rc = _recap_of(call)
+    if rc:  # say back what we understood and ask to confirm (1 / ano, 2 / ne)
+        call["recap"] = rc
+        call["turns"].append({"who": "bot", "text": rc})
+        if not key.startswith("pid:"):
+            store.outbox_update(key, transcript=call["turns"])
+        return Response(channels.ask_twiml(pid, rc, recap=1), media_type="application/xml")
     thanks = _finish_call(key)
     return Response(channels.twiml_say(thanks or VOICE_NO_DIGIT), media_type="application/xml")
 
@@ -799,9 +874,11 @@ async def _agent_outcome(pid: str, call_sid: str):
         return
     _record_reply(pid, o["text"], {"intent": o["intent"], "why": f"hlasový asistent: {o['intent']}", "source": "elevenlabs-agent",
                                    **({"when": o["when"]} if o["when"] else {}), **({"extra": o["extra"]} if o.get("extra") else {})},
-                  "voice-agent", transcript=o.get("transcript"))
-    if o.get("transcript"):
-        store.outbox_update(call_sid, transcript=o["transcript"], conversation_id=o.get("conversation_id"))
+                  "voice-agent", transcript=o.get("transcript"), summary=o.get("summary"), confirmed=o.get("confirmed"))
+    if o.get("transcript") or o.get("summary"):
+        store.outbox_update(call_sid, transcript=o.get("transcript") or [], conversation_id=o.get("conversation_id"),
+                            **({"summary": o["summary"]} if o.get("summary") else {}),
+                            **({"confirmed": o["confirmed"]} if o.get("confirmed") is not None else {}))
 
 
 # ---------- patient page (personal link from SMS / e-mail) ----------

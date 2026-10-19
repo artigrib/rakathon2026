@@ -157,6 +157,42 @@ AGENT_DATA = {
     "health_flag": "ano, pokud senior zmínil jakoukoli zdravotní potíž, jinak ne.",
 }
 
+# ---------- recap at the end of a call: say back what was understood, ask to confirm (agent + scripted call) ----------
+# Never after an emergency (155 + a person at once), an opt-out or "call me later".
+RECAP_ASK = "Je to tak?"
+RECAP_FIX = "Co mám opravit?"
+RECAP = {
+    "ok": "Rozuměla jsem, že jste v pořádku a nic nepotřebujete.",
+    "need_items": "Rozuměla jsem, že potřebujete {items}.",
+    "need_help": "Rozuměla jsem, že potřebujete pomoc.",
+    "low_mood": "Rozuměla jsem, že je Vám smutno a chcete, aby se Vám někdo ozval.",
+    "health_problem": "Rozuměla jsem, že Vám není dobře a má se Vám ozvat pracovník.",
+}
+RECAP_ALSO = "Potřebujete také {items}."
+
+
+def _and(words: list) -> str:
+    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " a " + words[-1]
+
+
+def recap(intent: str, extra: dict) -> str:
+    """Deterministic recap of a scripted call (backend/app.py), e.g. "Rozuměla jsem, že potřebujete nákup a léky
+    z lékárny. Je to tak?"; '' = no recap (emergency, opt-out, callback, unclear …)."""
+    extra = extra or {}
+    items = extra.get("items") or []
+    if isinstance(items, str):
+        items = [x.strip() for x in items.split(",")]
+    labels = [ITEMS[k]["label"] for k in items if k in ITEMS and k != "navsteva"]
+    if intent == "need_items":
+        s = RECAP["need_items"].format(items=_and(labels)) if labels else RECAP["need_help"]
+    elif intent == "ok":
+        s = RECAP["ok"]
+    elif intent in ("low_mood", "health_problem"):
+        s = RECAP[intent] + (" " + RECAP_ALSO.format(items=_and(labels)) if labels else "")
+    else:
+        return ""
+    return f"{s} {RECAP_ASK}"
+
 
 def agent_prompt() -> str:
     faq = "\n".join(f"- {answer}" for _, answer in FAQ)
@@ -176,15 +212,30 @@ PRAVIDLA, která nesmíš porušit:
 
 Postup:
 - Úvodní věta už zazněla: "{GREETING}"
-- Když je v pořádku: "{CLOSING['ok']}" a ukonči hovor.
+- Když je v pořádku: udělej shrnutí (níže), pak "{CLOSING['ok']}" a ukonči hovor.
 - Když něco potřebuje: zeptej se "Co přesně potřebujete? Nákup, léky z lékárny, obědy, dopravu, nebo něco jiného?"
-  Pak řekni "{CLOSING['need_items']}" a ukonči hovor.
-- Když je smutný nebo osamělý: "{CLOSING['low_mood']}" a ukonči hovor.
-- Když zmíní zdravotní potíž bez ohrožení: "{CLOSING['health_problem']}" a ukonči hovor.
+  Pak udělej shrnutí, řekni "{CLOSING['need_items']}" a ukonči hovor.
+- Když je smutný nebo osamělý: udělej shrnutí, pak "{CLOSING['low_mood']}" a ukonči hovor.
+- Když zmíní zdravotní potíž bez ohrožení: udělej shrnutí, pak "{CLOSING['health_problem']}" a ukonči hovor.
 - Když teď nemůže mluvit: "{CLOSING['callback']}" a ukonči hovor.
 - Když se na něco ptá, použij jen tyto odpovědi a potom se znovu zeptej: "{ASK_AGAIN}"
 {faq}
 - Když nerozumíš: "{NOT_UNDERSTOOD}" Po druhém nedorozumění řekni "{CLOSING['handoff']}" a ukonči hovor.
+
+Shrnutí před závěrečnou větou:
+- Jednou nebo dvěma krátkými větami řekni, co jsi pochopila: jak se má, jakou má náladu, co přesně potřebuje
+  a jestli zmínil zdravotní potíž. Začni "Rozuměla jsem, že" a řekni jen to, co senior sám řekl, nic nepřidávej
+  a nic nehodnoť. Pak se zeptej "{RECAP_ASK}" Příklady:
+  - "{RECAP['ok']} {RECAP_ASK}"
+  - "{RECAP['need_items'].format(items='nákup a léky z lékárny')} {RECAP_ASK}"
+  - "{RECAP['low_mood']} {RECAP_ASK}"
+  - "{RECAP['health_problem']} {RECAP_ASK}"
+- Když souhlasí nebo neodpoví, řekni závěrečnou větu a ukonči hovor.
+- Když řekne, že to tak není, zeptej se "{RECAP_FIX}" Opravu si zapamatuj, zopakuj jednou krátce opravené shrnutí
+  bez další otázky a řekni závěrečnou větu podle opravy.
+- Při ohrožení shrnutí nikdy nedělej: hned "{EMERGENCY}" a ukonči hovor. Ani když nechce další hovory nebo teď
+  nemůže mluvit, shrnutí nedělej.
+- Do pole recap_confirmed zapiš ano, když shrnutí potvrdil, ne, když ho opravil.
 
 Schválené závěrečné věty:
 {closing}

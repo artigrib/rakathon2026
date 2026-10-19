@@ -296,16 +296,57 @@ AGENT_DATA = {
     "promise_date": "Datum slíbené platby tak, jak ho klient řekl (např. v pátek, 15. listopadu), jinak prázdné.",
     "promise_amount": "Slíbená částka v Kč jako číslo, jinak prázdné.",
 }
+# data collection `summary` (scripts/elevenlabs_agent.py): never the outstanding amount or other debt details
+AGENT_SUMMARY = ("Shrnutí hovoru česky v jedné až dvou krátkých větách pro operátora: co klient zvolil (platba, splátky, "
+                 "odklad, sloučení, předání kolegovi) a termín a částku platby, jen pokud je klient sám řekl. "
+                 "Nikdy neuváděj dlužnou částku ani jiné údaje o závazku.")
 VERIFY_ASK = "Než budeme pokračovat, potřebuji ověřit, že mluvím se správnou osobou. Řekněte mi prosím své datum narození, nebo poslední čtyři číslice čísla smlouvy."
 VERIFY_THANKS = "Děkuji. Údaj ověří systém. Podrobnosti Vám pak ukáže zabezpečená stránka."
 PROMISE_ASK = "Kdy a jakou částku plánujete zaplatit?"
 PROMISE_THANKS = "Děkuji, zapisuji si termín a částku platby. Kdyby se něco změnilo, dejte nám prosím vědět."
 
+# ---------- recap at the end of a call: ONLY after identity verification, only what the person said themselves ----------
+# Never the outstanding amount or any other detail of the debt; never on the wrong person / dispute / vulnerable /
+# opt-out paths (recap() returns '' for them). The scripted call has no verification step, so it never recaps.
+RECAP_ASK = "Souhlasí to?"
+RECAP_FIX = "Co mám opravit?"
+RECAP = {
+    "will_pay": "Zapsal jsem si, že zaplatíte.",
+    "need_plan": "Zapsal jsem si, že máte zájem o splátky nebo odklad.",
+    "cannot_pay": "Zapsal jsem si, že máte zájem o splátky nebo odklad.",
+    "want_refi": "Zapsal jsem si, že máte zájem o sloučení do jedné splátky.",
+}
+RECAP_WHEN = "Termín: {when}."
+RECAP_AMOUNT = "Částka podle Vašich slov: {amount} Kč."   # the amount the person promised, never the outstanding one
+
+
+def recap(intent: str, extra: dict) -> str:
+    """Deterministic recap: '' unless the identity was verified in this conversation (extra["verified"] is True) and the
+    intent is a payment option. Uses only the promise date / amount the person said (extract / data collection)."""
+    extra = extra or {}
+    if extra.get("verified") is not True or intent not in RECAP:
+        return ""
+    parts = [RECAP[intent]]
+    if intent == "will_pay":
+        when = str(extra.get("promise_date") or extra.get("when") or "").strip().rstrip(".")
+        amount = extra.get("promise_amount")
+        if when:
+            parts.append(RECAP_WHEN.format(when=when))
+        if str(amount or "").strip().isdigit() and int(str(amount).strip()) > 0:
+            parts.append(RECAP_AMOUNT.format(amount=int(str(amount).strip())))
+    return " ".join([*parts, RECAP_ASK])
+
+
+def recap_sentences() -> list:
+    """Every recap sentence template (tests/test_compliance.py: no forbidden words, no debt detail)."""
+    return [*RECAP.values(), RECAP_WHEN, RECAP_AMOUNT, RECAP_ASK, RECAP_FIX]
+
 
 def approved_sentences() -> list:
-    """Every sentence the assistant may say (tests/test_compliance.py checks them for forbidden words)."""
+    """Every sentence the assistant may say (tests/test_compliance.py checks them for forbidden words).
+    The recap templates with the person's own date and amount are in recap_sentences()."""
     return [GREETING, ASK_AGAIN, NOT_UNDERSTOOD, VERIFY_ASK, VERIFY_THANKS, PROMISE_ASK, PROMISE_THANKS,
-            *[a for _, a in FAQ], *CLOSING.values()]
+            *[a for _, a in FAQ], *CLOSING.values(), *set(RECAP.values()), RECAP_ASK, RECAP_FIX]
 
 
 def agent_prompt() -> str:
@@ -318,7 +359,8 @@ PRAVIDLA, která nesmíš porušit:
 1. Hned na začátku se představíš: kdo volá (společnost {CREDITOR}) a že jsi automatický asistent, ne člověk.
    Úvodní věta to už říká: "{GREETING}"
 2. Nikdy neříkáš částku, počet dní po splatnosti, číslo smlouvy ani jiný údaj o závazku. Neznáš je a nedomýšlíš je.
-   Podrobnosti jsou jen na zabezpečené stránce po ověření totožnosti.
+   Podrobnosti jsou jen na zabezpečené stránce po ověření totožnosti. Jedinou výjimkou je shrnutí po ověření
+   (níže): smíš zopakovat termín a částku platby, které klient sám řekl, nic jiného.
 3. Než se klienta zeptáš na termín a částku platby, ověř totožnost: "{VERIFY_ASK}" Odpověď zapiš do pole
    verification a řekni "{VERIFY_THANKS}" Údaj sám nehodnotíš, ověří ho systém.
 4. Nevyhrožuješ, nestrašíš a neuvádíš žádné následky (žádné vymáhací, soudní ani trestní kroky, žádné kontaktování
@@ -335,7 +377,7 @@ Postup:
 - Když nechce žádný další kontakt: "{CLOSING['opt_out']}" a ukonči hovor.
 - Když nechce jen telefonáty: "{CLOSING['channel_opt_out']}" a ukonči hovor.
 - Když chce zaplatit: ověř totožnost (pravidlo 3), pak se zeptej "{PROMISE_ASK}" Termín zapiš do promise_date,
-  částku do promise_amount, řekni "{PROMISE_THANKS}" a pak "{CLOSING['will_pay']}" a ukonči hovor.
+  částku do promise_amount, řekni "{PROMISE_THANKS}", udělej shrnutí (níže) a pak "{CLOSING['will_pay']}" a ukonči hovor.
 - Když potřebuje splátky nebo odklad: "{CLOSING['need_plan']}" a ukonči hovor.
 - Když teď nemůže platit: "{CLOSING['cannot_pay']}" a ukonči hovor.
 - Když chce sloučit úvěry nebo refinancovat: "{CLOSING['want_refi']}" a ukonči hovor.
@@ -343,6 +385,19 @@ Postup:
 - Na otázky odpovídej jen těmito větami a pak se znovu zeptej "{ASK_AGAIN}"
 {faq}
 - Když nerozumíš: "{NOT_UNDERSTOOD}" Po druhém nedorozumění řekni "{CLOSING['handoff']}" a ukonči hovor.
+
+Shrnutí před závěrečnou větou:
+- Shrnutí řekni jen tehdy, když v tomto hovoru proběhlo ověření totožnosti (pravidlo 3). Bez ověření ho vynech.
+- Nikdy ho neříkej, když volaný není adresát, nesouhlasí s pohledávkou, zmínil těžkou situaci nebo nechce kontakt.
+- Použij jen tyto věty a do shrnutí dej jen termín a částku, které klient sám řekl, nikdy jinou částku:
+  - zaplatí: "{RECAP['will_pay']}" pak "Termín:" a termín, jak ho řekl, a "Částka podle Vašich slov:" a částka, jak ji řekl.
+  - splátky nebo odklad: "{RECAP['need_plan']}"
+  - sloučení: "{RECAP['want_refi']}"
+  Pak se zeptej "{RECAP_ASK}"
+- Když souhlasí nebo neodpoví, řekni závěrečnou větu a ukonči hovor.
+- Když řekne, že to nesouhlasí, zeptej se "{RECAP_FIX}" Opravu zapiš do promise_date a promise_amount, zopakuj
+  jednou krátce opravené shrnutí bez další otázky a řekni závěrečnou větu.
+- Do pole recap_confirmed zapiš ano, když shrnutí potvrdil, ne, když ho opravil.
 
 Schválené závěrečné věty:
 {closing}

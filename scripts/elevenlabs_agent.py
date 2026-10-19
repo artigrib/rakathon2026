@@ -6,7 +6,8 @@
 The case defaults to env CASE, else screening. The agent may only say the approved sentences of the case dialog
 (cases/<id>/dialog.py: agent_prompt(), GREETING, AGENT_DECISIONS …). The model understands the person, it never
 improvises; anything else goes to a human. The result of the call comes back as data collection field `decision`
-(+ `preferred_time` and the case's AGENT_DATA fields), which the backend turns into a journey event (backend/agent_call.py).
+(+ `preferred_time`, the case's AGENT_DATA fields,
+`summary` (case override: dialog.AGENT_SUMMARY) and `recap_confirmed`), which the backend turns into a journey event (backend/agent_call.py).
 """
 import argparse
 import importlib
@@ -20,6 +21,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 API = "https://api.elevenlabs.io/v1/convai"
 VOICE = os.getenv("ELEVENLABS_VOICE_ID") or "EXAVITQu4vr4xnSDxMaL"  # Sarah, premade
+
+
+SUMMARY = ("Shrnutí hovoru česky v jedné až dvou krátkých větách pro pracovníka: co bylo domluveno nebo zjištěno. "
+           "Jen to, co v hovoru zaznělo, nic nedomýšlej.")
+RECAP_CONFIRMED = ("ano, pokud volaný na konci potvrdil shrnutí; ne, pokud ho opravil nebo nesouhlasil; "
+                   "prázdné, pokud shrnutí nezaznělo.")
 
 
 def dialog(case: str = ""):
@@ -37,6 +44,9 @@ def config(case: str = "") -> dict:
                      + "; ".join(f"{k} = {v}" for k, v in d.AGENT_DECISIONS.items())},
         "preferred_time": {"type": "string", "description": d.AGENT_WHEN},
         **{k: {"type": "string", "description": v} for k, v in getattr(d, "AGENT_DATA", {}).items()},
+        # the recap at the end of the call (backend/agent_call.py stores both on the reply and the call)
+        "summary": {"type": "string", "description": getattr(d, "AGENT_SUMMARY", SUMMARY)},
+        "recap_confirmed": {"type": "string", "description": RECAP_CONFIRMED},
     }
     return {
         "name": d.AGENT_NAME,

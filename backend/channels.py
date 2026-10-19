@@ -90,6 +90,13 @@ def followup_twiml(patient_id: str, question: str, n: int) -> str:
             + (f'<Redirect method="POST">{escape(end)}</Redirect>' if end else "") + "</Response>")
 
 
+def ask_twiml(patient_id: str, question: str, **q) -> str:
+    """One more question in a scripted call (e.g. the recap: ?recap=1); silence ends the call with what we have."""
+    end = answer_url(patient_id, **q, end=1)
+    return ('<?xml version="1.0" encoding="UTF-8"?><Response>' + _gather(answer_url(patient_id, **q), question)
+            + (f'<Redirect method="POST">{escape(end)}</Redirect>' if end else "") + "</Response>")
+
+
 def twiml_say(text: str) -> str:
     return f'<?xml version="1.0" encoding="UTF-8"?><Response>{speak(text)}</Response>'
 

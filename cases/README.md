@@ -179,14 +179,27 @@ AGENT_NAME: str
 AGENT_DECISIONS: dict[str, str]    # decision → description for the agent's data collection
 AGENT_WHEN: str                    # description of data collection `preferred_time` (→ event `when`)
 AGENT_DATA: dict[str, str]         # extra data collection fields → event `extra` ({} = none)
-def agent_prompt() -> str          # the whole agent prompt (only approved sentences); must contain CLOSING["handoff"]
+AGENT_SUMMARY: str                 # optional: description of data collection `summary` (core default in
+                                   # scripts/elevenlabs_agent.py); core also adds `recap_confirmed` (ano / ne / empty)
+def agent_prompt() -> str          # the whole agent prompt (only approved sentences); must contain CLOSING["handoff"];
+                                   # ends with a recap step: say back what was collected, ask to confirm, take one correction
+def recap(intent, extra) -> str    # optional: the recap said at the end of a scripted (gather) call, e.g.
+                                   # "Rozuměla jsem, že potřebujete nákup a léky z lékárny. Je to tak?"; '' = none.
+                                   # extra = understood extra (+ "when"). Never for VOICE_FINAL intents. Without it: no recap.
+RECAP_FIX: str                     # optional: "Co mám opravit?" after "ne" (messages voice_ui.recap_fix overrides)
 # features.hall only:
 HALL_CLOSING: dict[str, str]; HALL_NOT_UNDERSTOOD: str; HALL_STATUS: dict[str, str]  # intent → card status
 HALL_LINKS: dict = {"centres": "/centra", "info": "/prevence"}   # optional, SMS placeholders → paths
 ```
 
 Core policy (`backend/replies.understand`, not overridable): rules first; `opt_out` from rules or AI always wins;
-an AI answer with confidence ≠ high becomes `unclear` (→ a person); AI failures fall back to rules. The result is
+an AI answer with confidence ≠ high becomes `unclear` (→ a person); AI failures fall back to rules.
+Recap (scripted call, `backend/app.py`): after the last answer, unless the intent is in `VOICE_FINAL`, the call says
+`recap(intent, extra)` and listens once: 1 / "ano" = confirmed, 2 / "ne" = one more open answer ("Co mám opravit?"),
+anything else said = the correction; silence or a hang-up records what we have. The reply event (and the call in the
+outbox) get `summary` (the recap without its question) and `confirmed` (true / false, absent = not answered). Agent
+calls (`backend/agent_call.py`) store the data collection `summary` (else ElevenLabs `transcript_summary`) and
+`recap_confirmed` the same way. The web app shows them above "Celý rozhovor" (`core/components/comm.js recapLine`). The result is
 `{intent, confidence, why, source[, when][, extra]}`. In a ConversationRelay call (`backend/voice_ai.Conversation`)
 an intent with its own `CLOSING` sentence ends the call; `question` → `FAQ` answer + `ASK_AGAIN` or handoff;
 `unclear` twice → handoff. The bot never says anything that is not in `dialog.py` / `messages.cs.json`.
