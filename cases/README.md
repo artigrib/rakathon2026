@@ -13,6 +13,14 @@ Backend modules bind the case at import time (`backend/case.py: CASE = load()`),
 State: `backend/state.json` for screening, `backend/state-<id>.json` otherwise (env `STATE_FILE` overrides).
 Optional `cases/<id>/.env` is read before `backend/.env` (own `ELEVENLABS_AGENT_ID`, `DEMO_PASSWORD` …).
 
+**Live traffic is opt-in for every case except screening.** `backend/.env` holds the production screening keys,
+`PUBLIC_URL` and ElevenLabs agent. A case other than screening:
+- does not read `backend/.env` at all unless `CASE_LIVE=1` (in the environment or in `cases/<id>/.env`);
+- runs in MOCK mode (`settings.live` and `settings.email_live` are false, `/api/health` says `"mode": "mock"`) unless
+  `CASE_LIVE=1`, even when Twilio / e-mail keys are in the environment (the compose services pass `backend/.env`).
+To go live put `CASE_LIVE=1` together with the case's own `PUBLIC_URL`, `ELEVENLABS_AGENT_ID` (or `VOICE_MODE=gather`)
+and `DEMO_PASSWORD` into `cases/<id>/.env`. Screening is unaffected (`tests/test_case_live.py`).
+
 `tests/test_case_contract.py` checks every rule marked **(checked)** below for every `cases/*/case.json`.
 `cases/screening/` is the reference implementation of everything here.
 
@@ -60,7 +68,9 @@ Only top-level `*.json` of the package are served (`/app/content/<name>.json`); 
   "sent_stage": "sent",                  // stage after event "send": store keeps d.sent, cadence counts these
   "result_stage": null,                  // optional: store copies event extra `result` into d.result
   "terminal_reply_stages": ["ok", "…"],  // a last stage in this set stops the automatic plan
-  "data": "cases/seniors/data/patients.json",   // repo-relative data file
+  "marks": ["basket"],                   // optional: extra fields the web app may set with POST /api/mark
+  "data": "cases/seniors/synthetic/seniors.json",   // repo-relative data file; NOT under a `data/` directory
+                                         // (gitignored: challenge data), so commit synthetic data e.g. in synthetic/
   "storage_key": "seniors:v1"            // localStorage key of the web app (static mode)
 }
 ```
@@ -147,12 +157,23 @@ PLAN = Plan(
     pause_stage="not_now",           # "" = no pause cycle
     human="nurse",                   # step channel meaning "a person takes over"; fires this journey event
     stop_stages=frozenset({"nurse_call"}),   # besides case.json terminal_reply_stages
+    cycle_stages=frozenset(),        # optional: stages that close a contact cycle; the next send starts the ladder
+                                     # again at step 0 (seniors: every answered daily check-in)
 )
+
+def adjust(touch: dict, journey: list) -> dict | None   # optional: applied to every touch computed from PLAN
 ```
+
+`adjust` gets `{"due": date, "channel", "variant", "step"}` and returns it changed (another channel, a later `due`, an
+extra `at` time label …) or `None` = no automatic touch (collections: channel opt-out, working days, weekly cap).
+If it raises, the core logs it and plans no touch. Other cadence helpers (collections `allowed_at`, `is_contact_day`)
+are case-internal; the core does not call them.
 
 Algorithm (`backend/cadence.next_touch`, core): nothing until the first `sent_stage`; stops when the last stage is
 terminal or a stop stage; the pause stage restarts the ladder after `pause_days` with `restart_variant`; never the
-same channel three times in a row. `POST /api/tick` (demo clock) sends what is due.
+same channel three times in a row. A send is a journey event with the `sent_stage` reached by event `send`
+(`backend.cadence.is_send`); a reply that keeps that stage (collections: `channel_opt_out` while `contacted`) is not
+counted. `POST /api/tick` (demo clock) sends what is due.
 
 ## hooks.py **(checked)**
 
@@ -160,7 +181,18 @@ same channel three times in a row. `POST /api/tick` (demo clock) sends what is d
 def extra_placeholders(patient: dict, M: dict) -> dict[str, str]   # message placeholders from a record ({} ok)
 def on_reply(pid: str, intent: str, extra: dict, store) -> None    # after every recorded reply (webhook, link, UI,
                                                                      # relay call, agent call); store = backend Store
+# optional:
+def on_tick(day: str, store, transition, patients: dict) -> list   # every demo day of POST /api/tick, before the
+    # contact plan; transition(pid, event, day, **extra) = the core state machine; patients = records by id;
+    # returns touches for the toast, e.g. [{"id", "channel": "system", "event"}] (collections: promises kept/broken)
+def page(pid: str, record: dict, form: dict | None, store, day: str) -> dict   # replaces the core personal page
+    # GET/POST /p/{token}; form = POSTed fields or None; returns {"html", "title"?, "reply"?: {"event", "intent",
+    # "extra"?}}; a reply goes through transition + on_reply like any other answer (collections: identity check first)
 ```
+
+`store` is always the store of the current demo session (each visitor has their own), never a global; keep no
+per-session state in module globals. A hook that raises in `on_reply` / `on_tick` is logged and skipped (the reply
+or the clock still goes through); `page` errors are a 500 of that page only.
 
 `on_reply` runs after the journey transition. Write case data with `store.patch(pid, field=value)` (a dict per record,
 returned in `/api/state` → `decisions[pid]`, visible in the web app as `store.get(id).field`) or
@@ -240,7 +272,7 @@ export function badge(mine, clock, plans): number   // optional, count in the na
 `close-card`, `open-compose`, `close-compose`, `pick-channel`, `save-draft`, `confirm-send`, `approve-batch`,
 `skip`, `unskip`, `reply` (`data-reply`), `step` (`data-stage`, `data-result`), `toggle-replies`, `tick`, `reset`,
 `undo`, `recipient-save`, `recipient-reset`, `fhir-sync`, `open-practice` (`data-gp`). Marks stored on the server
-(`POST /api/mark`): only `skipped`, `draft`, `override`, `resultAck`.
+(`POST /api/mark`): only `skipped`, `draft`, `override`, `resultAck` and the case's `case.json "marks"`.
 
 i18n keys the core reads: `nav[viewId]`; `toast.{draftSaved, sent(ch), approved(n), skipped, unskipped, reply(label),
 step[event] + step.softDeclined, recipientSaved, recipientReset, tick(n)}`; `apiError`, `loadError`,
@@ -265,5 +297,6 @@ then reads `../../cases/<id>/` and simulates sending locally.
 - Case tests in `cases/<id>/tests/test_*.py` (+ `__init__.py`) run with `CASE=<id> .venv/bin/python -m pytest -q`;
   the root `conftest.py` sets the env, skips other cases' tests and offers the `client` fixture
   (`(TestClient(app), store)`, fresh state).
-- `tests/` (except `test_case_contract.py`, `test_recipient.py`, `test_sessions.py`, `test_password_landing.py`)
+- `tests/` (except `test_case_contract.py`, `test_case_live.py`, `test_recipient.py`, `test_sessions.py`,
+  `test_password_landing.py`)
   is screening and runs only with `CASE=screening`.
