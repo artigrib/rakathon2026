@@ -13,6 +13,9 @@ export async function loadMessages(opts = {}) {
   trial = !!opts.trial;
 }
 
+/** A section of the case's messages.cs.json (e.g. "scenario": texts of the guided demo), or undefined. */
+export const section = (name) => M?.[name];
+
 /** In live mode the server appends the patient's personal reply link to SMS, WhatsApp and e-mail. */
 export const linkNote = (channel) => withLink && ["sms", "whatsapp", "email"].includes(channel) && !trial;
 

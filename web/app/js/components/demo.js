@@ -18,9 +18,10 @@ function recipientForm(r, error) {
     </div>`;
 }
 
-export function demoPanel({ replies, clock, fhir, hall, recipient, recipientError }) {
+export function demoPanel({ replies, clock, fhir, hall, recipient, recipientError, scenario = "" }) {
   return `<summary>${T.demo.title}</summary>
     <div class="demo__body">
+      ${scenario}
       <p>${T.demo.intro}</p>
       ${recipient && hall ? `<a class="btn" href="/sal" target="_blank" rel="noopener">${T.demo.hall}</a>` : ""}
       ${recipient ? recipientForm(recipient, recipientError) : ""}

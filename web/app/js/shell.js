@@ -4,10 +4,11 @@ import { ACTIONS, CASE, T, VIEWS, contentUrl, dataUrl, dom, mineOf } from "./cas
 import { fmtDate } from "./util.js";
 import { store } from "./state.js";
 import { api } from "./api.js";
-import { loadMessages, message } from "./messages.js";
+import { loadMessages, message, section } from "./messages.js";
 import { loadJourney, refusals, softEvent } from "./fsm.js";
 import { card } from "./components/card.js";
 import { demoPanel } from "./components/demo.js";
+import { scenarioBlock } from "./components/scenario.js";
 import { toast, hideToast } from "./components/toast.js";
 
 const POLL_MS = 3000;
@@ -33,8 +34,7 @@ function render() {
   $("nav").innerHTML = VIEWS.map(({ id: v }) => `<button type="button" data-action="pick-view" data-view="${v}"
     ${ui.view === v ? 'aria-current="page"' : ""}>${T.nav[v]}${badge[v] ? ` <span class="due">${badge[v]}</span>` : ""}</button>`).join("");
   $("view").innerHTML = (VIEWS.find((v) => v.id === ui.view) || VIEWS[0]).render(ui, data, rowCtx);
-  const typing = document.activeElement?.closest?.("#demo") && document.activeElement.matches("input[type=tel], input[type=email]");
-  if (!typing) $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir, hall: !!CASE.features?.hall, recipient, recipientError: ui.recipientError }); // keep what is being typed
+  renderDemo();
   if (CASE.group) $("gp").value = ui.gp;
   const open = ui.open && find(ui.open);
   const a = document.activeElement; // keep keyboard focus inside the card across re-renders (polling, outbox load)
@@ -44,6 +44,15 @@ function render() {
   document.body.classList.toggle("has-card", !!open);
   if (open && keep) document.getElementById(keep)?.focus();
   footer();
+}
+
+/** The demo panel alone (the guided demo's countdown refreshes it without re-rendering the views). */
+function renderDemo() {
+  const typing = document.activeElement?.closest?.("#demo") && document.activeElement.matches("input[type=tel], input[type=email]");
+  if (typing) return; // keep what is being typed
+  const sc = data.live?.scenario;
+  const scenario = backend ? scenarioBlock(sc, section("scenario"), { link: sc && data.live.links[sc.pid], mock: backend.mode !== "live" }) : "";
+  $("demo").innerHTML = demoPanel({ replies: ui.demoReplies, clock: data.live?.clock, fhir: !!backend?.fhir, hall: !!CASE.features?.hall, recipient, recipientError: ui.recipientError, scenario });
 }
 
 /** Close the patient card and give focus back to the row that opened it. */
@@ -66,12 +75,24 @@ async function loadOutbox(id) {
 }
 const today = () => data.live?.clock || data.refDate;
 
+let scnSeen = "";
+
+/** The guided demo's persona is a record of this visitor only: it comes with the state, not with the data file. */
+function personas(list = []) {
+  data.patients = [...list, ...data.patients.filter((p) => !p.demo)];
+}
+
 async function pull() {
   const s = await api.state();
-  if (s.version === seen && data.live?.clock === s.clock) return false;
-  seen = s.version;
+  const scn = JSON.stringify(s.scenario || null);
+  if (s.version === seen && data.live?.clock === s.clock) {
+    if (scn !== scnSeen && data.live) { scnSeen = scn; data.live.scenario = s.scenario; renderDemo(); } // countdown only
+    return false;
+  }
+  seen = s.version; scnSeen = scn;
   store.merge(s.decisions);
-  data.live = { clock: s.clock, plans: s.plans || {}, links: s.links || {} };
+  personas(s.personas);
+  data.live = { clock: s.clock, plans: s.plans || {}, links: s.links || {}, scenario: s.scenario };
   if (ui.open) await loadOutbox(ui.open); // delivery and replies of the open patient stay current
   return true;
 }
@@ -166,6 +187,15 @@ const actions = {
     toast(T.toast.tick(r.touches.length), { undo: false });
   },
   undo: () => { store.undo(); hideToast(); },
+  "scenario-start": async () => {
+    await api.scenarioStart();
+    seen = -1; await pull();
+    const p = find(data.live.scenario?.pid);
+    if (p && CASE.group) ui.gp = p[CASE.group.field]; // the persona's group, so its row is in every view
+    $("demo").open = true;
+  },
+  "scenario-next": async () => { await api.scenarioNext(); seen = -1; await pull(); },
+  "scenario-reset": async () => { await api.scenarioReset(); seen = -1; await pull(); if (ui.open && !find(ui.open)) closeCard(); },
   reset: async () => { if (backend) await api.reset(); store.reset(); seen = -1; if (backend) await pull(); hideToast(); },
   "open-practice": (el) => { ui.gp = el.dataset.gp; ui.view = VIEWS[0].id; window.scrollTo(0, 0); },
 };
@@ -236,6 +266,7 @@ async function init() {
   $("demo").hidden = false;
   if (backend) {
     await pull().catch(() => {});
+    if (data.live?.scenario?.running) $("demo").open = true; // the guided demo goes on after a reload
     // Replies arrive by webhook at any time: refresh, but never while the nurse is editing a message.
     setInterval(() => pull().then((changed) => changed && !ui.composing && !busy && render()).catch(() => {}), POLL_MS);
   }

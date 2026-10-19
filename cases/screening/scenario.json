@@ -1,0 +1,33 @@
+{
+  "_about": "Guided demo (backend/scenario.py, cases/README.md 'scenario.json'): the visitor is the patient. Invitation SMS, the assistant's call, the answer, the nurse books the LDCT, the result and the repeat-screening e-mail. Texts: messages.cs.json 'scenario'.",
+  "persona": {
+    "age": 61,
+    "sex": "M",
+    "region": "Jihomoravský kraj",
+    "pneu": "PNEU-0081",
+    "portal": false,
+    "pref": "sms",
+    "phone": "{phone}",
+    "email": "{email}",
+    "status": "ELIGIBLE",
+    "reasons": ["Věk 61 let", "Kuřák, 32 balíčkoroků", "Splňuje kritéria programu Prevence pro plíce"],
+    "flags": [],
+    "smoking": {"status": "current", "packYears": 32.0, "source": "calculated", "note": "Kouří asi krabičku denně"},
+    "ct": [],
+    "history": [],
+    "next": "SEND_INVITE",
+    "channel": "sms",
+    "variant": "FIRST_INVITE",
+    "why": "Ukázka na Vašem telefonu: pozvánka SMS, pak hovor asistenta"
+  },
+  "steps": [
+    {"id": "invite", "do": [{"send": "sms", "variant": "FIRST_INVITE"}], "wait": {"reply": true}, "timeout": 45},
+    {"id": "call", "after": 3, "do": [{"send": "voice", "variant": "REMINDER"}], "wait": {"reply": true}, "timeout": 150,
+     "fallback": {"reply": "Ano, mám zájem"}},
+    {"id": "nurse", "after": 6, "if_stage": ["interested", "callback"], "do": [{"event": "booked"}]},
+    {"id": "ldct", "after": 6, "if_stage": ["booked"], "do": [{"tick": 14}, {"event": "ldct"}]},
+    {"id": "result", "after": 6, "if_stage": ["ldct"], "do": [{"tick": 7}, {"event": "result", "result": "negative"}]},
+    {"id": "rescreen", "after": 6, "if_stage": ["result"], "do": [{"send": "email", "variant": "RESCREEN"}],
+     "wait": {"reply": ["link"]}, "timeout": 60}
+  ]
+}

@@ -114,5 +114,67 @@
         "thanks": "Další zprávy o tomto programu Vám posílat nebudeme."
       }
     ]
+  },
+ "scenario": {
+  "title": "Celá ukázka na Vašem telefonu",
+  "start": "Spustit celou ukázku",
+  "next": "Další krok",
+  "reset": "Ukončit ukázku",
+  "restart": "Spustit znovu",
+  "openCard": "Otevřít moji kartu",
+  "openLink": "Otevřít stránku z odkazu",
+  "unavailable": "Celá ukázka běží jen po přihlášení s vlastním telefonem a e-mailem.",
+  "mock": "Tato ukázka teď nic skutečně neposílá, zprávy se jen zaznamenají. Odpověď nasimulujete tlačítkem Další krok.",
+  "now": "Teď",
+  "left": "ještě {s} s",
+  "status": {
+   "pending": "Čeká",
+   "active": "Probíhá",
+   "waiting": "Čeká na Vás",
+   "done": "Hotovo",
+   "simulated": "Odpověď nasimulována",
+   "noreply": "Bez odpovědi",
+   "skipped": "Přeskočeno"
+  },
+  "note": {
+   "daily_limit": "Denní limit zpráv na Vaše číslo je vyčerpán, zpráva se jen zaznamenala.",
+   "failed": "Zprávu se nepodařilo odeslat, ukázka pokračuje."
+  },
+  "intro": "Vyzkoušejte si cestu pacienta na vlastním telefonu: přijde Vám SMS, zavolá asistent a Vy odpovíte. Co dělá sestra a lékař, uvidíte v aplikaci.",
+  "facts": [
+   "V ukázce jste pacient, muž 61 let, kuřák. Jeho karta je v seznamu pacientů nahoře."
+  ],
+  "finished": "Hotovo. Celou cestu pacienta najdete na své kartě v aplikaci.",
+  "steps": {
+   "invite": {
+    "title": "Pozvánka v SMS",
+    "look": "Podívejte se do SMS. Můžete odpovědět ANO, nebo počkat na hovor."
+   },
+   "call": {
+    "title": "Hovor hlasového asistenta",
+    "look": "Zvedněte telefon. Máte-li zájem, stiskněte 1 nebo řekněte ano."
+   },
+   "nurse": {
+    "title": "Sestra objedná vyšetření",
+    "look": "Na kartě vidíte, že sestra objednala nízkodávkové CT."
+   },
+   "ldct": {
+    "title": "Vyšetření",
+    "look": "Ukázkový čas se posune o dva týdny, vyšetření proběhlo."
+   },
+   "result": {
+    "title": "Výsledek",
+    "look": "Výsledek je negativní, kontrola za dva roky. Lékař ho vidí v pohledu Lékař."
+   },
+   "rescreen": {
+    "title": "E-mail ke kontrole",
+    "look": "Podívejte se do e-mailu. Takto aplikace pozve ke kontrole. Odkaz vede na stránku s odpovědí."
+   }
   }
+ },
+ "login": {
+  "heading": "Ukázka aplikace",
+  "intro": "Zadejte přístupový kód a svůj telefon a e-mail. Ukázkové SMS, hovor, WhatsApp a e-mail z aplikace půjdou jen na ně, každý návštěvník má svou vlastní ukázku.",
+  "note": "Povolená jsou česká čísla. Kontakty použijeme jen k odeslání ukázkových zpráv a po 30 dnech je smažeme. Pacienti v ukázce jsou smyšlení."
+ }
 }

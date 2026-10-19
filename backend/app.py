@@ -16,13 +16,14 @@ from pydantic import BaseModel
 
 import asyncio
 from contextvars import ContextVar
+from types import SimpleNamespace
 from urllib.parse import quote
 import json
 import logging
 import re
 from datetime import timedelta
 
-from . import agent_call, channels, ctx, fhir_sink, fsm, hall, messages, recipient, sessions, tts
+from . import agent_call, channels, ctx, fhir_sink, fsm, hall, messages, recipient, scenario, sessions, tts
 from .case import CASE
 from .channels import NO_ANSWER  # noqa: F401  (re-exported for tts warmup)
 from .cadence import PLAN, next_touch
@@ -37,7 +38,8 @@ WEB = ROOT / "web" / "app"
 app = FastAPI(title=CASE.manifest["title"])
 REDIRECTS = CASE.manifest.get("redirects", {})  # public short links of the case, e.g. /centra
 
-OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/", "/j/")  # Twilio, ElevenLabs and patients need these without a password
+OPEN = ("/twilio/", "/p/", "/audio/", "/ws/", "/api/health", "/projekt", "/img/", "/j/",
+        "/internal/", "/landing/")  # Twilio, ElevenLabs and patients need these without a password; /internal/ checks INTERNAL_TOKEN
 OPEN_EXACT = {"/", "/rakathon", "/rakathon/", "/demo.mp4", "/login", "/logout", *REDIRECTS}  # public pages (exact: "/" as a prefix would open everything)
 
 # ---------- demo state per visitor ----------
@@ -125,6 +127,17 @@ def load_patients():
 load_patients()
 
 
+def record(pid: str) -> dict:
+    """A record of the case data, or the guided demo's persona of the current visitor (scenario.py)."""
+    return PATIENTS.get(pid) or store.data.get("personas", {}).get(pid) or {}
+
+
+def records() -> dict:
+    """Records by id incl. the current visitor's persona (case hooks.on_tick)."""
+    personas = store.data.get("personas")
+    return {**PATIENTS, **personas} if personas else PATIENTS
+
+
 def today() -> str:
     """Demo clock: starts at the data's evaluation date; "Posunout čas o den" moves it forward."""
     return store.data.get("clock") or REF_DATE
@@ -208,13 +221,19 @@ def audio(name: str):
 
 @app.get("/api/state")
 def state():
+    if _scenario_ok():
+        scenario.poll(store, OPS)  # the guided demo moves on while the visitor's app polls
     plans = {}
     for pid, d in store.decisions().items():
         n = next_touch(d.get("journey", []))
         if n:
             plans[pid] = {**n, "due": n["due"].isoformat()}
     links = {pid: f"/p/{t}" for t, pid in store.data.get("tokens", {}).items()}  # relative: works on any host
-    return {"version": store.version, "clock": today(), "decisions": store.decisions(), "plans": plans, "links": links}
+    out = {"version": store.version, "clock": today(), "decisions": store.decisions(), "plans": plans, "links": links,
+           "scenario": scenario.public(store, _scenario_ok())}
+    if store.data.get("personas"):  # the guided demo's persona: a record only this visitor has
+        out["personas"] = list(store.data["personas"].values())
+    return out
 
 
 @app.post("/api/send")
@@ -291,7 +310,7 @@ def tick(req: TickRequest):
         store.data["clock"] = day
         if ON_TICK:  # e.g. collections: a promise to pay was kept or broken (journey events through transition)
             try:
-                done += ON_TICK(day, store, transition, PATIENTS) or []
+                done += ON_TICK(day, store, transition, records()) or []
             except Exception:  # a broken case hook must not stop the clock or the contact plan
                 _rlog.exception("case hooks.on_tick failed on %s", day)
         for pid, d in list(store.decisions().items()):
@@ -302,8 +321,7 @@ def tick(req: TickRequest):
                 transition(pid, PLAN.human, day, auto=True, step=n["step"])
                 done.append({"id": pid, "channel": PLAN.human})
                 continue
-            p = PATIENTS.get(pid, {})
-            text = messages.render(p, n["channel"], n["variant"], patient_link(pid))
+            text = messages.render(record(pid), n["channel"], n["variant"], patient_link(pid))
             done.append(_send(pid, n["channel"], n["variant"], text, day, budget, auto=True, step=n["step"]))
     store._save()
     return {"clock": today(), "touches": done}
@@ -395,6 +413,67 @@ def reset():
     return {"ok": True}
 
 
+# ---------- guided demo: the whole case on the visitor's own phone (backend/scenario.py, cases/<id>/scenario.json) ----------
+def _scenario_ok() -> bool:
+    """Only for a signed-in visitor with own contacts: never the shared demo or the default DEMO_TO."""
+    v = recipient.visitor()
+    return bool(scenario.SPEC and _current.get() is not None and v and v.get("phone") and v.get("email"))
+
+
+def _scenario_send(pid, channel, variant, live=True, delivery=None):
+    """A step's send. Bypasses LIVE_LIMIT (one real message per step), still only to the visitor's own contacts and
+    within DEMO_DAILY_LIMIT (_send → recipient.take)."""
+    real = settings.email_live if channel == "email" else settings.live
+    budget = [1 if live and real and _scenario_ok() else 0]
+    day = today()
+    text = messages.render(record(pid), channel, variant, patient_link(pid))
+    r = _send(pid, channel, variant, text, day, budget)
+    if delivery and r.get("status") != "not_allowed":  # e.g. seniors: the check-in call was not answered
+        store.event(pid, None, day, delivery=delivery, channel=channel, note="no-answer", simulated=True)
+    return r
+
+
+OPS = SimpleNamespace(
+    send=_scenario_send,
+    allowed=lambda pid, ev: fsm.next_state(fsm.state_of(store.get(pid)), ev, _refusals(pid)) is not None,
+    event=lambda pid, ev, **extra: transition(pid, ev, today(), via="ui", scenario=True, **extra),
+    reply=lambda pid, text: _apply_reply(pid, text, "ui"),
+    tick=lambda days: tick(TickRequest(days=days)),
+    patch=lambda pid, fields: store.patch(pid, **fields),
+    stage=lambda pid: fsm.state_of(store.get(pid)),
+    today=lambda: today(),
+)
+
+
+def _need_scenario():
+    if not scenario.SPEC:
+        raise HTTPException(404, "Tento případ nemá řízenou ukázku.")
+    if not _scenario_ok():
+        raise HTTPException(403, "Celá ukázka běží jen po přihlášení s vlastním telefonem a e-mailem.")
+
+
+@app.post("/api/scenario/start")
+def scenario_start():
+    _need_scenario()
+    scenario.start(store, recipient.visitor(), OPS)
+    return state()
+
+
+@app.post("/api/scenario/next")
+def scenario_next():
+    """"Další krok": start the waiting step now, or give up waiting and run its fallback."""
+    _need_scenario()
+    scenario.poll(store, OPS, force=True)
+    return state()
+
+
+@app.post("/api/scenario/reset")
+def scenario_reset():
+    _need_scenario()
+    scenario.reset(store)
+    return state()
+
+
 # ---------- Twilio webhooks ----------
 async def _form(request: Request) -> dict:
     form = dict(await request.form())
@@ -452,13 +531,20 @@ def _apply_reply(pid, text, via, day=None):
 
 @app.post("/twilio/sms")
 async def inbound_sms(request: Request):
-    form = await _form(request)
+    return await _inbound_sms(await _form(request), forward=True)
+
+
+async def _inbound_sms(form: dict, forward: bool):
     sender = form.get("From") or ""
     via = "whatsapp" if sender.startswith("whatsapp:") else "sms"  # SMS and WhatsApp share this webhook
     hall_reply = hall.inbound(sender.replace("whatsapp:", ""), form.get("Body", "")) if via == "sms" and HALL else None
     if hall_reply is not None:  # someone from the hall demo answered the SMS after a missed call
         body = f"<Message>{escape(hall_reply)}</Message>" if hall_reply else ""
         return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
+    if forward and FORWARD and _current.get() is None:  # the visitor's latest demo may run in another case container
+        fwd = await asyncio.to_thread(_forward_sms, form)
+        if fwd is not None:
+            return fwd
     if _current.get() is None:  # a reply from a visitor's phone belongs to their demo
         token, sess = sessions.by_phone(sender.replace("whatsapp:", ""))
         if sess:
@@ -471,6 +557,85 @@ async def inbound_sms(request: Request):
         reply = "" if last.get("ignored") else messages.sms_reply(last.get("intent"), d["stage"])
     body = f"<Message>{escape(reply)}</Message>" if reply else ""
     return Response(f'<?xml version="1.0" encoding="UTF-8"?><Response>{body}</Response>', media_type="application/xml")
+
+
+# ---------- one Twilio number for every case: inbound SMS forwarded between case containers ----------
+FORWARD = [u.strip().rstrip("/") for u in settings.sms_forward.split(",") if u.strip()]
+INTERNAL_HEADER = "X-Internal-Token"
+
+
+def _internal_ok(request: Request) -> bool:
+    import secrets
+    tok = request.headers.get(INTERNAL_HEADER, "")
+    return bool(settings.internal_token) and secrets.compare_digest(tok, settings.internal_token)
+
+
+def _ts(s: str) -> float:
+    """Outbox "ts" (Europe/Prague, minutes) → epoch seconds; 0 when unknown."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    try:
+        return datetime.strptime(s, "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo("Europe/Prague")).timestamp()
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def phone_activity(phone: str) -> float:
+    """When this phone was last active in this container: the latest visitor session signed in with it, or the latest
+    live message its demo sent to it (epoch seconds; 0 = no session here)."""
+    token, sess = sessions.by_phone(phone)
+    if not sess:
+        return 0.0
+    st = _store_for(sessions.sid(token))
+    sent = [_ts(m.get("ts")) for m in st.data["outbox"] if m.get("to") == phone and m.get("live")]
+    return max([sess.get("created", 0), *sent])
+
+
+def _forward_sms(form: dict):
+    """The case container whose demo this phone used most recently gets the SMS (this one wins ties and errors).
+    Returns its TwiML response, or None = handle it here."""
+    import urllib.parse
+    import urllib.request
+    phone = (form.get("From") or "").replace("whatsapp:", "")
+    best, when = None, phone_activity(phone)
+    hdr = {INTERNAL_HEADER: settings.internal_token}
+    for base in FORWARD:
+        try:
+            req = urllib.request.Request(f"{base}/internal/has-phone?" + urllib.parse.urlencode({"phone": phone}), headers=hdr)
+            with urllib.request.urlopen(req, timeout=3) as r:
+                a = float(json.loads(r.read()).get("active") or 0)
+        except Exception as e:  # noqa: BLE001 – a case container that is down must not lose the reply here
+            _rlog.warning("sms forward: %s unreachable: %s", base, str(e)[:120])
+            continue
+        if a > when:
+            best, when = base, a
+    if not best:
+        return None
+    try:
+        req = urllib.request.Request(f"{best}/internal/sms", data=urllib.parse.urlencode(form).encode(), method="POST",
+                                     headers={**hdr, "Content-Type": "application/x-www-form-urlencoded"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            _rlog.info("sms forwarded to %s", best)
+            return Response(r.read(), media_type="application/xml")
+    except Exception as e:  # noqa: BLE001
+        _rlog.warning("sms forward to %s failed: %s", best, str(e)[:120])
+        return None
+
+
+@app.get("/internal/has-phone")
+def internal_has_phone(phone: str, request: Request):
+    if not _internal_ok(request):
+        raise HTTPException(403)
+    a = phone_activity(phone)
+    return {"session": a > 0, "active": a}
+
+
+@app.post("/internal/sms")
+async def internal_sms(request: Request):
+    """An inbound SMS forwarded by the container that owns the Twilio webhook (it checked Twilio's signature)."""
+    if not _internal_ok(request):
+        raise HTTPException(403)
+    return await _inbound_sms(dict(await request.form()), forward=False)
 
 
 @app.post("/twilio/status")
@@ -574,7 +739,10 @@ ANSWERS = {a["value"]: (a["event"], a["intent"], a["thanks"]) for a in P["answer
 
 
 def _page(html: str) -> HTMLResponse:
-    return HTMLResponse(PAGE.substitute(content=html))
+    body = PAGE.substitute(content=html)
+    if P.get("title"):  # the template's <title> is screening's
+        body = re.sub(r"<title>.*?</title>", f"<title>{escape(P['title'])}</title>", body, count=1)
+    return HTMLResponse(body)
 
 
 PAGE_HOOK = getattr(CASE.hooks, "page", None)  # optional: the case renders its own personal page (collections: verification first)
@@ -587,7 +755,7 @@ if PAGE_HOOK:
         if not pid:
             return _page(P["invalid"])
         form = {k: str(v) for k, v in (await request.form()).items()} if request.method == "POST" else None
-        out = PAGE_HOOK(pid, PATIENTS.get(pid, {}), form, store, today())
+        out = PAGE_HOOK(pid, record(pid), form, store, today())
         r = out.get("reply")
         if r:
             extra = r.get("extra") or {}
@@ -739,9 +907,19 @@ def _safe_next(n: str) -> str:
     return n if n.startswith("/") and not n.startswith("//") else "/app/"
 
 
+LOGIN_TEXT = {  # messages.cs.json "login" of the case (HTML-free texts); these defaults are screening's
+    "heading": "Ukázka aplikace",
+    "intro": "Zadejte přístupový kód a svůj telefon a e-mail. Ukázkové SMS, hovor, WhatsApp a e-mail z aplikace půjdou jen na ně, každý návštěvník má svou vlastní ukázku.",
+    "note": "Povolená jsou česká čísla. Kontakty použijeme jen k odeslání ukázkových zpráv a po 30 dnech je smažeme. Pacienti v ukázce jsou smyšlení.",
+    **messages.M.get("login", {})}
+
+
 def _login_page(nxt="/app/", error="", code="", phone="", email="", status=200):
     from html import escape as h
+    back = '<p class="muted"><a href="/">Zpět na stránku projektu</a></p>' if LANDING_ON or _case_landing() else ""
     return HTMLResponse(LOGIN.safe_substitute(next=h(_safe_next(nxt)), code=h(code), phone=h(phone), email=h(email),
+                                              brand=h(CASE.manifest["brand"]), back=back,
+                                              **{k: h(v) for k, v in LOGIN_TEXT.items() if not k.startswith("_")},
                                               error=f'<p class="err" role="alert">{h(error)}</p>' if error else ""), status_code=status)
 
 
@@ -778,8 +956,30 @@ def logout(request: Request):
 
 @app.get("/")
 def root():
-    """jsemvcas.cz: the public project landing; the app itself is at /app (password)."""
-    return projekt()
+    """The public landing of the case: cases/<id>/landing/index.html (assets at /landing/…), else the project landing
+    of case.json "landing" (screening: submission/landing), else the app itself (sign-in)."""
+    from fastapi.responses import FileResponse
+    if _case_landing():
+        return FileResponse(CASE_LANDING / "index.html", media_type="text/html")
+    return projekt() if LANDING_ON else RedirectResponse("/app/")
+
+
+CASE_LANDING = CASE.dir / "landing"
+
+
+def _case_landing() -> bool:
+    return (CASE_LANDING / "index.html").is_file()  # checked per request: the files may be added while it runs
+
+
+@app.get("/landing/{path:path}")
+def case_landing_file(path: str):
+    """Assets of the case landing (cases/<id>/landing/), public; nothing outside that directory."""
+    from fastapi.responses import FileResponse
+    base = CASE_LANDING.resolve()
+    f = (base / path).resolve()
+    if not f.is_relative_to(base) or not f.is_file():
+        raise HTTPException(404)
+    return FileResponse(f)
 
 
 @app.get("/app")
@@ -787,8 +987,10 @@ def app_redirect():
     return RedirectResponse("/app/")
 
 
-# Public project page (no password): the landing from submission/landing and the demo video.
-LANDING = ROOT / "submission" / "landing"
+# Public project page (no password): the landing from submission/landing and the demo video. Only for a case whose
+# case.json has "landing" (screening); the other cases have no lung-screening pages.
+LANDING = ROOT / CASE.manifest.get("landing", "submission/landing")
+LANDING_ON = bool(CASE.manifest.get("landing")) and LANDING.exists()
 LANDING_HEAD = ('<!doctype html><html lang="cs"><head><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
                 '<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>')
@@ -801,6 +1003,8 @@ def projekt_redirect():
 
 @app.get("/projekt/")
 def projekt():
+    if not LANDING_ON:
+        return RedirectResponse("/app/")
     body = (LANDING / "index.html").read_text(encoding="utf-8")
     return HTMLResponse(LANDING_HEAD + body + "</body></html>")
 
@@ -810,6 +1014,8 @@ def rakathon():
     """How the project came about at Rakathon: its own page when submission/landing/rakathon.html exists, else the landing section.
     Served without a trailing slash so the page's relative img/… links resolve to /img/…"""
     page = LANDING / "rakathon.html"
+    if not LANDING_ON:
+        return RedirectResponse("/app/")
     if not page.exists():
         return RedirectResponse("/#vznik")
     return HTMLResponse(LANDING_HEAD + page.read_text(encoding="utf-8") + "</body></html>")
@@ -824,6 +1030,8 @@ def rakathon_slash():
 @app.get("/projekt/demo.mp4")
 def projekt_video():
     from fastapi.responses import FileResponse
+    if not LANDING_ON:
+        raise HTTPException(404)
     return FileResponse(ROOT / "submission" / "demo.mp4", media_type="video/mp4")
 
 
@@ -847,7 +1055,7 @@ def case_data():
     return FileResponse(CASE.data, media_type="application/json")
 
 
-if LANDING.exists():
+if LANDING_ON:
     app.mount("/projekt", StaticFiles(directory=LANDING), name="landing")
     app.mount("/img", StaticFiles(directory=LANDING / "img"), name="landing-img")  # landing images at the domain root
 if CASE.web.is_dir():

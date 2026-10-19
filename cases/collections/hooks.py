@@ -88,7 +88,7 @@ def on_reply(pid: str, intent: str, extra: dict, store) -> None:
         return
     day = ev.get("date") or date.today().isoformat()
     via = ev.get("via") or "ui"
-    rec = record(pid)
+    rec = record(pid) or (store.data.get("personas") or {}).get(pid, {})  # or the guided demo's persona
     extra = extra or {}
     fields = {}
     if extra.get("verification"):
@@ -141,8 +141,11 @@ def make_plan(rec: dict, d: dict, extra: dict, day: str) -> dict:
 
 
 # ---------- demo clock ----------
-def _kept(pid: str, key: str, seg: str) -> bool:
-    """Deterministic demo outcome: does this debtor keep this promise / instalment?"""
+def _kept(pid: str, key: str, seg: str, rec: dict | None = None) -> bool:
+    """Deterministic demo outcome: does this debtor keep this promise / instalment? A record may fix it ("keeps":
+    the guided demo's persona never pays, so the visitor sees the broken promise and the reminder)."""
+    if rec and "keeps" in rec:
+        return bool(rec["keeps"])
     h = int(hashlib.sha256(f"{pid}:{key}".encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
     return h < KEEP.get(seg, 0.6)
 
@@ -160,7 +163,7 @@ def on_tick(day: str, store, transition, patients: dict) -> list:
             if not p:
                 continue
             due = date.fromisoformat(p["date"])
-            if today >= due and _kept(pid, p["made"] + p["date"], seg):
+            if today >= due and _kept(pid, p["made"] + p["date"], seg, rec):
                 amount = min(int(p.get("amount") or 0) or remaining(rec, d), remaining(rec, d)) or remaining(rec, d)
                 payments = [*(d.get("payments") or []), {"date": day, "amount": amount, "via": "bank"}]
                 promises = [{**q, "status": "kept", "keptOn": day} if q is p else q for q in d.get("promises")]
@@ -183,7 +186,7 @@ def on_tick(day: str, store, transition, patients: dict) -> list:
                 if it["status"] != "open":
                     continue
                 due = date.fromisoformat(it["due"])
-                if today >= due and _kept(pid, f"{plan.get('made')}#{i}", seg):
+                if today >= due and _kept(pid, f"{plan.get('made')}#{i}", seg, rec):
                     items[i] = {**it, "status": "paid", "paidOn": day}
                     d.setdefault("payments", []).append({"date": day, "amount": it["amount"], "via": "bank"})
                     changed = True

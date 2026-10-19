@@ -86,6 +86,11 @@ class Settings:
     voice_mode: str = os.getenv("VOICE_MODE", _V.get("mode", "gather"))       # gather = script + keys 1/2; relay = rules over ConversationRelay; agent = ElevenLabs voice agent
     voice_lang: str = os.getenv("VOICE_LANG", _V.get("lang", "cs-CZ"))
     state_file: Path = Path(os.getenv("STATE_FILE", str(_STATE)))
+    # One Twilio number, one SMS webhook (screening): replies of visitors whose demo runs in another case container are
+    # forwarded there. SMS_FORWARD = internal bases, e.g. http://app-seniors:8000,http://app-collections:8000;
+    # INTERNAL_TOKEN = shared secret of /internal/* (empty = those endpoints are off).
+    sms_forward: str = os.getenv("SMS_FORWARD", "")
+    internal_token: str = os.getenv("INTERNAL_TOKEN", "")
     case_live: bool = _case_live(CASE_ID)   # False = MOCK whatever keys are in the environment (see _case_live)
 
     @property

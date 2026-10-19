@@ -1,0 +1,37 @@
+{
+  "_about": "Guided demo (backend/scenario.py, cases/README.md 'scenario.json'): the visitor is the senior and also the relative. Check-in call, the needs land in the basket, next day two unanswered calls (simulated), SMS to the relative, the social worker's visit, the emergency path explained. Texts: messages.cs.json 'scenario'.",
+  "persona": {
+    "worker": "Bc. Petra Malá",
+    "name": "Marie Nováková",
+    "sex": "F",
+    "age": 84,
+    "title": "paní Marie Nováková",
+    "vocative": "paní Nováková",
+    "address": "Údolní 12, Brno-střed",
+    "phone": "{phone}",
+    "alone": true,
+    "mobility": "cane",
+    "schedule": {"kind": "daily", "days": [0, 1, 2, 3, 4, 5, 6], "from": "9:00", "to": "20:00"},
+    "channel": "voice",
+    "relative": {"name": "Petr Novák", "rel": "syn", "phone": "{phone}"},
+    "since": "2026-09-01",
+    "flags": [],
+    "history": [],
+    "calls": [
+      {"date": "2026-10-14", "time": "10:02", "answered": true, "text": "Dobře, děkuji, všechno v pořádku.", "intent": "ok", "mood": 4},
+      {"date": "2026-10-16", "time": "10:11", "answered": true, "text": "Ujde to, nic nepotřebuji.", "intent": "ok", "mood": 3}
+    ],
+    "needs": []
+  },
+  "steps": [
+    {"id": "checkin", "do": [{"send": "voice", "variant": "CHECKIN"}], "wait": {"reply": true}, "timeout": 150,
+     "fallback": {"reply": "Došly mi léky a potřebovala bych nákup"}},
+    {"id": "basket", "after": 2, "if_stage": ["needs_help"]},
+    {"id": "missed", "after": 10, "do": [{"tick": 1},
+      {"send": "voice", "variant": "CHECKIN", "simulate": true, "delivery": "failed"},
+      {"send": "voice", "variant": "RETRY", "simulate": true, "delivery": "failed"}]},
+    {"id": "relative", "after": 4, "do": [{"send": "sms", "variant": "RELATIVE"}], "wait": {"reply": true}, "timeout": 60},
+    {"id": "visit", "after": 3, "if_stage": ["no_answer"], "do": [{"event": "visit"}]},
+    {"id": "emergency", "after": 12}
+  ]
+}

@@ -18,7 +18,8 @@ for k in ("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM", "PUBLIC_URL"
     os.environ[k] = ""
 
 ROOT = Path(__file__).resolve().parent
-GENERIC = {"test_case_contract.py", "test_case_live.py", "test_recipient.py", "test_sessions.py", "test_password_landing.py"}  # any case
+GENERIC = {"test_case_contract.py", "test_case_live.py", "test_recipient.py", "test_sessions.py", "test_password_landing.py",
+           "test_scenario.py"}  # any case
 
 
 def pytest_collection_modifyitems(config, items):

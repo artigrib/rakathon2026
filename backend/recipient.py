@@ -26,6 +26,11 @@ def use(visitor):
     _visitor.set(visitor)
 
 
+def visitor():
+    """The signed-in visitor of this request ({"phone", "email", "token"}) or None (shared demo, scripts)."""
+    return _visitor.get()
+
+
 def _file() -> Path:
     return Path(settings.state_file).with_name("recipient.json")
 
@@ -46,8 +51,12 @@ def daily_limit() -> int:
 
 
 def take(to: str, day: str) -> bool:
-    """Count one live send to `to` on `day`; False when the daily limit is reached. Shared by all visitors' demos,
-    so signing in again with the same number does not reset it."""
+    """Count one live send to `to` today; False when the daily limit is reached. Shared by all visitors' demos,
+    so signing in again with the same number does not reset it. Counted on the real date (Europe/Prague), not on the
+    demo day `day`: moving the demo clock ("Další den", the guided demo) must not reset the limit."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    day = datetime.now(ZoneInfo("Europe/Prague")).date().isoformat()
     f = Path(settings.state_file).with_name("sent-today.json")
     with _lock:
         try:

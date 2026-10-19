@@ -183,3 +183,85 @@ def test_data_shape(cid):
     assert ids and len(ids) == len(set(ids))
     if m.get("group"):
         assert all(m["group"]["field"] in p for p in d["patients"])
+
+
+SCENARIO_STEP_KEYS = {"id", "after", "do", "wait", "timeout", "fallback", "if_stage", "optional"}
+SCENARIO_UI = {"title", "intro", "start", "next", "reset", "restart", "openCard", "openLink", "unavailable", "mock",
+               "finished", "now", "left", "status", "note", "steps"}
+SCENARIO_STATUS = {"pending", "active", "waiting", "done", "simulated", "noreply", "skipped"}
+
+
+def _strings(v):
+    if isinstance(v, str):
+        yield v
+    elif isinstance(v, dict):
+        for x in v.values():
+            yield from _strings(x)
+    elif isinstance(v, list):
+        for x in v:
+            yield from _strings(x)
+
+
+@pytest.mark.parametrize("cid", IDS)
+def test_scenario(cid):
+    """cases/<id>/scenario.json: the guided demo (backend/scenario.py); its texts in messages.cs.json "scenario"."""
+    from backend.scenario import ACTIONS, WAITS
+    d, m, j, msg = load(cid)
+    sc = json.loads((d / "scenario.json").read_text(encoding="utf-8"))
+    assert isinstance(sc["persona"], dict) and "id" not in sc["persona"], "the core sets the persona id"
+    steps = sc["steps"]
+    ids = [s["id"] for s in steps]
+    assert steps and len(set(ids)) == len(ids)
+    states, evs = set(j["states"]), events(j)
+
+    def action(a, where):
+        keys = [k for k in ACTIONS if k in a]
+        assert len(keys) == 1, f"{where}: one action per item, got {a}"
+        if "send" in a:
+            kind = msg["channel_template"][a["send"]]
+            assert a.get("variant", "FIRST_INVITE") in msg[kind], f"{where}: no {kind} text {a.get('variant')}"
+            assert set(a) <= {"send", "variant", "simulate", "delivery"}
+        if "event" in a:
+            assert a["event"] in evs, f"{where}: unknown journey event {a['event']}"
+        if "tick_until" in a:
+            assert set(a["tick_until"]) <= states and int(a.get("max", 14)) > 0
+        if "reply" in a:
+            assert isinstance(a["reply"], str) and a["reply"]
+        if "patch" in a:
+            assert isinstance(a["patch"], dict)
+
+    for s in steps:
+        w = f"{cid}:{s['id']}"
+        assert set(s) <= SCENARIO_STEP_KEYS, f"{w}: unknown keys {set(s) - SCENARIO_STEP_KEYS}"
+        for a in s.get("do", []):
+            action(a, w)
+        fb = s.get("fallback")
+        for a in (fb if isinstance(fb, list) else [fb]) if fb else []:
+            action(a, w + " fallback")
+        if "wait" in s:
+            assert s["wait"] and set(s["wait"]) <= set(WAITS), w
+            assert set(s["wait"].get("stages", [])) <= states, w
+            assert int(s.get("timeout", 60)) > 0, w
+        else:
+            assert "fallback" not in s and "timeout" not in s, f"{w}: fallback / timeout need a wait"
+        assert set(s.get("if_stage", [])) <= states, w
+    T = msg["scenario"]
+    assert SCENARIO_UI <= set(T), f"messages scenario lacks {SCENARIO_UI - set(T)}"
+    assert set(T["status"]) >= SCENARIO_STATUS
+    for i in ids:
+        assert T["steps"][i]["title"] and T["steps"][i]["look"], f"no text for step {i}"
+    for t in _strings(T):  # Czech UI style: no exclamation marks, no spaced dashes
+        assert "!" not in t and not re.search(r"\s[–—-]\s", t), t
+
+
+@pytest.mark.parametrize("cid", IDS)
+def test_login_texts_and_landing(cid):
+    """messages.cs.json "login" (sign-in page of the case); cases/<id>/landing/ is optional, served at / and /landing/."""
+    d, m, _, msg = load(cid)
+    lg = msg.get("login", {})
+    assert set(lg) <= {"heading", "intro", "note"} | {k for k in lg if k.startswith("_")}
+    if m["id"] != "screening":  # nothing about lungs on another case's sign-in page
+        assert not re.search(r"plic|pacient|screening", " ".join(_strings(lg)).lower())
+    land = d / "landing"
+    if land.is_dir() and any(land.iterdir()):
+        assert (land / "index.html").is_file() or not any(land.glob("*.html")), "landing needs index.html"

@@ -61,6 +61,7 @@
   "head": "<p class=\"muted\">Jsem v pořádku</p>\n<h1>Jak se dnes máte?</h1>\n<p>Vyberte prosím jednu možnost. Odpověď uvidí jen Vaše sociální služba.</p>",
   "foot": "<p class=\"muted\">V nouzi volejte vždy hned 155.</p>",
   "thanks_title": "Děkujeme",
+  "title": "Jsem v pořádku",
   "answers": [
    {
     "value": "ok",
@@ -107,5 +108,67 @@
     "thanks": "Rozumíme. Další hovory Vám volat nebudeme. Pokud si to rozmyslíte, ozvěte se své sociální službě."
    }
   ]
+ },
+ "scenario": {
+  "title": "Celá ukázka na Vašem telefonu",
+  "start": "Spustit celou ukázku",
+  "next": "Další krok",
+  "reset": "Ukončit ukázku",
+  "restart": "Spustit znovu",
+  "openCard": "Otevřít moji kartu",
+  "openLink": "Otevřít stránku z odkazu",
+  "unavailable": "Celá ukázka běží jen po přihlášení s vlastním telefonem a e-mailem.",
+  "mock": "Tato ukázka teď nic skutečně neposílá, zprávy se jen zaznamenají. Odpověď nasimulujete tlačítkem Další krok.",
+  "now": "Teď",
+  "left": "ještě {s} s",
+  "status": {
+   "pending": "Čeká",
+   "active": "Probíhá",
+   "waiting": "Čeká na Vás",
+   "done": "Hotovo",
+   "simulated": "Odpověď nasimulována",
+   "noreply": "Bez odpovědi",
+   "skipped": "Přeskočeno"
+  },
+  "note": {
+   "daily_limit": "Denní limit zpráv na Vaše číslo je vyčerpán, zpráva se jen zaznamenala.",
+   "failed": "Zprávu se nepodařilo odeslat, ukázka pokračuje."
+  },
+  "intro": "Vyzkoušejte si službu na vlastním telefonu: jste senior, kterému voláme, a pak i jeho blízký. Co se děje u sociální služby, uvidíte v aplikaci.",
+  "facts": [
+   "V ukázce jste paní Marie Nováková, 84 let, a zároveň její syn Petr. Karta je v seznamu seniorů."
+  ],
+  "finished": "Hotovo. Hovory, potřeby i návštěvu najdete na kartě paní Novákové.",
+  "steps": {
+   "checkin": {
+    "title": "Pravidelný hovor",
+    "look": "Zvedněte telefon. Řekněte třeba: Došly mi léky. Nebo stiskněte 2."
+   },
+   "basket": {
+    "title": "Potřeby v košíku",
+    "look": "Co jste řekli, je v pohledu Košík pro sociální službu."
+   },
+   "missed": {
+    "title": "Další den nikdo nezvedá",
+    "look": "Ukázkový čas se posune o den. Dva hovory zůstaly bez odpovědi, to jen nasimulujeme."
+   },
+   "relative": {
+    "title": "SMS blízkému",
+    "look": "Teď jste syn. Podívejte se do SMS. Když odpovíte ANO, návštěva není potřeba."
+   },
+   "visit": {
+    "title": "Návštěva sociálního pracovníka",
+    "look": "Nikdo se neozval, a tak aplikace naplánovala návštěvu. Je v pohledu Dnes."
+   },
+   "emergency": {
+    "title": "Tíseň",
+    "look": "Kdyby senior řekl například: Upadla jsem a nemůžu vstát, asistent hned řekne, ať volá 155, a předá to pracovníkovi."
+   }
+  }
+ },
+ "login": {
+  "heading": "Ukázka aplikace Jsem v pořádku",
+  "intro": "Zadejte přístupový kód a svůj telefon a e-mail. Ukázkové hovory, SMS a e-maily půjdou jen na ně, každý návštěvník má svou vlastní ukázku.",
+  "note": "Povolená jsou česká čísla. Kontakty použijeme jen k odeslání ukázkových zpráv a po 30 dnech je smažeme. Senioři v ukázce jsou smyšlení."
  }
 }

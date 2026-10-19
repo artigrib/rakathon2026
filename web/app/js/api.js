@@ -27,5 +27,8 @@ export const api = {
     const j = await r.json().catch(() => ({}));
     return r.ok ? { ok: true, ...j } : { ok: false, error: j.detail || String(r.status) };
   },
+  scenarioStart: () => call("/api/scenario/start", {}),
+  scenarioNext: () => call("/api/scenario/next", {}),
+  scenarioReset: () => call("/api/scenario/reset", {}),
   patient: (id) => call(`/api/patient/${encodeURIComponent(id)}`),
 };

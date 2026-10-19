@@ -15,6 +15,7 @@
   ],
   "features": { "fhir": true, "hall": true },
   "domain": "jsemvcas.cz",
+  "landing": "submission/landing",
   "redirects": {
     "/centra": "https://www.vzp.cz/poskytovatele/informace-pro-praxi/seznamy-center-a-szz/seznam-center-casneho-zachytu-karcinomu-plic",
     "/prevence": "https://www.prevenceproplice.cz"
