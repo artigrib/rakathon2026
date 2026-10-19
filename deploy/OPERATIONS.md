@@ -100,6 +100,28 @@ ingress:
 ```
 The tunnel container only depends on `app`; a hostname whose service is not running answers 502.
 
+### Guided demo and the one Twilio number
+
+Every case has "Spustit celou ukázku" in the demo panel (`cases/<id>/scenario.json`): a signed-in visitor gets the whole
+case on their own phone (screening: SMS, call, nurse, result, e-mail; seniors: check-in call, basket, SMS to the relative,
+visit; collections: SMS, verification on the page, call, promise, demo days, reminder). Steps go out for real past
+`LIVE_LIMIT`, only to the visitor's own contacts and within `DEMO_DAILY_LIMIT` (default 30 a day per number, counted on
+the real date; a full run uses at most 4). "Další krok" skips a wait, every wait times out on its own.
+
+For the two case containers live:
+- `cases/<id>/.env`: `CASE_LIVE=1`, their own `PUBLIC_URL` (calls, status callbacks and `/p/` links then reach the right
+  container: Twilio gets `{PUBLIC_URL}/twilio/voice/…` per call; with the inherited jsemvcas.cz they would hit screening),
+  `VOICE_MODE=gather` or their own `ELEVENLABS_AGENT_ID`, `DEMO_PASSWORD` (the access code of `/login`).
+- Inbound SMS: the number's webhook stays `https://jsemvcas.cz/twilio/sms` (container `app`). Set in `backend/.env`
+  `SMS_FORWARD=http://app-seniors:8000,http://app-collections:8000` and the same random `INTERNAL_TOKEN=…` for all three
+  (case containers read `backend/.env` too). `app` then asks each one `GET /internal/has-phone` and forwards the SMS
+  (`POST /internal/sms`, header `X-Internal-Token`) to the container where that phone was active last (signed in or
+  last texted); ties, errors and unknown phones stay in screening. Without `SMS_FORWARD` nothing changes.
+  `/internal/*` answers 403 without the token; Twilio's signature is checked by `app` only.
+
+How to show it: open the stand, sign in with the access code and your phone and e-mail, open "Ukázka", press
+"Spustit celou ukázku" and follow "where to look" in the step list.
+
 ## Restore
 
 ```bash

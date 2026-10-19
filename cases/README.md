@@ -37,6 +37,8 @@ and `DEMO_PASSWORD` into `cases/<id>/.env`. Screening is unaffected (`tests/test
 | `hooks.py` | yes | `backend/messages.py`, `backend/app.py` |
 | `build.py` | yes | `python -m cases.<id>.build` writes the data file |
 | `web/` | yes | served at `/app/case/` (ES modules, no build step) |
+| `scenario.json` | yes | `backend/scenario.py`: the guided demo ("Spustit celou ukázku"), see below |
+| `landing/` | no | `index.html` served at `/`, its other files at `/landing/<path>` (public); without it `/` opens the app, except screening (`case.json "landing"`: `submission/landing`) |
 | `tests/` | no | `test_*.py`, run only when `CASE=<id>`; add `tests/__init__.py` |
 | `.env` | no | `backend/settings.py` (gitignored) |
 
@@ -106,12 +108,54 @@ Every variant of every channel must render without a leftover `{…}` for sample
     "invalid": "<h1>…</h1>", "head": "<h1>…</h1><p>…</p>", "foot": "<p class=\"muted\">…</p>", "thanks_title": "Děkujeme",
     "answers": [{"value": "yes", "label": "Ano", "class": "primary", "event": "<journey event>", "intent": "<intent>", "thanks": "…"}]
   },
-  "hall": {"sms": "…{centres} {info}…", "email": "…", "join_title": "…", "…": "only with features.hall"}
+  "hall": {"sms": "…{centres} {info}…", "email": "…", "join_title": "…", "…": "only with features.hall"},
+  "login": {"heading", "intro", "note"},          // sign-in page /login of the case (plain text); no lung texts elsewhere
+  "scenario": {…}                                 // texts of the guided demo, see scenario.json
 }
 ```
 
 Variants used by core: `FIRST_INVITE` (fallback of every channel), every `Step.variant` and `Plan.restart_variant`
 of the cadence **(checked)**. Keys starting with `_` are comments.
+
+## scenario.json **(checked)** – the guided demo
+
+"Spustit celou ukázku" in the demo panel runs the whole case on the signed-in visitor's own phone and e-mail
+(`backend/scenario.py`, `web/app/js/components/scenario.js`). Only for a visitor signed in at `/login` (access code +
+own phone and e-mail), never for the shared demo or `DEMO_TO`. Works in MOCK too (nothing leaves the machine; "Další krok"
+simulates the answer).
+
+```jsonc
+{
+  "persona": {…record…},     // a record of the data shape WITHOUT id: the core adds id "demo-you", demo: true and the
+                             // case's default group; "{phone}" / "{email}" anywhere become the visitor's contacts.
+                             // It lives only in that visitor's demo: store.data["personas"]["demo-you"], sent to the web
+                             // app as /api/state "personas". Core lookups (render, page hook, on_tick) see it; a hook that
+                             // reads records itself must fall back to store.data["personas"] (collections hooks.on_reply).
+  "steps": [                 // in order; the web app's polling of /api/state moves them on
+    {"id": "call",           // texts: messages.cs.json scenario.steps[id] = {"title", "look": where to look / what to do}
+     "after": 3,             // seconds before it starts (default 0); "Další krok" starts it at once
+     "if_stage": ["…"],      // run only in these stages, else "skipped"
+     "do": [                 // actions, in order; one the state machine does not allow → the step is "skipped"
+       {"send": "voice", "variant": "REMINDER"},   // real send to the visitor (bypasses LIVE_LIMIT, keeps DEMO_DAILY_LIMIT);
+                                                    // "simulate": true = only recorded, "delivery": "failed" = not answered
+       {"event": "booked", "result": "…"},          // a staff action (journey event, extra fields)
+       {"reply": "Ano"},                            // a simulated answer through the real reply understanding
+       {"tick": 7}, {"tick_until": ["paid", "…"], "max": 40},   // the demo clock (on_tick + contact plan)
+       {"patch": {"verified": "{today}"}}           // store.patch of the persona ({today} = demo day)
+     ],
+     "wait": {"reply": true | ["link", "sms", "voice"], "stages": ["…"], "field": "verified"},  // any one met = "done"
+     "timeout": 150,         // seconds of waiting (default 60), then:
+     "fallback": {"reply": "Ano, mám zájem"},     // actions as in "do" → "simulated"; none → "noreply"
+     "optional": true}       // nothing to answer, only to look at: a timeout without fallback is "done"
+  ]
+}
+```
+
+A step without `do` and `wait` is an explanation shown for `after` seconds. Statuses: pending, active, waiting, done,
+simulated, noreply, skipped. Texts in `messages.cs.json "scenario"`: `title, intro, facts[] (shown while it runs, e.g. the
+verification value), start, next, reset, restart, openCard, openLink, unavailable, mock, finished, now, left ({s}),
+status{…}, note{daily_limit, failed}, steps{id: {title, look}}`. No exclamation marks, no spaced dashes.
+API: `POST /api/scenario/start | next | reset` (403 without a visitor session), progress in `/api/state` → `scenario`.
 
 ## dialog.py **(checked)**
 
