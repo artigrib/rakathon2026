@@ -63,17 +63,31 @@ def speak(text: str) -> str:
     return f'<Say language="{settings.voice_lang}" voice="{settings.voice_name}">{escape(text)}</Say>'
 
 
+def _gather(action: str, prompt: str) -> str:
+    """One listening turn: keys (one digit) or speech; speech ends after 3 s of silence, not at the first pause."""
+    return (f'<Gather input="dtmf speech" numDigits="1" language="{settings.voice_lang}" timeout="8" speechTimeout="3" '
+            f'action="{escape(action)}" method="POST">' + speak(prompt.strip()) + "</Gather>")
+
+
+def answer_url(patient_id: str, **q) -> str:
+    """The Gather action, with the turn number (and end=1 when the person said nothing more)."""
+    u = ctx.url(f"/twilio/voice/{patient_id}/answer")
+    if not u or not q:
+        return u
+    return u + ("&" if "?" in u else "?") + "&".join(f"{k}={v}" for k, v in q.items())
+
+
 def voice_twiml(patient_id: str, script: str) -> str:
     """Voice flow without AI: play the script, wait for 1 (interested) / 2 (not now) or a spoken answer."""
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?><Response>'
-        f'<Gather input="dtmf speech" numDigits="1" language="{settings.voice_lang}" timeout="8" '
-        f'action="{escape(ctx.url(f"/twilio/voice/{patient_id}/answer"))}" method="POST">'
-        + speak(script.strip()) +
-        "</Gather>"
-        + speak(NO_ANSWER)
-        + "</Response>"
-    )
+    return ('<?xml version="1.0" encoding="UTF-8"?><Response>' + _gather(answer_url(patient_id), script)
+            + speak(NO_ANSWER) + "</Response>")
+
+
+def followup_twiml(patient_id: str, question: str, n: int) -> str:
+    """Next turn of the scripted call: ask the case's follow-up question; silence ends the call with what we have."""
+    end = answer_url(patient_id, n=n, end=1)
+    return ('<?xml version="1.0" encoding="UTF-8"?><Response>' + _gather(answer_url(patient_id, n=n), question)
+            + (f'<Redirect method="POST">{escape(end)}</Redirect>' if end else "") + "</Response>")
 
 
 def twiml_say(text: str) -> str:

@@ -72,6 +72,7 @@
     "_about": "Fixed sentences of the keys call (gather mode): after the answer, by the stage it led to.",
     "no_answer": "Neslyšel jsem odpověď. Informace najdete na zabezpečené stránce z naší zprávy. Na shledanou.",
     "no_digit": "Děkuji. Informace najdete na zabezpečené stránce z naší zprávy. Na shledanou.",
+    "follow_up": "Chcete ještě něco dodat?",
     "thanks": {
       "promise_to_pay": "Děkuji. Termín a způsob platby si zvolíte po ověření na zabezpečené stránce z naší zprávy. Na shledanou.",
       "plan_offered": "Děkuji. Možnosti splátek a odkladu najdete po ověření na zabezpečené stránce z naší zprávy. Na shledanou.",

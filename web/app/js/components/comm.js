@@ -11,6 +11,14 @@ const ch = (c) => T.channel[c] || c || "";
 const hhmm = (ts) => (ts && ts.length > 10 ? ts.slice(11, 16) : "");
 const VIA = { sms: "sms", voice: "voice", "voice-ai": "voice", whatsapp: "whatsapp" }; // link and ui: said in the title
 
+/** The whole call as a dialogue (turns [{who: bot|user, text}] stored with a voice reply). */
+export function dialogue(turns, open = false) {
+  if (!Array.isArray(turns) || !turns.length) return "";
+  const who = { bot: C?.bot || "asistent", user: C?.person || "člověk" };
+  return `<details class="dialog"${open ? " open" : ""}><summary>${C?.transcript || "Celý rozhovor"} (${turns.length})</summary><ol class="dialog__t">${turns.map((t) =>
+    `<li class="dialog--${t.who === "user" ? "user" : "bot"}"><b>${who[t.who === "user" ? "user" : "bot"]}:</b> ${esc(t.text || "")}</li>`).join("")}</ol></details>`;
+}
+
 /** Timeline items {date, time, actor, channel, title, body, quote, note, status, planned}. */
 export function timeline(p, d = {}, plan = null, outbox = null) {
   const items = [];
@@ -43,6 +51,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
       date: e.date, actor, channel: reply ? VIA[e.via] : null,
       title: reply ? C.replied(C.via[e.via] || "", p) : label + (e.result ? `: ${T.actions.result[e.result].toLowerCase()}` : ""),
       quote: reply ? e.text : null,
+      transcript: reply ? e.transcript : null,
       note: reply ? (e.ignored ? C.ignored : `${C.understood} ${label.toLowerCase()}${e.source === "ai" && e.why ? `. ${e.why}` : ""}`)
         : e.ignored ? C.ignored : "",
       muted: !!e.ignored,
@@ -64,6 +73,7 @@ export function comm(p, d, plan, outbox) {
       <div>${esc(i.title)}</div>
       ${i.quote ? `<q>${esc(i.quote)}</q>` : ""}
       ${i.note ? `<div class="muted">${esc(i.note)}</div>` : ""}
+      ${dialogue(i.transcript)}
       ${i.bodyText ? `<details><summary>${i.textLabel}</summary><p>${esc(i.bodyText)}</p></details>` : ""}
     </div></li>`).join("")}</ol>`;
 }

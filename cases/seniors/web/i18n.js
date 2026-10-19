@@ -256,6 +256,7 @@ export const T = {
   // Communication timeline (core/components/comm.js).
   comm: {
     title: "Komunikace",
+    transcript: "Celý rozhovor", bot: "asistent", person: "senior",
     actor: { record: "Z kartotéky", system: "Systém", nurse: "Operátor", patient: "Senior", doctor: "Sociální pracovník" },
     sent: "Hovor nebo zpráva odeslána",
     autoSent: (n) => `Pokus podle plánu, ${n + 1}. krok`,

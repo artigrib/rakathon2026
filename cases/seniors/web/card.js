@@ -2,6 +2,7 @@
 // the relative and the history of calls after the communication.
 import { T } from "./i18n.js";
 import { esc, fmtDate } from "core/util.js";
+import { dialogue } from "core/components/comm.js";
 import { callsOf, itemLabel, moodSeries, openNeeds } from "./domain.js";
 import { chips, moodBadge, sparkline } from "./ui.js";
 
@@ -34,7 +35,7 @@ function history(p) {
     const what = c.relative ? C.relativeSms : !c.answered ? (p.sex === "F" ? C.noAnswerF : C.noAnswer)
       : [T.intent[c.intent], (c.items || []).map(itemLabel).join(", ")].filter(Boolean).join(": ");
     return `<li><time>${fmtDate(c.date)}${c.time ? ` ${c.time}` : ""}</time><div>${c.answered ? moodBadge(c.mood) : ""} ${esc(what)}${c.live ? ` <span class="sn-tag">${T.calls.live}</span>` : ""}
-      ${c.text ? `<q>${esc(c.text)}</q>` : ""}${c.note ? `<span class="sn-muted">${esc(c.note)}</span>` : ""}</div></li>`;
+      ${c.text ? `<q>${esc(c.text)}</q>` : ""}${c.note ? `<span class="sn-muted">${esc(c.note)}</span>` : ""}${dialogue(c.transcript)}</div></li>`;
   };
   const head = calls.slice(0, 8), rest = calls.slice(8);
   return `<ol class="sn-hist">${head.map(li).join("")}</ol>

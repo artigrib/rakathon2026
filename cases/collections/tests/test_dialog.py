@@ -94,3 +94,13 @@ def test_weekday_said_on_that_day_means_next_week():
 def test_understand_carries_extra():
     r = understand("Zaplatím v pátek 5000")
     assert r["intent"] == "will_pay" and r["extra"] == {"promise_when": "wd:4", "promise_amount": 5000}
+
+
+def test_agent_outcome_reads_promise_from_the_whole_conversation():
+    from backend import agent_call
+    o = agent_call.read({"analysis": {"data_collection_results": {"decision": {"value": "will_pay"}}},
+                         "transcript": [{"role": "agent", "message": "Dobrý den"}, {"role": "user", "message": "Ano, to jsem já."},
+                                        {"role": "agent", "message": "Kdy a kolik zaplatíte?"},
+                                        {"role": "user", "message": "Zaplatím v pátek 5000 Kč."}]})
+    assert o["intent"] == "will_pay" and o["extra"] == {"promise_when": "wd:4", "promise_amount": 5000}
+    assert [t["who"] for t in o["transcript"]] == ["bot", "user", "bot", "user"]

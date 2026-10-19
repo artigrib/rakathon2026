@@ -267,6 +267,7 @@ export const T = {
 
   comm: {
     title: "Komunikace",
+    transcript: "Celý rozhovor", bot: "asistent", person: "klient",
     actor: { record: "Z evidence", system: "Systém", nurse: "Operátor", patient: "Klient", doctor: "Supervizor" },
     sent: "Zpráva odeslána",
     autoSent: (n) => `Automaticky podle plánu, ${n + 1}. krok`,

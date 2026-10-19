@@ -64,6 +64,7 @@
     "_about": "Fixed sentences of the keys-1/2 call (backend/app.py, channels.py).",
     "no_answer": "Neslyšeli jsme odpověď. Ozveme se Vám znovu. Na shledanou.",
     "no_digit": "Děkujeme. Pokud budete chtít, ozvěte se prosím své ordinaci. Na shledanou.",
+    "follow_up": "Chcete nám ještě něco sdělit?",
     "thanks": {
       "interested": "Děkujeme. Sestra z ordinace se Vám ozve a domluví další postup. Na shledanou.",
       "callback": "Děkujeme, sestra z ordinace Vám zavolá. Na shledanou."

@@ -516,11 +516,12 @@ def _on_reply(pid, intent, extra):
         _rlog.exception("case hooks.on_reply failed (%s)", intent)
 
 
-def _record_reply(pid, text, understood, via, day=None):
+def _record_reply(pid, text, understood, via, day=None, transcript=None):
+    """transcript: the whole call as turns [{who: bot|user, text, …}] (shown as a dialogue in the timeline)."""
     c = understood
     d = transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
                    why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}),
-                   **({"extra": c["extra"]} if c.get("extra") else {}))
+                   **({"extra": c["extra"]} if c.get("extra") else {}), **({"transcript": transcript} if transcript else {}))
     _on_reply(pid, c["intent"], c.get("extra") or {})  # case side effects (needs basket, promise to pay …)
     return d
 
@@ -661,30 +662,100 @@ async def voice(pid: str, request: Request):
         ws = settings.public_url.replace("https://", "wss://").replace("http://", "ws://") + f"/ws/relay/{pid}"
         return Response(channels.relay_twiml(ws, GREETING), media_type="application/xml")
     script = next((m["text"] for m in reversed(store.data["outbox"]) if m["patient"] == pid and m["channel"] == "voice"), "")
+    _CALLS[_call_key(pid, form)] = {"pid": pid, "turns": [{"who": "bot", "text": (script or VOICE_NO_DIGIT).strip()}], "said": [], "keys": []}
     return Response(channels.voice_twiml(pid, script or VOICE_NO_DIGIT), media_type="application/xml")
 
 
-@app.post("/twilio/voice/{pid}/answer")
-async def voice_answer(pid: str, request: Request):
-    form = await _form(request)
-    said = form.get("Digits") or form.get("SpeechResult") or ""
-    d = _apply_reply(pid, said, "voice")
+# ---------- scripted call (gather): up to MAX_TURNS answers, one reply recorded at the end ----------
+_CALLS: dict = {}  # CallSid (or pid without one) → {pid, turns, said, keys}; lives for one call
+MAX_TURNS = 3
+VOICE_FOLLOW_UP = messages.text("voice_ui.follow_up", "Potřebujete ještě něco?")
+# an answer after which we do not ask anything more (a person takes over, or the conversation must stop)
+VOICE_FINAL = set(getattr(CASE.dialog, "VOICE_FINAL", {"opt_out", "emergency", "health_problem", "declined", "callback", "question",
+                                                        "unclear", "wrong_person", "channel_opt_out", "vulnerable", "dispute"}))
+_NOTHING_MORE = re.compile(r"^(ne|nic|uz nic|nic dalsiho|nic jineho|to je vse|to je vsechno|to staci|ne dekuji|ne diky|dekuji ne|"
+                           r"ne nic|ne nepotrebuji|nepotrebuji|nepotrebuju|ne nepotrebuju|ne to je vse|ne to je vsechno)( dekuji| diky)?$")
+
+
+def _call_key(pid, form) -> str:
+    return form.get("CallSid") or f"pid:{pid}"
+
+
+def _plain(t: str) -> str:
+    import unicodedata
+    t = unicodedata.normalize("NFKD", t or "").encode("ascii", "ignore").decode().lower()
+    return " ".join(re.sub(r"[^a-z0-9 ]+", " ", t).split())
+
+
+def _understood(call) -> dict:
+    """Everything the person said in this call, understood at once (cached per number of answers)."""
+    if call.get("u_n") != len(call["said"]):
+        call["u"], call["u_n"] = understand(". ".join(call["said"])), len(call["said"])
+    return call["u"]
+
+
+def _finish_call(key: str):
+    """Record the call's answers as one reply (whole conversation understood at once). None = nothing was said."""
+    call = _CALLS.pop(key, None)
+    if not call or not call["said"]:
+        return None
+    pid = call["pid"]
+    turns = call["turns"]
+    d = _record_reply(pid, " | ".join(call["keys"]), _understood(call), "voice", transcript=turns)
     thanks = VOICE_THANKS.get(d["stage"], VOICE_NO_DIGIT)
-    return Response(channels.twiml_say(thanks), media_type="application/xml")
+    turns.append({"who": "bot", "text": thanks})  # the closing sentence depends on the stage the reply led to
+    store.patch(pid)  # saves the journey event that holds `turns`
+    if not key.startswith("pid:"):
+        store.outbox_update(key, transcript=turns)
+    return thanks
+
+
+@app.post("/twilio/voice/{pid}/answer")
+async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0):
+    form = await _form(request)
+    key = _call_key(pid, form)
+    call = _CALLS.setdefault(key, {"pid": pid, "turns": [], "said": [], "keys": []})
+    digits, speech = form.get("Digits") or "", (form.get("SpeechResult") or "").strip()
+    said = digits or speech
+    more = bool(said)
+    if said:
+        conf = form.get("Confidence")
+        call["turns"].append({"who": "user", "text": said, **({"dtmf": True} if digits else {}),
+                              **({"confidence": conf} if conf and not digits else {})})
+        if n > 1 and _NOTHING_MORE.match(_plain(said) or ""):
+            more = False  # "ne, nic" to "anything else?": nothing new to understand
+        else:
+            call["said"].append(CASE.dialog.DTMF.get(digits, digits) if digits else speech)
+            call["keys"].append(said)
+    _rlog.info("voice %s turn %s %s", pid, n, "keys" if digits else "speech" if speech else "silence")
+    if not call["said"]:  # silence, or only "nothing more"
+        _CALLS.pop(key, None)
+        return Response(channels.twiml_say(VOICE_NO_DIGIT), media_type="application/xml")
+    if more and not end and not digits and n < MAX_TURNS and _understood(call)["intent"] not in VOICE_FINAL:
+        call["turns"].append({"who": "bot", "text": VOICE_FOLLOW_UP})
+        if not key.startswith("pid:"):
+            store.outbox_update(key, transcript=call["turns"])
+        return Response(channels.followup_twiml(pid, VOICE_FOLLOW_UP, n + 1), media_type="application/xml")
+    thanks = _finish_call(key)
+    return Response(channels.twiml_say(thanks or VOICE_NO_DIGIT), media_type="application/xml")
 
 
 @app.websocket("/ws/relay/{pid}")
 async def relay(ws: WebSocket, pid: str):
     """ConversationRelay: Twilio sends what the patient said, we answer with approved sentences."""
-    from .voice_ai import Conversation
+    from .voice_ai import GREETING, Conversation
     await ws.accept()
     _rlog.info("relay %s open", pid)
     conv = Conversation()
+    turns = [{"who": "bot", "text": GREETING}]  # the whole conversation, stored with the reply and the call
+    call_sid = ""
     try:
         while True:
             msg = await ws.receive_json()
             _rlog.info("relay %s in %s %s", pid, msg.get("type"),
                        {k: msg.get(k) for k in ("voicePrompt", "last", "digit", "utteranceUntilInterrupt", "durationUntilInterruptMs", "description") if k in msg})
+            if msg.get("type") == "setup":
+                call_sid = msg.get("callSid") or ""
             if msg.get("type") == "dtmf":
                 msg = {"type": "prompt", "voicePrompt": CASE.dialog.DTMF.get(msg.get("digit"), "")}
             if msg.get("type") != "prompt":
@@ -692,8 +763,11 @@ async def relay(ws: WebSocket, pid: str):
             said = msg.get("voicePrompt", "")
             understood = understand(said)
             reply, done, intent = conv.feed(said, understood)
+            turns += [{"who": "user", "text": said}, {"who": "bot", "text": reply}]
             if intent:
-                _record_reply(pid, said, {**understood, "intent": intent}, "voice-ai")
+                _record_reply(pid, said, {**understood, "intent": intent}, "voice-ai", transcript=turns)
+            if call_sid:
+                store.outbox_update(call_sid, transcript=turns)
             _rlog.info("relay %s out intent=%s done=%s %r", pid, intent, done, reply)
             await ws.send_json({"type": "text", "token": reply, "last": True})
             if done:
@@ -710,6 +784,8 @@ async def call_status(pid: str, request: Request):
     store.outbox_update(form.get("CallSid"), status=st, duration=form.get("CallDuration"))
     if st in ("no-answer", "busy", "failed"):
         store.event(pid, None, today(), delivery="failed", channel="voice", note=st)
+    if st == "completed" and form.get("CallSid") in _CALLS:  # hung up during a follow-up: keep what was said
+        _finish_call(form["CallSid"])
     if st == "completed" and settings.voice_mode == "agent" and agent_call.agent_id():
         asyncio.get_running_loop().create_task(_agent_outcome(pid, form.get("CallSid", "")))
     return Response(status_code=204)
@@ -723,7 +799,9 @@ async def _agent_outcome(pid: str, call_sid: str):
         return
     _record_reply(pid, o["text"], {"intent": o["intent"], "why": f"hlasový asistent: {o['intent']}", "source": "elevenlabs-agent",
                                    **({"when": o["when"]} if o["when"] else {}), **({"extra": o["extra"]} if o.get("extra") else {})},
-                  "voice-agent")
+                  "voice-agent", transcript=o.get("transcript"))
+    if o.get("transcript"):
+        store.outbox_update(call_sid, transcript=o["transcript"], conversation_id=o.get("conversation_id"))
 
 
 # ---------- patient page (personal link from SMS / e-mail) ----------

@@ -241,3 +241,10 @@ body.has-card { overflow: hidden; }
 .scn__done { font-weight: 600; color: var(--ink) !important; }
 .demo[open] { max-height: calc(100dvh - 32px); overflow: auto; }
 @media (min-width: 900px) { .demo[open] { max-height: calc(100dvh - 98px); } }
+
+/* the whole call as a dialogue (components/comm.js dialogue()) */
+.dialog { margin-top: .25rem; }
+.dialog__t { list-style: none; margin: .25rem 0 0; padding: 0; display: grid; gap: .2rem; }
+.dialog__t li { padding: .2rem .5rem; border-radius: 6px; max-width: 46rem; }
+.dialog--bot { background: var(--paper); }
+.dialog--user { background: color-mix(in srgb, var(--accent) 14%, transparent); margin-left: 1.5rem; }
