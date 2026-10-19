@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI vymáhání</title>
+<meta name="description" content="AI vymáhání osloví dlužníka jménem věřitele, po ověření nabídne platbu, splátky, odklad nebo refinancování. Pravidla volí strategii, spor a zranitelnost jdou člověku. Rakathon 2026.">
+<meta name="theme-color" content="#2b47a8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181a" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 26 26' aria-hidden='true'%3E%3Crect width='26' height='26' rx='6' fill='%232b47a8'/%3E%3Cpath d='M7 9h12M7 13h12M7 17h7' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper: #f4f4f2; --surface: #ffffff; --ink: #1e2124; --ink-2: #565b60; --hair: #d6d7d9;
+  --accent: #2b47a8; --accent-soft: #e1e6f6; --on-accent: #ffffff;
+  --alert: #b3261e; --alert-soft: #f8dedb; --warn: #9a5800;
+  --display: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --t-s: 0.8125rem; --t-m: 1.0625rem; --t-l: 1.375rem; --t-xl: clamp(1.9rem, 4.2vw, 3rem);
+  --max: 1200px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
+    --accent: #93a9ff; --accent-soft: #1d2440; --on-accent: #111315;
+    --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
+  --accent: #93a9ff; --accent-soft: #1d2440; --on-accent: #111315;
+  --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-m)/1.55 var(--display); -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+.wrap { max-width: var(--max); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.mono { font-family: var(--mono); font-size: 0.9em; }
+.muted { color: var(--ink-2); }
+.label { font-size: var(--t-s); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--surface); padding: 8px 12px; z-index: 5; }
+.skip:focus { left: 16px; }
+
+/* family strip */
+.family { background: var(--ink); color: var(--paper); font-size: var(--t-s); }
+.family .wrap { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; padding-block: 7px; }
+.family span { opacity: 0.75; }
+.family a { color: var(--paper); text-decoration: none; opacity: 0.8; }
+.family a:hover { opacity: 1; text-decoration: underline; }
+.family a[aria-current] { opacity: 1; font-weight: 700; }
+.family a[aria-current]::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 1px; }
+
+/* top bar */
+.top { border-bottom: 2px solid var(--ink); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding-block: 14px; }
+.brand { font: 700 1.125rem/1 var(--display); letter-spacing: -0.01em; display: inline-flex; gap: 10px; align-items: center; color: var(--ink); text-decoration: none; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.top nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--t-s); align-items: center; }
+.top nav a { color: var(--ink); text-decoration: none; }
+.top nav a:hover { color: var(--accent); }
+@media (max-width: 760px) { .top nav a.nav-x { display: none; } }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 12px 20px; font: 600 1rem/1.2 var(--display); text-decoration: none; border: 2px solid var(--accent); border-radius: 4px; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { color: var(--ink); border-color: var(--ink); background: transparent; }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn.small { min-height: 36px; padding: 6px 12px; font-size: var(--t-s); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* hero */
+.hero .wrap { padding-block: 48px 52px; display: grid; gap: 28px; }
+.hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; max-width: 20ch; }
+.hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 50ch; color: var(--ink-2); }
+.hero .note { font-size: var(--t-s); color: var(--ink-2); max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; padding: 0; margin: 8px 0 0; }
+.facts li { list-style: none; display: grid; gap: 4px; border-top: 1px solid var(--hair); padding-top: 12px; align-content: start; }
+.facts b { font: 700 var(--t-l)/1.2 var(--display); font-variant-numeric: tabular-nums; color: var(--accent); }
+.src { font-size: var(--t-s); color: var(--ink-2); max-width: 70ch; }
+
+/* sections */
+.section { border-top: 2px solid var(--ink); }
+.section > .wrap { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; padding-block: 40px 56px; }
+.aside { grid-column: span 3; display: grid; align-content: start; gap: 6px; }
+.aside h2 { font-size: var(--t-l); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.body { grid-column: span 9; display: grid; gap: 28px; min-width: 0; }
+.body > p, .prose { max-width: 66ch; }
+.body h3.sub { font-size: var(--t-m); font-weight: 700; margin-bottom: -14px; }
+@media (max-width: 760px) { .aside, .body { grid-column: 1 / -1; } .section > .wrap { padding-block: 32px 44px; gap: 16px; } }
+
+/* cards of three */
+.three { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px 32px; counter-reset: s; }
+.three article { display: grid; gap: 8px; align-content: start; border-top: 1px solid var(--hair); padding-top: 14px; min-width: 0; }
+.three h3 { font-size: var(--t-l); font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.three.num h3::before { counter-increment: s; content: counter(s); font: 500 var(--t-s)/1 var(--mono); color: var(--accent); }
+.three ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+
+/* roles */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.roles > div { background: var(--surface); border: 1px solid var(--hair); border-top: 4px solid var(--ink); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.roles > div.ai { border-top-color: var(--ink-2); }
+.roles > div.rules { border-top-color: var(--accent); }
+.roles > div.human { border-top-color: var(--warn); }
+.roles h3 { font-size: var(--t-m); font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.roles h3 svg { width: 20px; height: 20px; flex: none; }
+.roles ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.97rem; }
+
+/* diagram */
+.flow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.flow figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+.flow svg.dg { width: 100%; height: auto; max-width: 560px; display: block; }
+@media (max-width: 900px) { .flow { grid-template-columns: 1fr; } }
+.dg text { font-family: var(--display); fill: var(--ink); }
+.dg .lb { font-size: 14.5px; font-weight: 700; }
+.dg .sb { font-size: 12px; fill: var(--ink-2); }
+.dg .ed { font-size: 11.5px; fill: var(--ink-2); font-style: italic; }
+.dg rect { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.dg rect.key { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.dg rect.human { fill: var(--surface); stroke: var(--warn); stroke-width: 2; stroke-dasharray: 5 3; }
+.dg rect.alert { fill: var(--alert-soft); stroke: var(--alert); stroke-width: 2; }
+.dg rect.final { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.2; }
+.dg .ln { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
+.dg .ln.main { stroke: var(--ink); stroke-width: 2; }
+.dg .ln.loop { stroke: var(--accent); stroke-dasharray: 4 4; stroke-width: 1.6; }
+.dg .ah { fill: var(--ink-2); }
+.dg .ah.main { fill: var(--ink); }
+.dg .ah.loop { fill: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--t-s); color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
+.legend li { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { display: inline-block; width: 16px; height: 11px; border: 2px solid var(--ink); background: var(--surface); }
+.legend i.key { border-color: var(--accent); background: var(--accent-soft); }
+.legend i.human { border-color: var(--warn); border-style: dashed; }
+.legend i.alert { border-color: var(--alert); background: var(--alert-soft); }
+.legend i.final { border-color: var(--ink-2); background: var(--paper); border-width: 1px; }
+.legend i.loop { border: 0; border-top: 2px dashed var(--accent); height: 0; background: none; }
+.states { margin: 0; display: grid; gap: 0; }
+.states div { display: grid; gap: 2px; padding: 10px 0 10px 14px; border-left: 3px solid var(--hair); }
+.states div + div { margin-top: 6px; }
+.states div.key { border-left-color: var(--accent); }
+.states div.human { border-left-color: var(--warn); }
+.states div.alert { border-left-color: var(--alert); }
+.states dt { font-weight: 700; }
+.states dd { margin: 0; color: var(--ink-2); font-size: 0.97rem; }
+.code { display: inline-block; font: 500 var(--t-s)/1.3 var(--mono); padding: 1px 6px; background: var(--accent-soft); color: var(--accent); }
+
+/* ladder (contact plan) */
+.ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); }
+.ladder li { position: relative; display: grid; gap: 4px; align-content: start; padding: 22px 12px 0 0; border-top: 3px solid var(--ink); min-width: 0; }
+.ladder li::before { content: ""; position: absolute; top: -8px; left: 0; width: 13px; height: 13px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
+.ladder li.person { border-top-color: var(--warn); }
+.ladder li.person::before { background: var(--warn); border-color: var(--warn); }
+.ladder .day { font: 500 var(--t-s)/1.2 var(--mono); color: var(--ink-2); }
+.ladder b { font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.ladder b svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+.ladder small { font-size: var(--t-s); color: var(--ink-2); line-height: 1.4; }
+@media (max-width: 760px) {
+  .ladder { grid-template-columns: 1fr; }
+  .ladder li { border-top: 0; border-left: 3px solid var(--ink); padding: 0 0 18px 20px; }
+  .ladder li::before { top: 2px; left: -8px; }
+  .ladder li.person { border-left-color: var(--warn); }
+  .ladder li:last-child { padding-bottom: 0; }
+}
+
+/* channels */
+.channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 18px; margin: 0; padding: 0; }
+.channels li { list-style: none; display: grid; gap: 4px; padding: 14px 0; border-top: 1px solid var(--hair); align-content: start; }
+.channels b { font-size: var(--t-m); font-family: var(--display); display: flex; gap: 8px; align-items: center; }
+.channels b svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
+.channels span { font-size: 0.97rem; color: var(--ink-2); }
+
+/* rows table that collapses on phones */
+.rtable { display: grid; border-top: 2px solid var(--ink); }
+.rtable .r { display: grid; grid-template-columns: 4.6rem minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.4fr) 7.5rem; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hair); align-items: baseline; }
+.rtable .r.head { font-size: var(--t-s); color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.rtable .rule { font: 500 var(--t-s)/1.3 var(--mono); color: var(--accent); }
+.rtable .seg { font-weight: 700; }
+.rtable .when { color: var(--ink-2); font-size: 0.97rem; }
+.pill { display: inline-block; font-size: var(--t-s); font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1.5px solid currentColor; white-space: nowrap; }
+.pill.auto { color: var(--accent); }
+.pill.person { color: var(--warn); }
+@media (max-width: 760px) {
+  .rtable .r { grid-template-columns: 2.6rem minmax(0, 1fr); gap: 4px 10px; }
+  .rtable .r.head { display: none; }
+  .rtable .r > :nth-child(n+3) { grid-column: 2; }
+}
+
+/* checks */
+.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 28px; }
+.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.checks svg { width: 22px; height: 22px; color: var(--accent); margin-top: 1px; }
+.checks div > b { display: block; }
+.checks span { color: var(--ink-2); font-size: 0.97rem; }
+
+/* demo steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: st; }
+.steps li { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 14px; padding: 14px 0; border-top: 1px solid var(--hair); }
+.steps li::before { counter-increment: st; content: counter(st); font: 700 1.25rem/1 var(--display); color: var(--on-accent); background: var(--accent); width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; }
+.steps div > b { display: block; font-size: var(--t-m); }
+.steps span { color: var(--ink-2); }
+.callout { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 16px 18px; display: grid; gap: 10px; max-width: 72ch; }
+.callout.alert { background: var(--alert-soft); border-left-color: var(--alert); }
+
+/* stack */
+.stack { margin: 0; display: grid; }
+.stack div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--hair); }
+.stack dt { font-weight: 700; }
+.stack dd { margin: 0; }
+.stack dd small { display: block; color: var(--ink-2); font-size: var(--t-s); margin-top: 2px; }
+@media (max-width: 520px) { .stack div { grid-template-columns: 1fr; gap: 2px; } }
+
+/* mood / basket mini illustrations */
+.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.mini figure { margin: 0; background: var(--surface); border: 1px solid var(--hair); padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.mini figcaption { font-size: var(--t-s); color: var(--ink-2); }
+.mini svg { width: 100%; height: auto; display: block; }
+.mini h3 { font-size: var(--t-m); font-weight: 700; }
+
+/* footer */
+footer { border-top: 2px solid var(--ink); }
+footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
+.others { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.others a { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--hair); background: var(--surface); text-decoration: none; color: var(--ink); }
+.others a:hover { border-color: var(--accent); }
+.others a b { font-size: var(--t-m); }
+.others a span { font-size: var(--t-s); color: var(--ink-2); }
+.others a[aria-current] { border-color: var(--accent); border-width: 2px; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: var(--t-s); color: var(--ink-2); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Přeskočit na obsah</a>
+<div class="family" role="navigation" aria-label="Tři ukázky jednoho systému"><div class="wrap"><span>Rakathon 2026, jedno jádro, tři ukázky:</span> <a href="https://jsemvcas.cz">Jsem včas</a> <a href="https://seniori.jsemvcas.cz">Jsem v pořádku</a> <a href="https://vymahani.jsemvcas.cz" aria-current="page">AI vymáhání</a></div></div>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#main"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--accent)"/><path d="M7 9h12M7 13h12M7 17h7" fill="none" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round"/></svg>AI vymáhání</a>
+    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#reseni" class="nav-x">Řešení</a><a href="#jak">Jak to funguje</a><a href="#ukazka">Ukázka</a><a href="#technologie" class="nav-x">Technologie</a><a class="btn primary small" href="/login?next=/app/">Vyzkoušet ukázku</a></nav>
+  </div>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="wrap">
+    <p class="label">Rakathon 2026 · vymáhání spotřebitelských úvěrů</p>
+    <h1 id="h-hero">Vymáhání, které nejdřív nabídne řešení.</h1>
+    <p class="lead">AI vymáhání osloví dlužníka SMS, hovorem, e-mailem nebo WhatsAppem a po ověření totožnosti nabídne platbu, splátky, odklad nebo refinancování. Strategii volí čitelná pravidla, ne model. Compliance je součástí produktu.</p>
+    <div class="cta">
+      <a class="btn primary" href="/login?next=/app/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Vyzkoušet ukázku</a>
+      <a class="btn ghost" href="#jak">Jak to funguje</a>
+    </div>
+    <p class="note">Ukázka běží na vašem telefonu. Zadáte přístupový kód <b class="mono">demo</b>, svůj telefon a e-mail. Systém vám pak píše a volá, jako byste byli dlužník smyšleného věřitele. Zprávy jdou jen na kontakty, které jste zadali.</p>
+    <ul class="facts"><li><b>6 segmentů</b><span>pravidla R1 až R6 určí strategii, model ji nevolí</span></li><li><b>8 až 20 h</b><span>kontakt jen v pracovní dny, nejvýš 3× za 7 dní</span></li><li><b>0 údajů</b><span>o dluhu před ověřením totožnosti</span></li><li><b>vždy člověk</b><span>při sporu, zranitelnosti a nejasné odpovědi</span></li></ul>
+    
+  </div>
+</section>
+<section class="section" id="problem" aria-labelledby="h-problem">
+  <div class="wrap">
+    <div class="aside"><p class="label">Problém</p><h2 id="h-problem">Stejný telefonát pro každého nefunguje</h2></div>
+    <div class="body">
+
+      <p>Většina lidí, kteří nezaplatí splátku včas, nejsou neplatiči. Zapomněli, přišli o příjem, onemocněli, nebo mají víc úvěrů najednou. Každý potřebuje něco jiného, ale dostane stejný dopis a stejný telefonát.</p>
+      <div class="three">
+        <article><h3>Drahé a nejednotné</h3><p>Call centrum vymáhání je drahé a výsledek záleží na tom, kdo zrovna volá. Jeden operátor nabídne splátky, druhý ne. Co kdo slíbil a dodržel, se dohledává ručně.</p></article>
+        <article><h3>Zranitelní lidé</h3><p>Mezi dlužníky jsou lidé v nemoci, po úmrtí v rodině nebo v tísni. Tlak je tu nejen neférový, ale i neúčinný. Potřebují člověka a čas, ne další upomínku.</p></article>
+        <article><h3>Přísná pravidla</h3><p>Věřitel podléhá zákonu o spotřebitelském úvěru a dohledu ČNB, která očekává férové zacházení se zákazníkem. Údaje o dluhu nesmí slyšet nikdo jiný než dlužník a nátlak ani výhrůžky nejsou přípustné.</p></article>
+      </div>
+      <p class="prose">Evropská směrnice o spotřebitelském úvěru (2023/2225) navíc žádá, aby věřitel před vymáháním přiměřeně vyšel dlužníkovi vstříc, například splátkami nebo odkladem. Ručně se to ve velkém dělá těžko.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="reseni" aria-labelledby="h-reseni">
+  <div class="wrap">
+    <div class="aside"><p class="label">Řešení</p><h2 id="h-reseni">Rozdělí, osloví, dotáhne</h2></div>
+    <div class="body">
+
+      <p>AI vymáhání osloví dlužníka jménem věřitele, po ověření totožnosti mu ukáže, kolik dluží, a nabídne řešení podle jeho situace: zaplatit hned, splátky, odklad nebo refinancování. Strategii volí čitelná pravidla, ne model. Spor a zranitelnost jdou vždy člověku.</p>
+      <div class="three num">
+        <article><h3>Rozdělí</h3><p>Každého dlužníka zařadí podle dat věřitele do jednoho ze šesti segmentů. Každé rozhodnutí má číslo pravidla a důvod, který přečte i supervizor.</p></article>
+        <article><h3>Osloví</h3><p>Po schválení operátorem: SMS, hovor, e-mail, WhatsApp. Jen v pracovní dny 8 až 20 h a nejvýš třikrát za týden. Podrobnosti až na zabezpečené stránce.</p></article>
+        <article><h3>Dotáhne</h3><p>Zapíše slib platby s datem a částkou, hlídá splátky a dodržené i nedodržené sliby. Kde automat nestačí, předá operátorovi.</p></article>
+      </div>
+      <div class="three">
+        <article><h3>Operátor vymáhání</h3><p>Fronta podle strategií: koho oslovit, kdo odpověděl, kdo čeká na člověka. Karta dlužníka s celou komunikací.</p></article>
+        <article><h3>Supervizor</h3><p>Nespolupracující, spory a zranitelní. Rozhoduje, kdy se automatika smí vrátit, a dohlíží na pravidla.</p></article>
+        <article><h3>Vedení a compliance</h3><p>Přehled: vymožená částka, podíl dodržených slibů, převody na refinancování, výsledky podle kanálu a segmentu.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="jak" aria-labelledby="h-jak">
+  <div class="wrap">
+    <div class="aside"><p class="label">Jak to funguje</p><h2 id="h-jak">Cesta dlužníka krok za krokem</h2></div>
+    <div class="body">
+
+      <div class="flow">
+        <figure><svg class="dg" viewBox="0 0 400 604" role="img" aria-labelledby="dg-c-t dg-c-d"><title id="dg-c-t">Cesta dlužníka v AI vymáhání</title><desc id="dg-c-d">Ve frontě, osloven, slib platby, zaplaceno. Z oslovení vedou odbočky: splátky nebo odklad, refinancování, spor nebo zranitelnost k člověku, dotaz nebo konec plánu k operátorovi, omyl nebo STOP konec kontaktu. Nedodržený slib spustí nový cyklus připomínek.</desc><rect class="" x="26" y="12.0" width="166" height="60" rx="6"/><text class="lb" x="38" y="33.0">Ve frontě</text><text class="sb" x="38" y="50.0">segment a strategie</text><text class="sb" x="38" y="65.0">podle pravidel R1 až R6</text><path class="ln main" d="M109.0,72.0 V227.5"/><polygon class="ah main" points="104.0,221.5 114.0,221.5 109.0,229.5"/><text class="ed" x="117.0" y="154.8">operátor schválí</text><rect class="" x="26" y="229.5" width="166" height="60" rx="6"/><text class="lb" x="38" y="250.5">Osloven</text><text class="sb" x="38" y="267.5">SMS, hovor, e-mail,</text><text class="sb" x="38" y="282.5">WhatsApp, odkaz</text><path class="ln" d="M192,259.5 H202 V142.0 H212"/><polygon class="ah " points="206,137.0 206,147.0 214,142.0"/><rect class="" x="214" y="112.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="133.0">Splátky nebo odklad</text><text class="sb" x="226" y="150.0">3, 6, 12 měsíců</text><text class="sb" x="226" y="165.0">nebo odklad 30 dní</text><path class="ln" d="M192,259.5 H202 V212.0 H212"/><polygon class="ah " points="206,207.0 206,217.0 214,212.0"/><rect class="" x="214" y="182.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="203.0">Refinancování</text><text class="sb" x="226" y="220.0">ilustrativní příklad,</text><text class="sb" x="226" y="235.0">přijetí řeší člověk</text><path class="ln" d="M192,259.5 H202 V274.5 H212"/><polygon class="ah " points="206,269.5 206,279.5 214,274.5"/><rect class="human" x="214" y="252.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="273.0">Spor, zranitelnost</text><text class="sb" x="226" y="290.0">automatika stojí</text><path class="ln" d="M192,259.5 H202 V329.5 H212"/><polygon class="ah " points="206,324.5 206,334.5 214,329.5"/><rect class="human" x="214" y="307.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="328.0">Dotaz, den 12</text><text class="sb" x="226" y="345.0">operátor zavolá</text><path class="ln" d="M192,259.5 H202 V384.5 H212"/><polygon class="ah " points="206,379.5 206,389.5 214,384.5"/><rect class="final" x="214" y="362.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="383.0">Omyl, STOP</text><text class="sb" x="226" y="400.0">omluva, už žádný kontakt</text><path class="ln main" d="M109.0,289.5 V452.5"/><polygon class="ah main" points="104.0,446.5 114.0,446.5 109.0,454.5"/><text class="ed" x="117.0" y="376.0">zaplatím</text><rect class="" x="26" y="454.5" width="166" height="45" rx="6"/><text class="lb" x="38" y="475.5">Slib platby</text><text class="sb" x="38" y="492.5">datum a částka</text><path class="ln" d="M192,477.0 H202 V477.0 H212"/><polygon class="ah " points="206,472.0 206,482.0 214,477.0"/><rect class="" x="214" y="447.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="468.0">Slib nedodržen</text><text class="sb" x="226" y="485.0">2 dny po termínu,</text><text class="sb" x="226" y="500.0">nový cyklus připomínek</text><path class="ln main" d="M109.0,499.5 V545.0"/><polygon class="ah main" points="104.0,539 114.0,539 109.0,547"/><text class="ed" x="117.0" y="527.2">platba</text><rect class="key" x="26" y="547.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="568.0">Zaplaceno</text><text class="sb" x="38" y="585.0">konec vymáhání</text></svg><ul class="legend" aria-hidden="true">
+  <li><i></i>stav</li><li><i class="key"></i>cíl cesty</li><li><i class="human"></i>převezme člověk</li><li><i class="final"></i>konec</li>
+</ul></figure>
+        <dl class="states"><div class=""><dt>Ověření před vším</dt><dd>Zpráva ani hovor neříkají nic o dluhu. Podrobnosti jsou na zabezpečené stránce po ověření datem narození nebo posledními čtyřmi číslicemi smlouvy. Po třech chybných pokusech se stránka zamkne.</dd></div><div class=""><dt>Zabezpečená stránka</dt><dd>Po ověření dlužník vidí částku a zvolí řešení: zaplatit platebním odkazem, splátkový kalendář, odklad nebo zájem o refinancování.</dd></div><div class=""><dt>Slib platby</dt><dd>„Zaplatím v pátek pět tisíc“ se zapíše jako slib s datem a částkou. Když platba do dvou dnů po termínu nedorazí, začne nový cyklus připomínek.</dd></div><div class="human"><dt>Spor, zranitelnost, dotaz</dt><dd>Automatika se zastaví a dlužníka převezme člověk. Vrátit do fronty ho může jen operátor.</dd></div><div class=""><dt>Omyl a STOP</dt><dd>Kdo napíše OMYL, dostane omluvu a kontakt se označí jako chybný. STOP ukončí veškerý kontakt, „nevolejte mi“ zablokuje jen hovory.</dd></div></dl>
+      </div>
+      <h3 class="sub">Plán kontaktů, když dlužník neodpovídá</h3>
+      <ol class="ladder" style="--n:5"><li><span class="day">den 0</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS</b><small>věřitel, automat, odkaz na zabezpečenou stránku</small></li><li><span class="day">den 2</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>hlasový asistent, volba klávesou, bez částky</small></li><li><span class="day">den 5</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="m4 7 8 6 8-6"/></svg>E-mail</b><small>delší text a odkaz</small></li><li><span class="day">den 8</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.7 16A8 8 0 1 1 8.3 18.5z"/><path d="M9 9.2c.3 2.3 2.2 4.4 4.8 5l1.2-1.3-1.8-1-1 .7a4 4 0 0 1-1.6-1.6l.7-1-1-1.8z"/></svg>WhatsApp</b><small>poslední automatická zpráva</small></li><li class="person"><span class="day">den 12</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Operátor</b><small>převezme člověk</small></li></ol>
+      <p class="prose muted">Každý krok projde kontrolou: pracovní den mimo státní svátky, čas 8 až 20 h, nejvýš 3 kontakty za 7 dní, odmítnutý kanál nahradí jiný. Když žádný kanál nezbývá, automat nepošle nic.</p>
+      <h3 class="sub">Kanály</h3>
+      <ul class="channels"><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS</b><span>Krátká zpráva bez údajů o dluhu, odkaz na zabezpečenou stránku, OMYL a STOP.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor s hlasovým asistentem</b><span>Hned řekne, že je automat a za koho volá. Částku po telefonu nikdy neřekne.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="m4 7 8 6 8-6"/></svg>E-mail</b><span>Delší text s možnostmi řešení, údaje až po ověření.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.7 16A8 8 0 1 1 8.3 18.5z"/><path d="M9 9.2c.3 2.3 2.2 4.4 4.8 5l1.2-1.3-1.8-1-1 .7a4 4 0 0 1-1.6-1.6l.7-1-1-1.8z"/></svg>WhatsApp</b><span>Pro ty, kdo nečtou SMS. Platí stejná pravidla.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>Zabezpečená stránka</b><span>Ověření totožnosti, částka, platební odkaz, splátky, odklad, refinancování.</span></li></ul>
+      <h3 class="sub">Kdo co dělá</h3>
+      <div class="roles">
+  <div class="ai"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 12h4"/></svg>Asistent rozumí</h3><ul><li>rozpozná odpověď: zaplatím, potřebuji splátky, nemohu platit, refinancování, rozporuji, jsem v tíživé situaci, omyl, STOP</li><li>z odpovědi vytáhne datum a částku slibu</li><li>nevolí strategii a o kontaktu nerozhoduje</li></ul></div>
+  <div class="rules"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Pravidla řídí</h3><ul><li>segment a strategie podle pravidel R1 až R6</li><li>kdy, kolikrát a jakým kanálem se smí kontaktovat</li><li>nabídky splátek a ilustrativní refinancování z jedné tabulky</li><li>co asistent smí říct: jen schválené věty</li></ul></div>
+  <div class="human"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Člověk rozhoduje</h3><ul><li>operátor schvaluje oslovení a přebírá dotazy</li><li>supervizor řeší spory, zranitelné a nespolupracující</li><li>o skutečné nabídce refinancování rozhoduje úvěrové oddělení</li></ul></div>
+</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="detail" aria-labelledby="h-detail">
+  <div class="wrap">
+    <div class="aside"><p class="label">Strategie a pravidla</p><h2 id="h-detail">Segmenty, nabídky a compliance</h2></div>
+    <div class="body">
+
+      <h3 class="sub">Segmenty a strategie</h3>
+      <p class="prose">Pravidla se vyhodnocují shora, platí první, které sedí. Jsou v jednom souboru, pokrytá testy, a supervizor u každého dlužníka vidí, které pravidlo rozhodlo a proč.</p>
+      <div class="rtable" role="table" aria-label="Segmenty a strategie"><div class="r head" role="row"><span role="columnheader">Pravidlo</span><span role="columnheader">Segment</span><span role="columnheader">Kdy platí</span><span role="columnheader">Strategie</span><span role="columnheader">Automaticky</span></div><div class="r" role="row"><span class="rule" role="cell">R1</span><span class="seg" role="cell">Spor</span><span class="when" role="cell">dlužník pohledávku rozporuje</span><span role="cell">jen člověk, automatika stojí</span><span role="cell"><span class="pill person">ne, člověk</span></span></div><div class="r" role="row"><span class="rule" role="cell">R2</span><span class="seg" role="cell">Zranitelný</span><span class="when" role="cell">nemoc, úmrtí v rodině, tíseň</span><span role="cell">jen člověk, automatika stojí</span><span role="cell"><span class="pill person">ne, člověk</span></span></div><div class="r" role="row"><span class="rule" role="cell">R3</span><span class="seg" role="cell">Nespolupracující</span><span class="when" role="cell">2 a více nedodržené sliby, nebo 90 a více dní po splatnosti a 4 kontakty bez odpovědi</span><span role="cell">supervizor, osobní kontakt</span><span role="cell"><span class="pill person">ne, člověk</span></span></div><div class="r" role="row"><span class="rule" role="cell">R4</span><span class="seg" role="cell">Dlouhodobé potíže</span><span class="when" role="cell">více než 60 dní po splatnosti, nebo 2 a více další úvěry a více než 30 dní</span><span role="cell">refinancování a konsolidace</span><span role="cell"><span class="pill auto">ano</span></span></div><div class="r" role="row"><span class="rule" role="cell">R5</span><span class="seg" role="cell">Dočasné potíže</span><span class="when" role="cell">více než 30 dní po splatnosti, snížený či nepravidelný příjem, nebo 1 nedodržený slib</span><span role="cell">splátkový kalendář nebo odklad</span><span role="cell"><span class="pill auto">ano</span></span></div><div class="r" role="row"><span class="rule" role="cell">R6</span><span class="seg" role="cell">Zapomnětlivý</span><span class="when" role="cell">do 30 dní po splatnosti, dosud platil včas</span><span role="cell">jemná připomínka a platební odkaz</span><span role="cell"><span class="pill auto">ano</span></span></div></div>
+      <div class="three">
+        <article><h3>Platební odkaz</h3><p>Pro zapomnětlivé: připomínka a platba jedním klikem ze zabezpečené stránky. V ukázce je platba simulovaná.</p></article>
+        <article><h3>Splátky a odklad</h3><p>Kalendář na 3, 6 nebo 12 měsíců se stejnými splátkami, delší jen při splátce nad 500 Kč. Nebo odklad o 30 dní. Systém hlídá každou splátku.</p></article>
+        <article><h3>Refinancování</h3><p>Pro dlouhodobé potíže ilustrativní příklad konsolidace s úrokem a RPSN. Výslovně to není nabídka; zájem předá člověku.</p></article>
+      </div>
+      <h3 class="sub">Compliance jako součást produktu</h3>
+      <p class="prose">Každé z těchto pravidel hlídá automatický test nad všemi texty zpráv, hovorů a nad plánem kontaktů.</p>
+      <ul class="checks"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Představení věřitele a automatu</b><span>Každá zpráva i hovor hned řekne, za kterého věřitele píše a že jde o automatického asistenta.</span></div></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Nic o dluhu před ověřením</b><span>Žádná částka, počet dní ani slovo dluh, dokud se člověk neověří datem narození nebo číslem smlouvy.</span></div></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Jen pracovní dny 8 až 20 h</b><span>Ne o víkendech a státních svátcích, nejvýš 3 kontakty za 7 dní, ruční i automatické dohromady.</span></div></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Bez výhrůžek a nátlaku</b><span>Žádné vyhrožování, zahanbování ani nepravdivé následky. Asistent říká jen schválené věty.</span></div></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Odhlášení po kanálech</b><span>„Nevolejte mi“ zablokuje hovory, STOP veškerý kontakt. Zablokovaný kanál se už nepoužije.</span></div></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.7L16.5 9.5"/></svg><div><b>Spor a zranitelnost k člověku</b><span>Automatika se zastaví a rozhoduje člověk. Omyl: omluva a kontakt se označí jako chybný.</span></div></li></ul>
+      <p class="src">Pravidla a čísla v ukázce jsou ilustrativní, věřitel Finance Demo a.s. je smyšlený. Skutečné nastavení určí úvěrová politika a compliance konkrétního věřitele.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="ukazka" aria-labelledby="h-ukazka">
+  <div class="wrap">
+    <div class="aside"><p class="label">Ukázka</p><h2 id="h-ukazka">Co uvidíte na svém telefonu</h2></div>
+    <div class="body">
+<ol class="steps"><li><div><b>Přihlásíte se kódem demo, svým telefonem a e-mailem</b><span>Po kliknutí na Vyzkoušet ukázku vyplníte jeden formulář: přístupový kód <b class="mono">demo</b>, své telefonní číslo a e-mail. Každý návštěvník má vlastní oddělenou ukázku.</span></div></li><li><div><b>Otevře se aplikace pro operátora vymáhání</b><span>Obrazovky Fronta, Dlužníci, Sliby a splátky a Přehled, nad smyšlenými dlužníky věřitele Finance Demo a.s. Záznamy jsou smyšlené, aplikace je stejná jako naostro.</span></div></li><li><div><b>Spustíte celou ukázku</b><span>Tlačítko Spustit celou ukázku přidá do seznamu dlužníka s vaším telefonem a e-mailem a provede celý příběh krok za krokem: přijde SMS, zazvoní hovor, otevřete osobní odkaz. Na každém kroku vidíte, co systém udělal a proč.</span></div></li><li><div><b>Odpovíte jako skutečný člověk</b><span>Přijde vám SMS a zavolá asistent. Na zabezpečené stránce se nejdřív ověříte údajem ukázkového dlužníka, který vidíte v aplikaci, a pak zvolíte zaplatit, splátky nebo refinancování. Můžete i odpovědět „zaplatím v pátek“, napsat OMYL nebo STOP.</span></div></li><li><div><b>Sledujete sliby a splátky</b><span>Na obrazovce Sliby a splátky přibude váš slib nebo kalendář. Další den ukáže, zda platba dorazila, nebo zda začne nový cyklus připomínek.</span></div></li><li><div><b>Posunete čas tlačítkem Další den</b><span>Plán kontaktů se v ukázce neodvíjí v hodinách, ale po dnech. Další den odešle, co je podle plánu na řadě, a na kartě je vidět celá komunikace od nejnovější.</span></div></li><li><div><b>Nebo zkoušíte sami</b><span>U libovolného záznamu můžete zprávu poslat hned zvoleným kanálem, nebo odpověď jen nasimulovat bez telefonu. Obnovit ukázková data vrátí vše na začátek.</span></div></li></ol>
+    </div>
+  </div>
+</section>
+<section class="section" id="technologie" aria-labelledby="h-technologie">
+  <div class="wrap">
+    <div class="aside"><p class="label">Technologie</p><h2 id="h-technologie">Jedno jádro, tři ukázky</h2></div>
+    <div class="body">
+<dl class="stack"><div><dt>Jádro</dt><dd>Jeden server pro všechny tři ukázky<small>Python, FastAPI. Každá ukázka je balíček <span class="mono">cases/&lt;id&gt;</span>: stavy, texty zpráv, porozumění odpovědím, plán kontaktů a obrazovky. Jádro je společné.</small></dd></div><div><dt>Stavový automat</dt><dd>Tabulka přechodů v JSON<small>stejný soubor čte server i webová aplikace; událost, která v daném stavu nedává smysl, se zapíše, ale nic nezmění</small></dd></div><div><dt>Kanály</dt><dd>Twilio SMS, Voice a WhatsApp, e-mail<small>stav doručení u každé zprávy, odpovědi přes webhooky, osobní odkaz pro odpověď jedním klikem</small></dd></div><div><dt>Hlas</dt><dd>ElevenLabs<small>český hlas a konverzační agent; mluví jen schválenými větami, záložně pevný scénář s volbou klávesou</small></dd></div><div><dt>Porozumění</dt><dd>Pravidla, jazykový model jen pomáhá<small>model odpověď jen zařadí do kategorie; nejistá odpověď jde člověku, odhlášení vždy rozpoznají pravidla; bez modelu systém funguje dál</small></dd></div><div><dt>Strategie</dt><dd>Deterministická pravidla v Pythonu<small>segment, nabídky splátek a ilustrativní refinancování; plán kontaktů s pracovními dny, svátky a týdenním limitem</small></dd></div><div><dt>Web</dt><dd>ES moduly bez frameworku<small>světlý i tmavý režim, telefon i počítač</small></dd></div><div><dt>Kvalita</dt><dd>pytest<small>kontrola kontraktu každé ukázky: stavy, texty všech zpráv, plán kontaktů; vlastní testy každé ukázky</small></dd></div><div><dt>Soukromí</dt><dd>Smyšlená data, zprávy jen vám<small>Dlužníci i věřitel jsou smyšlení. Skutečné zprávy a hovory z ukázky jdou jen na telefon a e-mail, které návštěvník zadal při přihlášení, s denním limitem.</small></dd></div></dl>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="wrap">
+    <p class="label">Tři ukázky, jedno jádro</p>
+    <ul class="others"><li><a href="https://jsemvcas.cz"><b>Jsem včas</b><span>screening plic · jsemvcas.cz</span></a></li><li><a href="https://seniori.jsemvcas.cz"><b>Jsem v pořádku</b><span>hovory se seniory · seniori.jsemvcas.cz</span></a></li><li><a href="https://vymahani.jsemvcas.cz" aria-current="page"><b>AI vymáhání</b><span>férové vymáhání · vymahani.jsemvcas.cz</span></a></li></ul>
+    <div class="foot"><span>Rakathon 2026 · Praha · všechna data v ukázkách jsou smyšlená</span><a href="https://github.com/artigrib/rakathon2026">Zdrojový kód na GitHubu</a></div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jsem včas</title>
+<meta name="description" content="Jsem včas najde pacienty pro screening plic, osloví je jménem praktického lékaře a pohlídá, aby došli až k výsledku LDCT. Rakathon 2026.">
+<meta name="theme-color" content="#11615d" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181a" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 26 26' aria-hidden='true'%3E%3Crect width='26' height='26' rx='6' fill='%2311615d'/%3E%3Cpath d='M7 13.5 11 17.5 19 9' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper: #f4f4f2; --surface: #ffffff; --ink: #1e2124; --ink-2: #565b60; --hair: #d6d7d9;
+  --accent: #11615d; --accent-soft: #dcebe9; --on-accent: #ffffff;
+  --alert: #b3261e; --alert-soft: #f8dedb; --warn: #9a5800;
+  --display: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --t-s: 0.8125rem; --t-m: 1.0625rem; --t-l: 1.375rem; --t-xl: clamp(1.9rem, 4.2vw, 3rem);
+  --max: 1200px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
+    --accent: #4fb3ac; --accent-soft: #17302e; --on-accent: #111315;
+    --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #16181a; --surface: #1f2225; --ink: #e8e9ea; --ink-2: #a8adb2; --hair: #33373a;
+  --accent: #4fb3ac; --accent-soft: #17302e; --on-accent: #111315;
+  --alert: #ff8a80; --alert-soft: #3a1d1b; --warn: #e6a64a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-m)/1.55 var(--display); -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+.wrap { max-width: var(--max); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.mono { font-family: var(--mono); font-size: 0.9em; }
+.muted { color: var(--ink-2); }
+.label { font-size: var(--t-s); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--surface); padding: 8px 12px; z-index: 5; }
+.skip:focus { left: 16px; }
+
+/* family strip */
+.family { background: var(--ink); color: var(--paper); font-size: var(--t-s); }
+.family .wrap { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; padding-block: 7px; }
+.family span { opacity: 0.75; }
+.family a { color: var(--paper); text-decoration: none; opacity: 0.8; }
+.family a:hover { opacity: 1; text-decoration: underline; }
+.family a[aria-current] { opacity: 1; font-weight: 700; }
+.family a[aria-current]::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 1px; }
+
+/* top bar */
+.top { border-bottom: 2px solid var(--ink); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding-block: 14px; }
+.brand { font: 700 1.125rem/1 var(--display); letter-spacing: -0.01em; display: inline-flex; gap: 10px; align-items: center; color: var(--ink); text-decoration: none; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.top nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--t-s); align-items: center; }
+.top nav a { color: var(--ink); text-decoration: none; }
+.top nav a:hover { color: var(--accent); }
+@media (max-width: 760px) { .top nav a.nav-x { display: none; } }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 12px 20px; font: 600 1rem/1.2 var(--display); text-decoration: none; border: 2px solid var(--accent); border-radius: 4px; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { color: var(--ink); border-color: var(--ink); background: transparent; }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn.small { min-height: 36px; padding: 6px 12px; font-size: var(--t-s); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* hero */
+.hero .wrap { padding-block: 48px 52px; display: grid; gap: 28px; }
+.hero h1 { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; max-width: 20ch; }
+.hero .lead { font-size: var(--t-l); line-height: 1.45; max-width: 50ch; color: var(--ink-2); }
+.hero .note { font-size: var(--t-s); color: var(--ink-2); max-width: 62ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px 32px; padding: 0; margin: 8px 0 0; }
+.facts li { list-style: none; display: grid; gap: 4px; border-top: 1px solid var(--hair); padding-top: 12px; align-content: start; }
+.facts b { font: 700 var(--t-l)/1.2 var(--display); font-variant-numeric: tabular-nums; color: var(--accent); }
+.src { font-size: var(--t-s); color: var(--ink-2); max-width: 70ch; }
+
+/* sections */
+.section { border-top: 2px solid var(--ink); }
+.section > .wrap { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 24px; padding-block: 40px 56px; }
+.aside { grid-column: span 3; display: grid; align-content: start; gap: 6px; }
+.aside h2 { font-size: var(--t-l); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.body { grid-column: span 9; display: grid; gap: 28px; min-width: 0; }
+.body > p, .prose { max-width: 66ch; }
+.body h3.sub { font-size: var(--t-m); font-weight: 700; margin-bottom: -14px; }
+@media (max-width: 760px) { .aside, .body { grid-column: 1 / -1; } .section > .wrap { padding-block: 32px 44px; gap: 16px; } }
+
+/* cards of three */
+.three { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px 32px; counter-reset: s; }
+.three article { display: grid; gap: 8px; align-content: start; border-top: 1px solid var(--hair); padding-top: 14px; min-width: 0; }
+.three h3 { font-size: var(--t-l); font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.three.num h3::before { counter-increment: s; content: counter(s); font: 500 var(--t-s)/1 var(--mono); color: var(--accent); }
+.three ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+
+/* roles */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.roles > div { background: var(--surface); border: 1px solid var(--hair); border-top: 4px solid var(--ink); padding: 16px; display: grid; gap: 8px; align-content: start; }
+.roles > div.ai { border-top-color: var(--ink-2); }
+.roles > div.rules { border-top-color: var(--accent); }
+.roles > div.human { border-top-color: var(--warn); }
+.roles h3 { font-size: var(--t-m); font-weight: 700; display: flex; gap: 8px; align-items: center; }
+.roles h3 svg { width: 20px; height: 20px; flex: none; }
+.roles ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.97rem; }
+
+/* diagram */
+.flow { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.flow figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+.flow svg.dg { width: 100%; height: auto; max-width: 560px; display: block; }
+@media (max-width: 900px) { .flow { grid-template-columns: 1fr; } }
+.dg text { font-family: var(--display); fill: var(--ink); }
+.dg .lb { font-size: 14.5px; font-weight: 700; }
+.dg .sb { font-size: 12px; fill: var(--ink-2); }
+.dg .ed { font-size: 11.5px; fill: var(--ink-2); font-style: italic; }
+.dg rect { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.dg rect.key { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.dg rect.human { fill: var(--surface); stroke: var(--warn); stroke-width: 2; stroke-dasharray: 5 3; }
+.dg rect.alert { fill: var(--alert-soft); stroke: var(--alert); stroke-width: 2; }
+.dg rect.final { fill: var(--paper); stroke: var(--ink-2); stroke-width: 1.2; }
+.dg .ln { fill: none; stroke: var(--ink-2); stroke-width: 1.5; }
+.dg .ln.main { stroke: var(--ink); stroke-width: 2; }
+.dg .ln.loop { stroke: var(--accent); stroke-dasharray: 4 4; stroke-width: 1.6; }
+.dg .ah { fill: var(--ink-2); }
+.dg .ah.main { fill: var(--ink); }
+.dg .ah.loop { fill: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--t-s); color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
+.legend li { display: inline-flex; gap: 6px; align-items: center; }
+.legend i { display: inline-block; width: 16px; height: 11px; border: 2px solid var(--ink); background: var(--surface); }
+.legend i.key { border-color: var(--accent); background: var(--accent-soft); }
+.legend i.human { border-color: var(--warn); border-style: dashed; }
+.legend i.alert { border-color: var(--alert); background: var(--alert-soft); }
+.legend i.final { border-color: var(--ink-2); background: var(--paper); border-width: 1px; }
+.legend i.loop { border: 0; border-top: 2px dashed var(--accent); height: 0; background: none; }
+.states { margin: 0; display: grid; gap: 0; }
+.states div { display: grid; gap: 2px; padding: 10px 0 10px 14px; border-left: 3px solid var(--hair); }
+.states div + div { margin-top: 6px; }
+.states div.key { border-left-color: var(--accent); }
+.states div.human { border-left-color: var(--warn); }
+.states div.alert { border-left-color: var(--alert); }
+.states dt { font-weight: 700; }
+.states dd { margin: 0; color: var(--ink-2); font-size: 0.97rem; }
+.code { display: inline-block; font: 500 var(--t-s)/1.3 var(--mono); padding: 1px 6px; background: var(--accent-soft); color: var(--accent); }
+
+/* ladder (contact plan) */
+.ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); }
+.ladder li { position: relative; display: grid; gap: 4px; align-content: start; padding: 22px 12px 0 0; border-top: 3px solid var(--ink); min-width: 0; }
+.ladder li::before { content: ""; position: absolute; top: -8px; left: 0; width: 13px; height: 13px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
+.ladder li.person { border-top-color: var(--warn); }
+.ladder li.person::before { background: var(--warn); border-color: var(--warn); }
+.ladder .day { font: 500 var(--t-s)/1.2 var(--mono); color: var(--ink-2); }
+.ladder b { font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.ladder b svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+.ladder small { font-size: var(--t-s); color: var(--ink-2); line-height: 1.4; }
+@media (max-width: 760px) {
+  .ladder { grid-template-columns: 1fr; }
+  .ladder li { border-top: 0; border-left: 3px solid var(--ink); padding: 0 0 18px 20px; }
+  .ladder li::before { top: 2px; left: -8px; }
+  .ladder li.person { border-left-color: var(--warn); }
+  .ladder li:last-child { padding-bottom: 0; }
+}
+
+/* channels */
+.channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 18px; margin: 0; padding: 0; }
+.channels li { list-style: none; display: grid; gap: 4px; padding: 14px 0; border-top: 1px solid var(--hair); align-content: start; }
+.channels b { font-size: var(--t-m); font-family: var(--display); display: flex; gap: 8px; align-items: center; }
+.channels b svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
+.channels span { font-size: 0.97rem; color: var(--ink-2); }
+
+/* rows table that collapses on phones */
+.rtable { display: grid; border-top: 2px solid var(--ink); }
+.rtable .r { display: grid; grid-template-columns: 4.6rem minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1.4fr) 7.5rem; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hair); align-items: baseline; }
+.rtable .r.head { font-size: var(--t-s); color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.rtable .rule { font: 500 var(--t-s)/1.3 var(--mono); color: var(--accent); }
+.rtable .seg { font-weight: 700; }
+.rtable .when { color: var(--ink-2); font-size: 0.97rem; }
+.pill { display: inline-block; font-size: var(--t-s); font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1.5px solid currentColor; white-space: nowrap; }
+.pill.auto { color: var(--accent); }
+.pill.person { color: var(--warn); }
+@media (max-width: 760px) {
+  .rtable .r { grid-template-columns: 2.6rem minmax(0, 1fr); gap: 4px 10px; }
+  .rtable .r.head { display: none; }
+  .rtable .r > :nth-child(n+3) { grid-column: 2; }
+}
+
+/* checks */
+.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 28px; }
+.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.checks svg { width: 22px; height: 22px; color: var(--accent); margin-top: 1px; }
+.checks div > b { display: block; }
+.checks span { color: var(--ink-2); font-size: 0.97rem; }
+
+/* demo steps */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: st; }
+.steps li { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); gap: 14px; padding: 14px 0; border-top: 1px solid var(--hair); }
+.steps li::before { counter-increment: st; content: counter(st); font: 700 1.25rem/1 var(--display); color: var(--on-accent); background: var(--accent); width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; }
+.steps div > b { display: block; font-size: var(--t-m); }
+.steps span { color: var(--ink-2); }
+.callout { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 16px 18px; display: grid; gap: 10px; max-width: 72ch; }
+.callout.alert { background: var(--alert-soft); border-left-color: var(--alert); }
+
+/* stack */
+.stack { margin: 0; display: grid; }
+.stack div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--hair); }
+.stack dt { font-weight: 700; }
+.stack dd { margin: 0; }
+.stack dd small { display: block; color: var(--ink-2); font-size: var(--t-s); margin-top: 2px; }
+@media (max-width: 520px) { .stack div { grid-template-columns: 1fr; gap: 2px; } }
+
+/* mood / basket mini illustrations */
+.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.mini figure { margin: 0; background: var(--surface); border: 1px solid var(--hair); padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.mini figcaption { font-size: var(--t-s); color: var(--ink-2); }
+.mini svg { width: 100%; height: auto; display: block; }
+.mini h3 { font-size: var(--t-m); font-weight: 700; }
+
+/* footer */
+footer { border-top: 2px solid var(--ink); }
+footer .wrap { padding-block: 28px 44px; display: grid; gap: 20px; }
+.others { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.others a { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--hair); background: var(--surface); text-decoration: none; color: var(--ink); }
+.others a:hover { border-color: var(--accent); }
+.others a b { font-size: var(--t-m); }
+.others a span { font-size: var(--t-s); color: var(--ink-2); }
+.others a[aria-current] { border-color: var(--accent); border-width: 2px; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: var(--t-s); color: var(--ink-2); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Přeskočit na obsah</a>
+<div class="family" role="navigation" aria-label="Tři ukázky jednoho systému"><div class="wrap"><span>Rakathon 2026, jedno jádro, tři ukázky:</span> <a href="https://jsemvcas.cz" aria-current="page">Jsem včas</a> <a href="https://seniori.jsemvcas.cz">Jsem v pořádku</a> <a href="https://vymahani.jsemvcas.cz">AI vymáhání</a></div></div>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#main"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--accent)"/><path d="M7 13.5 11 17.5 19 9" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Jsem včas</a>
+    <nav aria-label="Obsah"><a href="#problem" class="nav-x">Problém</a><a href="#reseni" class="nav-x">Řešení</a><a href="#jak">Jak to funguje</a><a href="#ukazka">Ukázka</a><a href="#technologie" class="nav-x">Technologie</a><a class="btn primary small" href="/login?next=/app/">Vyzkoušet ukázku</a></nav>
+  </div>
+</header>
+<main id="main">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="wrap">
+    <p class="label">Rakathon 2026 · výzva Plíce včas · screening karcinomu plic</p>
+    <h1 id="h-hero">Pozvánka na screening plic, která dojde až k&nbsp;výsledku.</h1>
+    <p class="lead">Jsem včas najde v datech praktického lékaře pacienty pro screening plic, osloví je jménem ordinace a pohlídá, aby došli až k výsledku LDCT. Sestra schvaluje, lékař rozhoduje.</p>
+    <div class="cta">
+      <a class="btn primary" href="/login?next=/app/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Vyzkoušet ukázku</a>
+      <a class="btn ghost" href="#jak">Jak to funguje</a>
+    </div>
+    <p class="note">Ukázka běží na vašem telefonu. Zadáte přístupový kód <b class="mono">demo</b>, svůj telefon a e-mail. Systém vám pak píše a volá, jako byste byli pacient ordinace. Zprávy jdou jen na kontakty, které jste zadali.</p>
+    <ul class="facts"><li><b>asi 18&nbsp;%</b><span>cílové populace program za čtyři roky oslovil</span></li><li><b>46&nbsp;%</b><span>pacientů oslovených praktikem účast odmítlo</span></li><li><b>51&nbsp;%</b><span>nádorů zachycených screeningem je ve stadiu 1</span></li><li><b>62&nbsp;%</b><span>praktických lékařů je do programu zapojeno</span></li></ul>
+    <p class="src">Data programu z NRHZS, 1.&nbsp;1.&nbsp;2022 až 31.&nbsp;3.&nbsp;2026, věk 55 až 74 let; stadium u pozitivních nálezů se záznamem v Národním onkologickém registru.</p>
+  </div>
+</section>
+<section class="section" id="problem" aria-labelledby="h-problem">
+  <div class="wrap">
+    <div class="aside"><p class="label">Problém</p><h2 id="h-problem">Program funguje, lidé se k němu nedostanou</h2></div>
+    <div class="body">
+
+      <p>Program časného záchytu karcinomu plic běží v Česku od roku 2022 a zdravotní pojišťovny ho hradí. Funguje: nádory zachycené screeningem jsou často v prvním stadiu, kdy je léčba nejúspěšnější. Jen se k němu většina lidí, pro které je určený, nedostane.</p>
+      <div class="three">
+        <article><h3>Málo oslovených</h3><p>Za čtyři roky program oslovil asi 18&nbsp;% cílové populace. Oslovit pacienta je dnes práce praktika, který na to nemá čas ani nástroj.</p></article>
+        <article><h3>Polovina odmítne</h3><p>Téměř polovina oslovených praktikem účast odmítne. Pozvánka v ordinaci mezi dvěma jinými tématy nestačí, chybí připomenutí a druhá šance.</p></article>
+        <article><h3>Ztrácí se po cestě</h3><p>Od praktika k pneumologovi, k CT a zpět k výsledku vede několik kroků u různých lékařů. Nikdo nehlídá, kdo cestou vypadl.</p></article>
+      </div>
+      <p class="src">Zdroj: data programu z NRHZS za období 1.&nbsp;1.&nbsp;2022 až 31.&nbsp;3.&nbsp;2026 pro věk 55 až 74 let, jak je představila garantka výzvy Plíce včas na Rakathonu 2026.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="reseni" aria-labelledby="h-reseni">
+  <div class="wrap">
+    <div class="aside"><p class="label">Řešení</p><h2 id="h-reseni">Najde, osloví, pohlídá</h2></div>
+    <div class="body">
+
+      <p>Jsem včas je vrstva oslovení a sledování mezi daty praktického lékaře a existujícími systémy. Neobjednává CT a nerozhoduje medicínsky. Najde, osloví a pohlídá.</p>
+      <div class="three num">
+        <article><h3>Najde</h3><p>V kartotéce praktika pacienty 55 až 74 let, kuřáky a bývalé kuřáky s nejméně 20 balíčkoroky, bez CT hrudníku za posledních 30 dní. Opraví poškozené řádky a diakritiku, u každého rozhodnutí uvede důvod.</p></article>
+        <article><h3>Osloví</h3><p>Jménem ordinace. Sestra jednou týdně jedním klikem schválí dávku pozvánek. Pozvánka nabízí dvě cesty: objednat se rovnou u pneumologa, nebo zavolat do ordinace.</p></article>
+        <article><h3>Pohlídá</h3><p>Kdo neodpoví, dostane další kontakt podle plánu. Kdo se ztrácí, třeba předán k pneumologovi a šest týdnů bez LDCT, je nahoře v úkolech sestry.</p></article>
+      </div>
+      <div class="three">
+        <article><h3>Sestra</h3><p>Hlavní uživatel. Schvaluje týdenní dávku, vyřizuje odpovědi a telefonáty, zapisuje LDCT a výsledek jedním klikem.</p></article>
+        <article><h3>Lékař</h3><p>Jen rozhodnutí: rozporné údaje, výjimky, vyřazení a převzetí výsledků. Vidí kódy 01196 a 01197 k vykázání.</p></article>
+        <article><h3>Pojišťovna a koordinátor</h3><p>Přehled programu za všechny ordinace: kolik vhodných, oslovených, předaných a vyšetřených. Nikoho neoslovuje.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="jak" aria-labelledby="h-jak">
+  <div class="wrap">
+    <div class="aside"><p class="label">Jak to funguje</p><h2 id="h-jak">Cesta pacienta krok za krokem</h2></div>
+    <div class="body">
+
+      <div class="flow">
+        <figure><svg class="dg" viewBox="0 0 400 649" role="img" aria-labelledby="dg-s-t dg-s-d"><title id="dg-s-t">Cesta pacienta ve screeningu plic</title><desc id="dg-s-d">Nalezen, pozván, ozval se, předán k pneumologovi, LDCT, výsledek. Po negativním výsledku za dva roky nová pozvánka. Odbočky: vyřazen lékařem, teď ne (znovu za 90 dní), nechce (napoprvé měkké odmítnutí), sestra volá, nedorazil.</desc><rect class="" x="26" y="19.5" width="166" height="45" rx="6"/><text class="lb" x="38" y="40.5">Nalezen</text><text class="sb" x="38" y="57.5">splňuje kritéria programu</text><path class="ln" d="M192,42.0 H202 V42.0 H212"/><polygon class="ah " points="206,37.0 206,47.0 214,42.0"/><rect class="final" x="214" y="12.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="33.0">Vyřazen lékařem</text><text class="sb" x="226" y="50.0">rozhodnutí lékaře,</text><text class="sb" x="226" y="65.0">jde vrátit zpět</text><path class="ln main" d="M109.0,64.5 V172.5"/><polygon class="ah main" points="104.0,166.5 114.0,166.5 109.0,174.5"/><text class="ed" x="117.0" y="123.5">sestra schválí</text><rect class="" x="26" y="174.5" width="166" height="60" rx="6"/><text class="lb" x="38" y="195.5">Pozván</text><text class="sb" x="38" y="212.5">SMS, hovor, WhatsApp,</text><text class="sb" x="38" y="227.5">e-mail, další pokus</text><path class="ln" d="M192,204.5 H202 V134.5 H212"/><polygon class="ah " points="206,129.5 206,139.5 214,134.5"/><rect class="" x="214" y="112.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="133.0">Teď ne</text><text class="sb" x="226" y="150.0">nabídka znovu za 90 dní</text><path class="ln" d="M192,204.5 H202 V197.0 H212"/><polygon class="ah " points="206,192.0 206,202.0 214,197.0"/><rect class="final" x="214" y="167.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="188.0">Nechce</text><text class="sb" x="226" y="205.0">napoprvé měkce, 01197</text><text class="sb" x="226" y="220.0">až napodruhé, STOP hned</text><path class="ln" d="M192,204.5 H202 V267.0 H212"/><polygon class="ah " points="206,262.0 206,272.0 214,267.0"/><rect class="human" x="214" y="237.0" width="180" height="60" rx="6"/><text class="lb" x="226" y="258.0">Sestra volá</text><text class="sb" x="226" y="275.0">den 12, nebo otázka</text><text class="sb" x="226" y="290.0">a nejistá odpověď</text><path class="ln main" d="M109.0,234.5 V335.0"/><polygon class="ah main" points="104.0,329 114.0,329 109.0,337"/><text class="ed" x="117.0" y="289.8">odpověď</text><rect class="" x="26" y="337.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="358.0">Ozval se</text><text class="sb" x="38" y="375.0">má zájem nebo chce zavolat</text><path class="ln main" d="M109.0,382.0 V420.0"/><polygon class="ah main" points="104.0,414 114.0,414 109.0,422"/><text class="ed" x="117.0" y="406.0">sestra zapíše</text><rect class="key" x="26" y="422.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="443.0">K pneumologovi</text><text class="sb" x="38" y="460.0">předán, praktik vykáže 01196</text><path class="ln" d="M192,444.5 H202 V444.5 H212"/><polygon class="ah " points="206,439.5 206,449.5 214,444.5"/><rect class="" x="214" y="422.0" width="180" height="45" rx="6"/><text class="lb" x="226" y="443.0">Nedorazil</text><text class="sb" x="226" y="460.0">zpět do stavu Teď ne</text><path class="ln main" d="M109.0,467.0 V505.0"/><polygon class="ah main" points="104.0,499 114.0,499 109.0,507"/><text class="ed" x="117.0" y="491.0">vyšetření</text><rect class="" x="26" y="507.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="528.0">LDCT</text><text class="sb" x="38" y="545.0">nízkodávkové CT v centru</text><path class="ln main" d="M109.0,552.0 V590.0"/><polygon class="ah main" points="104.0,584 114.0,584 109.0,592"/><text class="ed" x="117.0" y="576.0">výsledek</text><rect class="key" x="26" y="592.0" width="166" height="45" rx="6"/><text class="lb" x="38" y="613.0">Výsledek</text><text class="sb" x="38" y="630.0">lékař převezme</text><path class="ln loop" d="M26,614.5 H10 V204.5 H24"/><polygon class="ah loop" points="18,199.5 18,209.5 26,204.5"/></svg><ul class="legend" aria-hidden="true">
+  <li><i></i>stav</li><li><i class="key"></i>cíl cesty</li><li><i class="human"></i>převezme člověk</li><li><i class="final"></i>konec</li><li><i class="loop"></i>nový cyklus</li>
+</ul></figure>
+        <dl class="states"><div class=""><dt>Jeden stav, povolené události</dt><dd>Každý pacient je právě v jednom stavu a mění ho jen událost povolená tabulkou přechodů. Tabulku sdílí server i webová aplikace.</dd></div><div class="key"><dt>Předán k pneumologovi</dt><dd>Pacient se objedná sám, nebo ho předá sestra. Praktik vykáže kód <span class="code">01196</span>.</dd></div><div class=""><dt>Teď ne</dt><dd>„Ano, ale až po Vánocích“ systém zapíše jako teď ne. Po 90 dnech začne nový cyklus s motivační zprávou.</dd></div><div class=""><dt>Nechce</dt><dd>První odmítnutí je měkké a nabídka se po čase zopakuje. Kód <span class="code">01197</span> až napodruhé. Odpověď STOP odhlásí vždy a hned.</dd></div><div class="human"><dt>Sestra volá</dt><dd>Plán kontaktů skončil, nebo pacient napsal otázku či odpověď, které systém s jistotou nerozumí.</dd></div><div class="key"><dt>Výsledek</dt><dd>Po negativním výsledku za dva roky přijde pozvánka na kontrolní LDCT.</dd></div></dl>
+      </div>
+      <h3 class="sub">Plán kontaktů, když pacient neodpovídá</h3>
+      <ol class="ladder" style="--n:5"><li><span class="day">den 0</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS</b><small>pozvánka jménem ordinace s osobním odkazem</small></li><li><span class="day">den 3</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>hlasový asistent, odpověď hlasem nebo klávesou</small></li><li><span class="day">den 5</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor</b><small>jindy během dne</small></li><li><span class="day">den 8</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.7 16A8 8 0 1 1 8.3 18.5z"/><path d="M9 9.2c.3 2.3 2.2 4.4 4.8 5l1.2-1.3-1.8-1-1 .7a4 4 0 0 1-1.6-1.6l.7-1-1-1.8z"/></svg>WhatsApp</b><small>stejná pozvánka jiným kanálem</small></li><li class="person"><span class="day">den 12</span><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Sestra volá</b><small>plán skončil, převezme člověk</small></li></ol>
+      <p class="prose muted">Jakákoli odpověď plán hned zastaví. Stejný kanál se nikdy nepoužije třikrát za sebou.</p>
+      <h3 class="sub">Kanály</h3>
+      <ul class="channels"><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></svg>SMS</b><span>Pacient odpoví ANO, systém pošle potvrzení a přesune ho do Ozvali se.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.5 3.5 9.5 3l1.5 4-2 1.5a10 10 0 0 0 6.5 6.5l1.5-2 4 1.5-.5 3a2 2 0 0 1-2 1.5A15.5 15.5 0 0 1 5 5.5a2 2 0 0 1 1.5-2z"/></svg>Hovor s hlasovým asistentem</b><span>Představí se jako asistent ordinace, mluví jen schválenými větami, nesděluje diagnózu.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.7 16A8 8 0 1 1 8.3 18.5z"/><path d="M9 9.2c.3 2.3 2.2 4.4 4.8 5l1.2-1.3-1.8-1-1 .7a4 4 0 0 1-1.6-1.6l.7-1-1-1.8z"/></svg>WhatsApp</b><span>Stejná pozvánka, odpověď textem se zapíše ke správnému pacientovi.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="m4 7 8 6 8-6"/></svg>E-mail</b><span>Delší text s odkazy na program a seznam center.</span></li><li><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Osobní odkaz</b><span>Stránka pro odpověď jedním klikem: mám zájem, už jsem objednaný, zavolejte mi, teď ne.</span></li></ul>
+      <h3 class="sub">Kdo co dělá</h3>
+      <div class="roles">
+  <div class="ai"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 12h4"/></svg>Asistent rozumí</h3><ul><li>rozpozná, co pacient odpověděl: zájem, objednal se, zavolat, teď ne, nechce, otázka</li><li>v hovoru vede rozhovor jen schválenými větami a odpovídá na časté otázky</li><li>nejistou odpověď nehádá, předá ji sestře</li></ul></div>
+  <div class="rules"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Pravidla řídí</h3><ul><li>kdo je vhodný pro program (věk, kouření, balíčkoroky, CT)</li><li>kdy a jakým kanálem přijde další kontakt</li><li>odhlášení STOP vždy rozpoznají pravidla, ne model</li><li>kdo se ztrácí a má být nahoře v úkolech</li></ul></div>
+  <div class="human"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Člověk rozhoduje</h3><ul><li>sestra schvaluje pozvánky a volá</li><li>lékař rozhoduje o výjimkách, vyřazení a výsledku</li><li>objednání CT a péči o nález řeší pneumolog a centrum</li></ul></div>
+</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="detail" aria-labelledby="h-detail">
+  <div class="wrap">
+    <div class="aside"><p class="label">Pravidla programu</p><h2 id="h-detail">Kritéria, sestra, lékař a FHIR</h2></div>
+    <div class="body">
+
+      <div class="three">
+        <article><h3>Kritéria programu</h3><ul><li>věk 55 až 74 let</li><li>kuřák nebo bývalý kuřák, bez ohledu na dobu od ukončení</li><li>nejméně 20 balíčkoroků</li><li>bez CT hrudníku za posledních 30 dní</li></ul><p class="muted">Pravidla od roku 2027, věk 50 až 80 let, jsou připravená jako jeden přepínač v konfiguraci.</p></article>
+        <article><h3>Neúplná data k lékaři</h3><p>Chybí kuřácký status nebo balíčkoroky, údaje si odporují, externí CT? Systém pacienta nevyřadí ani nepozve sám. Pošle ho lékaři s důvodem a lékař rozhodne, třeba o výjimce kvůli rodinné anamnéze.</p></article>
+        <article><h3>Týdenní rytmus</h3><p>Praktik se na seznam dívá jednou týdně. Systém každý týden přepočítá vhodné pacienty a sestra jedním klikem schválí pozvánky. Plně automatický režim je volba.</p></article>
+      </div>
+      <div class="callout"><p><b>FHIR a InterSystems IRIS oběma směry.</b> Data ordinace se nahrají do IRIS for Health jako FHIR R4 (Patient, Observation pro kouření a balíčkoroky, ImagingStudy pro CT). Jsem včas je čte zpět, vyhodnotí stejně jako původní soubory a každý krok zapisuje jako Communication a Task. Díky tomu nezávisí na jednom softwaru praktika.</p></div>
+    </div>
+  </div>
+</section>
+<section class="section" id="ukazka" aria-labelledby="h-ukazka">
+  <div class="wrap">
+    <div class="aside"><p class="label">Ukázka</p><h2 id="h-ukazka">Co uvidíte na svém telefonu</h2></div>
+    <div class="body">
+<ol class="steps"><li><div><b>Přihlásíte se kódem demo, svým telefonem a e-mailem</b><span>Po kliknutí na Vyzkoušet ukázku vyplníte jeden formulář: přístupový kód <b class="mono">demo</b>, své telefonní číslo a e-mail. Každý návštěvník má vlastní oddělenou ukázku.</span></div></li><li><div><b>Otevře se aplikace pro sestru</b><span>Obrazovky Úkoly, Pro lékaře, Pacienti a Program, nad 300 smyšlenými pacienty z 15 ordinací. Záznamy jsou smyšlené, aplikace je stejná jako naostro.</span></div></li><li><div><b>Spustíte celou ukázku</b><span>Tlačítko Spustit celou ukázku přidá do seznamu pacienta s vaším telefonem a e-mailem a provede celý příběh krok za krokem: přijde SMS, zazvoní hovor, otevřete osobní odkaz. Na každém kroku vidíte, co systém udělal a proč.</span></div></li><li><div><b>Odpovíte jako skutečný člověk</b><span>Na pozvánku odpovíte SMS, v hovoru řeknete nebo stisknete, co chcete, nebo kliknete na osobní odkaz. Odpověď se objeví na kartě pacienta doslova i s tím, jak jí systém porozuměl, a pacient se přesune do správného stavu.</span></div></li><li><div><b>Posunete čas tlačítkem Další den</b><span>Plán kontaktů se v ukázce neodvíjí v hodinách, ale po dnech. Další den odešle, co je podle plánu na řadě, a na kartě je vidět celá komunikace od nejnovější.</span></div></li><li><div><b>Nebo zkoušíte sami</b><span>U libovolného záznamu můžete zprávu poslat hned zvoleným kanálem, nebo odpověď jen nasimulovat bez telefonu. Obnovit ukázková data vrátí vše na začátek.</span></div></li></ol>
+    </div>
+  </div>
+</section>
+<section class="section" id="technologie" aria-labelledby="h-technologie">
+  <div class="wrap">
+    <div class="aside"><p class="label">Technologie</p><h2 id="h-technologie">Jedno jádro, tři ukázky</h2></div>
+    <div class="body">
+<dl class="stack"><div><dt>Jádro</dt><dd>Jeden server pro všechny tři ukázky<small>Python, FastAPI. Každá ukázka je balíček <span class="mono">cases/&lt;id&gt;</span>: stavy, texty zpráv, porozumění odpovědím, plán kontaktů a obrazovky. Jádro je společné.</small></dd></div><div><dt>Stavový automat</dt><dd>Tabulka přechodů v JSON<small>stejný soubor čte server i webová aplikace; událost, která v daném stavu nedává smysl, se zapíše, ale nic nezmění</small></dd></div><div><dt>Kanály</dt><dd>Twilio SMS, Voice a WhatsApp, e-mail<small>stav doručení u každé zprávy, odpovědi přes webhooky, osobní odkaz pro odpověď jedním klikem</small></dd></div><div><dt>Hlas</dt><dd>ElevenLabs<small>český hlas a konverzační agent; mluví jen schválenými větami, záložně pevný scénář s volbou klávesou</small></dd></div><div><dt>Porozumění</dt><dd>Pravidla, jazykový model jen pomáhá<small>model odpověď jen zařadí do kategorie; nejistá odpověď jde člověku, odhlášení vždy rozpoznají pravidla; bez modelu systém funguje dál</small></dd></div><div><dt>Data</dt><dd>HL7 FHIR R4, InterSystems IRIS for Health<small>Patient, Observation, ImagingStudy, Communication, Task; ověřeno na všech 300 pacientech výzvy</small></dd></div><div><dt>Web</dt><dd>ES moduly bez frameworku<small>světlý i tmavý režim, telefon i počítač</small></dd></div><div><dt>Kvalita</dt><dd>pytest<small>kontrola kontraktu každé ukázky: stavy, texty všech zpráv, plán kontaktů; vlastní testy každé ukázky</small></dd></div><div><dt>Soukromí</dt><dd>Smyšlená data, zprávy jen vám<small>Pacienti v ukázce jsou syntetická data výzvy. Skutečné zprávy z ukázky odcházejí jen na telefon a e-mail, které návštěvník zadal při přihlášení, s denním limitem.</small></dd></div></dl>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="wrap">
+    <p class="label">Tři ukázky, jedno jádro</p>
+    <ul class="others"><li><a href="https://jsemvcas.cz" aria-current="page"><b>Jsem včas</b><span>screening plic · jsemvcas.cz</span></a></li><li><a href="https://seniori.jsemvcas.cz"><b>Jsem v pořádku</b><span>hovory se seniory · seniori.jsemvcas.cz</span></a></li><li><a href="https://vymahani.jsemvcas.cz"><b>AI vymáhání</b><span>férové vymáhání · vymahani.jsemvcas.cz</span></a></li></ul>
+    <div class="foot"><span>Rakathon 2026 · Praha · všechna data v ukázkách jsou smyšlená</span><a href="https://github.com/artigrib/rakathon2026">Zdrojový kód na GitHubu</a></div>
+  </div>
+</footer>
+</body>
+</html>
