@@ -290,7 +290,10 @@ def tick(req: TickRequest):
         day = (date.fromisoformat(today()) + timedelta(days=1)).isoformat()
         store.data["clock"] = day
         if ON_TICK:  # e.g. collections: a promise to pay was kept or broken (journey events through transition)
-            done += ON_TICK(day, store, transition, PATIENTS) or []
+            try:
+                done += ON_TICK(day, store, transition, PATIENTS) or []
+            except Exception:  # a broken case hook must not stop the clock or the contact plan
+                _rlog.exception("case hooks.on_tick failed on %s", day)
         for pid, d in list(store.decisions().items()):
             n = next_touch(d.get("journey", []))
             if not n or n["due"].isoformat() > day:
@@ -425,12 +428,21 @@ def transition(pid, event, day=None, **extra):
     return d
 
 
+def _on_reply(pid, intent, extra):
+    """Case side effects after a recorded reply. The reply is already in the journey, so a failing hook is logged
+    and the webhook still answers (Twilio would otherwise retry and record the reply twice)."""
+    try:
+        CASE.hooks.on_reply(pid, intent, extra, store)
+    except Exception:
+        _rlog.exception("case hooks.on_reply failed (%s)", intent)
+
+
 def _record_reply(pid, text, understood, via, day=None):
     c = understood
     d = transition(pid, fsm.INTENT_EVENT.get(c["intent"], "callback"), day, via=via, text=text, intent=c["intent"],
                    why=c["why"], source=c.get("source", "rules"), **({"when": c["when"]} if c.get("when") else {}),
                    **({"extra": c["extra"]} if c.get("extra") else {}))
-    CASE.hooks.on_reply(pid, c["intent"], c.get("extra") or {}, store)  # case side effects (needs basket, promise to pay …)
+    _on_reply(pid, c["intent"], c.get("extra") or {})  # case side effects (needs basket, promise to pay …)
     return d
 
 
@@ -580,7 +592,7 @@ if PAGE_HOOK:
         if r:
             extra = r.get("extra") or {}
             transition(pid, r["event"], today(), via="link", intent=r["intent"], **({"extra": extra} if extra else {}))
-            CASE.hooks.on_reply(pid, r["intent"], extra, store)
+            _on_reply(pid, r["intent"], extra)
         body = PAGE.substitute(content=out["html"])
         if out.get("title"):
             body = re.sub(r"<title>.*?</title>", f"<title>{escape(out['title'])}</title>", body, count=1)
@@ -609,7 +621,7 @@ def patient_answer(token: str, answer: str = Form(...)):
         return _page(P["invalid"])
     event, intent, thanks = ANSWERS[answer]
     transition(pid, event, today(), via="link", intent=intent)
-    CASE.hooks.on_reply(pid, intent, {}, store)
+    _on_reply(pid, intent, {})
     return _page(f'<h1>{P["thanks_title"]}</h1><div class="box"><p>{thanks}</p></div>')
 
 

@@ -44,7 +44,7 @@ class Store:
                 d["stage"] = stage
             if RESULT and stage == RESULT:
                 d["result"] = extra.get("result")
-            if stage == SENT:
+            if stage == SENT and extra.get("event", "send") == "send":  # not a reply that keeps the sent stage
                 d["sent"] = {"channel": extra.get("channel"), "date": e["date"], "variant": extra.get("variant")}
                 d["skipped"] = False
             self._save()

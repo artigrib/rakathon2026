@@ -4,6 +4,7 @@ Deterministic on purpose – the practice must know exactly what will be sent an
 AI only interprets replies; it never decides to contact anyone. The ladder itself (PLAN) belongs to the case
 (cases/<id>/cadence.py); stages come from its case.json.
 """
+import logging
 from datetime import date, timedelta
 
 from .case import CASE
@@ -27,8 +28,18 @@ def next_touch(journey: list, plan: Plan = PLAN):
     Returns {"due": date, "channel", "variant", "step"} – step = index in the ladder."""
     touch = _next_touch(journey, plan)
     if touch and ADJUST and plan is PLAN:
-        return ADJUST(touch, journey)
+        try:
+            return ADJUST(touch, journey)
+        except Exception:  # a broken case hook must not break /api/state or the tick; no touch is the safe side
+            logging.getLogger("uvicorn.error").exception("case cadence.adjust failed")
+            return None
     return touch
+
+
+def is_send(e: dict) -> bool:
+    """A journey event that is an outbound touch: the sent stage reached by event `send` (old events have no event).
+    A reply that keeps the sent stage (collections: channel_opt_out while contacted) is not a send."""
+    return e.get("stage") == SENT and e.get("event", "send") == "send"
 
 
 def _next_touch(journey: list, plan: Plan):
@@ -46,7 +57,7 @@ def _next_touch(journey: list, plan: Plan):
                 "variant": plan.restart_variant, "step": 0}
     # current cycle = sends after the last pause or the last stage that closes a cycle (or all)
     cut = max((i for i, e in enumerate(staged) if (pause and e["stage"] == pause) or e["stage"] in plan.cycle_stages), default=-1)
-    sends = [e for e in staged[cut + 1:] if e["stage"] == SENT]
+    sends = [e for e in staged[cut + 1:] if is_send(e)]
     if not sends:
         return None
     done = len(sends)
