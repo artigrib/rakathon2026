@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from backend.cadence import next_touch
 from backend.messages import render, with_link, MARKER
@@ -79,3 +79,42 @@ def test_link_is_appended_for_text_channels_not_for_calls():
     assert "https://y/p/1" in with_link("Dobrý den.", "https://y/p/1", "email")
     assert with_link("Dobrý den.", "https://y/p/1", "voice") == "Dobrý den."
     assert with_link("Dobrý den.", "", "sms") == "Dobrý den."
+
+
+# --- case adjust hook: record argument and skipped steps (screening has no adjust; patched in) ---------------------
+
+def test_two_arg_adjust_is_called_without_record(monkeypatch):
+    import backend.cadence as c
+    calls = []
+
+    def adjust(touch, journey):
+        calls.append(touch["step"])
+        return touch
+    monkeypatch.setattr(c, "ADJUST", adjust)
+    monkeypatch.setattr(c, "_ADJ_RECORD", False)
+    assert c.next_touch([sent(D)], record={"relative": None})["step"] == 1
+    assert calls == [0, 1]  # the past step is probed (was it skipped?), the current one returned
+
+
+def test_three_arg_adjust_gets_the_record_and_may_skip(monkeypatch):
+    import backend.cadence as c
+    seen = []
+
+    def adjust(touch, journey, record=None):
+        seen.append((touch["step"], record))
+        return {"skip": True} if touch["step"] == 1 else touch
+    monkeypatch.setattr(c, "ADJUST", adjust)
+    monkeypatch.setattr(c, "_ADJ_RECORD", True)
+    n = c.next_touch([sent(D)], record={"id": "P1"})
+    assert (n["step"], n["channel"], n["due"]) == (2, c.PLAN.steps[2].channel, date(2026, 10, 16) + timedelta(days=c.PLAN.steps[2].day))
+    assert seen == [(0, {"id": "P1"}), (1, {"id": "P1"}), (2, {"id": "P1"})]
+
+
+def test_skipping_every_step_to_the_last_returns_none(monkeypatch):
+    import backend.cadence as c
+    monkeypatch.setattr(c, "ADJUST", lambda touch, journey, record=None: {"skip": True})
+    monkeypatch.setattr(c, "_ADJ_RECORD", True)
+    assert c.next_touch([sent(D)]) is None
+    monkeypatch.setattr(c, "ADJUST", lambda touch, journey: None)
+    monkeypatch.setattr(c, "_ADJ_RECORD", False)
+    assert c.next_touch([sent(D)]) is None

@@ -31,6 +31,7 @@ function facts(p) {
     [C.schedule, s ? `${T.schedule[s.kind] || T.schedule.days(s.days)}, ${T.schedule.window(s)}, ${T.channel[p.channel] || p.channel}` : ""],
     [C.worker, p.worker],
     [C.since, fmtDate(p.since)],
+    [C.consent, p.consent ? C.consentText(p.consent.senior && fmtDate(p.consent.senior), p.consent.how, p.consent.relative && fmtDate(p.consent.relative)) : ""],
   ].filter(([, v]) => v);
   return `<dl class="kv kv--wide">${rows.map(([k, v, raw]) => `<dt>${k}</dt><dd>${raw ? v : esc(v)}</dd>`).join("")}</dl>`;
 }

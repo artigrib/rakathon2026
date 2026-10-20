@@ -7,7 +7,10 @@ Quiet hours: the assistant never calls before 9:00 or after 19:00, not even a re
 moves to the next morning at 9:00 (`adjust`, applied by backend/cadence.next_touch to every automatic touch).
 Any answer stops the ladder (every reply stage is terminal in case.json). Every reply stage also closes the cycle,
 so the next scheduled check-in starts again from the first call (Plan.cycle_stages). The demo clock moves by days,
-so same-day touches go out on the next ticks; in production the cron runs every 15 minutes and `at` says when."""
+so same-day touches go out on the next ticks; in production the cron runs every 15 minutes and `at` says when.
+
+A senior without a relative (record "relative": null): the relative's SMS is skipped (`{"skip": True}`), the ladder is
+call → call → call, and the social worker comes the same day at 16:00 instead of the next morning."""
 from datetime import date, datetime, time, timedelta
 
 from backend.plan import Plan, Step
@@ -17,6 +20,7 @@ QUIET = (9, 19)            # calls only from 9:00 to 18:59 (Europe/Prague local 
 RETRY_AFTER = timedelta(hours=1)
 RELATIVE_AFTER = timedelta(minutes=5)
 MORNING = "09:00"
+SAME_DAY_VISIT = "16:00"   # no relative to warn: the social worker comes the same afternoon
 VISIT = "visit"
 
 PLAN = Plan(
@@ -73,17 +77,34 @@ def _sends(journey: list) -> list:
     return [e for e in journey if e.get("stage") == "no_answer" and e.get("event", "send") == "send"]
 
 
-def adjust(touch: dict, journey: list):
+def has_relative(record) -> bool:
+    """Is there a relative to text? Unknown record (None) = yes, the ladder stays as it always was."""
+    return record is None or bool(record.get("relative"))
+
+
+def adjust(touch: dict, journey: list, record: dict | None = None):
     """Time labels and quiet hours for every automatic touch: a retry 1 h after the missed call (never after 19:00,
-    then the next morning at 9:00), the relative's SMS right after the second miss, the visit the next morning."""
+    then the next morning at 9:00), the relative's SMS right after the second miss, the visit the next morning.
+    Without a relative: the SMS step is skipped and the visit comes the same day at 16:00."""
+    relative = has_relative(record)
+    if touch["variant"] == "RELATIVE" and not relative:
+        return {"skip": True}
     sends = _sends(journey)
     prev = sends[-1] if sends else {}
     prev_time = prev.get("time") or prev.get("at")
     out = dict(touch)
-    if touch["channel"] == VISIT:
-        out["at"] = MORNING
+    if touch["variant"] in ("CHECKIN", "RETRY"):
+        # a call to the senior stays a call: the core "never the same channel three times" would turn the third
+        # call (no relative's SMS in between) into an SMS to the senior
+        out["channel"] = "voice"
+    if out["channel"] == VISIT:
+        if relative:
+            out["at"] = MORNING
+        else:
+            out["due"] = _d(prev.get("date") or touch["due"])
+            out["at"] = SAME_DAY_VISIT
         return out
-    if touch["channel"] == "voice":
+    if out["channel"] == "voice":
         day, at = next_call_at(prev.get("date") or touch["due"], prev_time)
         out["due"] = max(_d(touch["due"]), day)
         out["at"] = at or "za 1 h"

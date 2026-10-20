@@ -270,6 +270,8 @@ export const T = {
     facts: "Senior",
     age: "Věk", address: "Adresa", alone: "Domácnost", aloneYes: (p) => g(p, "žije sám", "žije sama"), mobility: "Pohyblivost",
     schedule: "Hovory", worker: "Sociální pracovník", since: "V programu od", phone: "Telefon",
+    consent: "Souhlas",
+    consentText: (senior, how, relative) => `senior ${senior || "nezapsán"}${how ? ` (${how})` : ""}, ${relative ? `blízký ${relative}` : "blízký nesouhlasil nebo nezapsán"}`,
     mood: "Nálada za 30 dní", moodLast: "Nálada:", moodNone: "Zatím bez údaje o náladě.", moodAvg: (a) => `průměr ${a}`,
     needs: "Otevřené potřeby", needsNone: "Nic nepotřebuje.",
     relative: "Příbuzný", relativeNone: "Bez kontaktu na příbuzného.", calls: "Historie hovorů", more: (n) => `Starší hovory (${n})`,

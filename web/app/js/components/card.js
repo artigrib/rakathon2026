@@ -12,13 +12,30 @@ import { compose } from "./compose.js";
 const CALL_FINAL = ["completed", "no-answer", "busy", "failed", "canceled"];
 const CALL = { dialing: "Vytáčíme…", in_progress: "Hovor probíhá…", analysing: "Vyhodnocuji hovor…" }; // core defaults; T.comm.call overrides
 
+const CALL_WHO = { bot: "Asistentka", user: "Senior" }; // core defaults; T.comm.call.who overrides, else T.comm.person
+const LIVE_TURNS = 4; // the last turns of a running call shown under the status line
+
+const liveCall = (outbox) => [...(outbox || [])].reverse().find((x) => x.channel === "voice" && x.live);
+
 /** dialing | in_progress | analysing | null for the newest live call of the record. */
 export function callState(outbox) {
-  const m = [...(outbox || [])].reverse().find((x) => x.channel === "voice" && x.live);
+  const m = liveCall(outbox);
   if (!m) return null;
   if (m.analysing) return "analysing";
   if (CALL_FINAL.includes(m.status)) return null;
   return m.status === "in-progress" ? "in_progress" : "dialing";
+}
+
+/** The last turns of the running call (outbox `transcript`: [{who: bot|user, text}], updated while it runs). */
+function liveTurns(outbox) {
+  const turns = (liveCall(outbox)?.transcript || []).filter((t) => t && t.text).slice(-LIVE_TURNS);
+  if (!turns.length) return "";
+  const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : "");
+  const who = { bot: T.comm.call?.who?.bot || CALL_WHO.bot, user: T.comm.call?.who?.user || cap(T.comm.person) || CALL_WHO.user };
+  return `<ol class="dialog__t card__live" aria-live="polite">${turns.map((t) => {
+    const k = t.who === "user" ? "user" : "bot";
+    return `<li class="dialog--${k}"><b>${esc(who[k])}:</b> ${esc(t.text)}</li>`;
+  }).join("")}</ol>`;
 }
 
 /** scenario: the running guided demo (only then the live call status is shown; the shared demo looks as before). */
@@ -27,7 +44,8 @@ export function card(p, { plan, outbox, composing, chosenChannel, owner, lost, s
   const C = T.card;
   const { title, sub } = rows.describe(p, d, plan);
   const call = scenario ? callState(outbox) : null;
-  const callLine = call ? `<p class="card__call" role="status">${esc(T.comm.call?.[call] || CALL[call])}</p>` : "";
+  const callLine = call ? `<p class="card__call" role="status">${esc(T.comm.call?.[call] || CALL[call])}</p>`
+    + (call === "in_progress" || call === "analysing" ? liveTurns(outbox) : "") : "";
   const warnings = (p.flags || []).filter((f) => f.sev === "warning");
   const path = journey(dom.stageOf(p));
   const why = lost ? T.lost[lost.code](lost.days, p) : "";

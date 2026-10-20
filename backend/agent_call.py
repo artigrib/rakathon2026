@@ -15,6 +15,11 @@ from .case import CASE
 API = "https://api.elevenlabs.io/v1/convai"
 DECISIONS = set(CASE.dialog.DECISIONS)
 DATA = getattr(CASE.dialog, "AGENT_DATA", {})  # extra data collection fields of the case → `extra`
+# live transcript while the call runs (app._agent_live): poll every LIVE_STEP_S, find the conversation for at most
+# LIVE_FIND_S, then follow it for at most LIVE_MAX_S (module constants so the tests can run them fast)
+LIVE_STEP_S = 3.0
+LIVE_FIND_S = 30.0
+LIVE_MAX_S = 300.0
 
 
 def agent_id() -> str:
@@ -44,6 +49,11 @@ def _find(call_sid: str):
         if call_sid in (pc.get("call_sid"), pc.get("external_call_sid"), (full.get("metadata") or {}).get("call_sid")):
             return full
     return None
+
+
+def get(conversation_id: str) -> dict:
+    """One conversation by its id (transcript so far while the call runs; analysis once it is done)."""
+    return json.loads(_req("GET", f"/conversations/{conversation_id}"))
 
 
 def turns(conv: dict) -> list:
@@ -98,12 +108,13 @@ def _yes_no(v):
     return None
 
 
-def outcome(call_sid: str, wait_s: float = 90, step_s: float = 5):
-    """{'intent', 'text', 'when', 'conversation_id', 'transcript'[, 'extra', 'summary', 'confirmed']} once the agent's analysis is ready, else None."""
+def outcome(call_sid: str, wait_s: float = 90, step_s: float = 5, conversation_id: str = ""):
+    """{'intent', 'text', 'when', 'conversation_id', 'transcript'[, 'extra', 'summary', 'confirmed']} once the agent's analysis is ready, else None.
+    conversation_id: already found during the call (live transcript) → read it directly instead of searching."""
     deadline = time.time() + wait_s
     while time.time() < deadline:
         try:
-            c = _find(call_sid)
+            c = get(conversation_id) if conversation_id else _find(call_sid)
         except Exception:  # noqa: BLE001 – network hiccup, retry until the deadline
             c = None
         if c and c.get("status") == "done" and c.get("analysis"):

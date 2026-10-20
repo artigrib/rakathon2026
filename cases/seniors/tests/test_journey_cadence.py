@@ -99,3 +99,39 @@ def test_answer_stops_and_next_checkin_restarts_the_ladder():
 def test_escalation_and_pause_stop_the_plan():
     assert next_touch([send("2026-10-19"), {"stage": "escalated", "event": "emergency", "date": "2026-10-19"}]) is None
     assert next_touch([send("2026-10-19"), {"stage": "paused", "event": "pause", "date": "2026-10-19"}]) is None
+
+
+ALONE = {"id": "S-012", "relative": None}
+WITH_RELATIVE = {"id": "S-001", "relative": {"name": "Jana", "rel": "dcera", "phone": "+420600000000"}}
+
+
+def test_without_a_relative_three_calls_then_a_visit_the_same_afternoon():
+    j = [send("2026-10-19", time="10:00")]
+    n = next_touch(j, record=ALONE)
+    assert (n["channel"], n["variant"], n["due"], n["at"], n["step"]) == ("voice", "RETRY", date(2026, 10, 19), "11:00", 1)
+    j.append(send("2026-10-19", "RETRY", auto=True, time="11:00"))
+    n = next_touch(j, record=ALONE)  # the relative's SMS is skipped, the third call stays a call (not an SMS to the senior)
+    assert (n["channel"], n["variant"], n["due"], n["at"], n["step"]) == ("voice", "RETRY", date(2026, 10, 19), "12:00", 3)
+    j.append(send("2026-10-19", "RETRY", auto=True, time="12:00"))
+    n = next_touch(j, record=ALONE)
+    assert (n["channel"], n["due"], n["at"], n["step"]) == ("visit", date(2026, 10, 19), "16:00", 4)
+    j.append({"stage": "escalated", "event": "visit", "date": "2026-10-19", "auto": True})
+    assert next_touch(j, record=ALONE) is None
+
+
+def test_with_a_relative_or_unknown_record_the_ladder_is_unchanged():
+    j = [send("2026-10-19", time="10:00"), send("2026-10-19", "RETRY", auto=True, time="11:00")]
+    for rec in (WITH_RELATIVE, None):
+        n = next_touch(j, record=rec)
+        assert (n["channel"], n["variant"], n["at"]) == ("sms", "RELATIVE", "11:05")
+    j += [send("2026-10-19", "RELATIVE", "sms", auto=True, time="11:05"), send("2026-10-19", "RETRY", auto=True, time="12:05")]
+    n = next_touch(j, record=WITH_RELATIVE)
+    assert (n["channel"], n["due"], n["at"]) == ("visit", date(2026, 10, 20), "09:00")
+
+
+def test_adjust_skips_only_the_relative_step():
+    t = {"due": date(2026, 10, 19), "channel": "sms", "variant": "RELATIVE", "step": 2}
+    assert cadence.adjust(t, [send("2026-10-19")], ALONE) == {"skip": True}
+    assert cadence.adjust(t, [send("2026-10-19")], WITH_RELATIVE)["channel"] == "sms"
+    retry = {"due": date(2026, 10, 19), "channel": "sms", "variant": "RETRY", "step": 3}  # the core's three-in-a-row switch
+    assert cadence.adjust(retry, [send("2026-10-19")], ALONE)["channel"] == "voice"

@@ -234,7 +234,7 @@ def state():
         scenario.poll(store, OPS)  # the guided demo moves on while the visitor's app polls
     plans = {}
     for pid, d in store.decisions().items():
-        n = next_touch(d.get("journey", []))
+        n = next_touch(d.get("journey", []), record=record(pid) or None)
         if n:
             plans[pid] = {**n, "due": n["due"].isoformat()}
     # relative: works on any host; a visitor's link carries their session (?s=), so it opens in their demo (also from
@@ -359,7 +359,7 @@ def tick(req: TickRequest):
             except Exception:  # a broken case hook must not stop the clock or the contact plan
                 _rlog.exception("case hooks.on_tick failed on %s", day)
         for pid, d in list(store.decisions().items()):
-            n = next_touch(d.get("journey", []))
+            n = next_touch(d.get("journey", []), record=record(pid) or None)
             if not n or n["due"].isoformat() > day:
                 continue
             if n["channel"] == PLAN.human:  # the plan hands over to a person (screening: the nurse calls)
@@ -385,7 +385,8 @@ def step(req: StepRequest):
 @app.get("/api/patient/{pid}")
 def patient_messages(pid: str):
     """Everything we sent to one patient, for the communication timeline. No phone number, no link token."""
-    keep = ("day", "ts", "channel", "text", "live", "status", "error", "auto", "step", "variant", "duration", "analysing")
+    keep = ("day", "ts", "channel", "text", "live", "status", "error", "auto", "step", "variant", "duration", "analysing",
+            "transcript")
     out = []
     for m in store.data["outbox"]:
         if m.get("patient") != pid:
@@ -924,17 +925,74 @@ async def call_status(pid: str, request: Request):
         store.event(pid, None, today(), delivery="failed", channel="voice", note=st)
     if st == "completed" and form.get("CallSid") in _CALLS:  # hung up during a follow-up: keep what was said
         _finish_call(form["CallSid"])
+    if st == "in-progress" and settings.voice_mode == "agent" and agent_call.agent_id() and form.get("CallSid"):
+        asyncio.get_running_loop().create_task(_agent_live(pid, form["CallSid"]))  # a task: keeps the visitor's store
     if st == "completed" and settings.voice_mode == "agent" and agent_call.agent_id():
         store.outbox_update(form.get("CallSid"), analysing=True)  # the outcome is being read from ElevenLabs
         asyncio.get_running_loop().create_task(_agent_outcome(pid, form.get("CallSid", "")))
     return Response(status_code=204)
 
 
+CALL_FINAL = ("completed", "no-answer", "busy", "failed", "canceled")
+_LIVE: set = set()  # call sids whose agent conversation is being followed
+
+
+def _call_over(call_sid: str) -> bool:
+    m = next((x for x in store.data["outbox"] if x.get("sid") == call_sid), None)
+    return not m or m.get("status") in CALL_FINAL
+
+
+async def _agent_live(pid: str, call_sid: str):
+    """While an agent call runs: find its ElevenLabs conversation (once, then by id) and keep the outbox entry's
+    `transcript` current, so the card shows the conversation as it happens. Stops when the call is over; quiet on errors.
+    Started as an asyncio task from the request, so it writes into the same visitor's store."""
+    if call_sid in _LIVE:
+        return
+    _LIVE.add(call_sid)
+    loop = asyncio.get_running_loop()
+    try:
+        start = loop.time()
+        conv = None
+        while not conv:
+            if _call_over(call_sid):
+                return
+            conv = await asyncio.to_thread(agent_call._find, call_sid)
+            if conv:
+                break
+            if loop.time() - start >= agent_call.LIVE_FIND_S:
+                return
+            await asyncio.sleep(agent_call.LIVE_STEP_S)
+        cid = conv.get("conversation_id")
+        if not cid:
+            return
+        store.outbox_update(call_sid, conversation_id=cid)  # _agent_outcome reads it directly instead of searching again
+        start, last = loop.time(), None
+        while True:
+            if _call_over(call_sid):  # the outcome (full transcript) takes over
+                return
+            tr = agent_call.turns(conv)
+            if tr and tr != last:
+                store.outbox_update(call_sid, transcript=tr)
+                last = tr
+            if loop.time() - start >= agent_call.LIVE_MAX_S:
+                return
+            await asyncio.sleep(agent_call.LIVE_STEP_S)
+            if _call_over(call_sid):
+                return
+            conv = await asyncio.to_thread(agent_call.get, cid)
+    except Exception as e:  # noqa: BLE001 – live view only; the outcome after the call is what counts
+        _rlog.info("agent %s live transcript stopped: %s", pid, type(e).__name__)
+    finally:
+        _LIVE.discard(call_sid)
+
+
 async def _agent_outcome(pid: str, call_sid: str):
     """After an agent call: its decision → the same journey event as a reply (state machine, FHIR write-back).
     The outbox entry says `analysing` meanwhile; `outcome: "none"` when no conversation was found."""
     try:
-        o = await asyncio.to_thread(agent_call.outcome, call_sid)
+        m = next((x for x in store.data["outbox"] if x.get("sid") == call_sid), None)
+        cid = (m or {}).get("conversation_id") or ""  # found during the call by _agent_live
+        o = await asyncio.to_thread(agent_call.outcome, call_sid, **({"conversation_id": cid} if cid else {}))
     finally:
         store.outbox_update(call_sid, analysing=False)
     _rlog.info("agent %s outcome %s", pid, {k: v for k, v in (o or {}).items() if k != "text"})

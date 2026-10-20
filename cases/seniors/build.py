@@ -8,7 +8,7 @@ Answers are generated as Czech sentences and understood with the same rules as l
 so the history and the live demo agree.
 
 Randomness: every senior has their own generators (`random.Random(f"{SEED}-{n}-person")` for who they are,
-`…-calls` for the 30 days), so a new field or a new rule for one aspect leaves every other senior byte-identical.
+`…-calls` for the 30 days, `…-consent` for the consent), so a new field or a new rule for one aspect leaves every other senior byte-identical.
 New person fields go to the END of the person draws (or get their own generator)."""
 import json
 import random
@@ -110,6 +110,8 @@ CALLBACK = ["Teď nemůžu, zavolejte mi odpoledne.", "Teď nemám čas, jsem u 
 OPT_OUT = "Už mi prosím nevolejte, dcera se o mě stará."
 
 # Shares of the answered calls (besides the personal tendencies drawn per senior).
+CONSENT_RELATIVE_MISSING = 0.10  # relative did not agree or was not recorded
+CONSENT_WRITTEN = 0.25
 HEALTH_RATE = 0.024   # acute: health_problem, a worker calls back
 CALLBACK_RATE = 0.007
 
@@ -334,7 +336,15 @@ def senior(n, district, idx, used_names, used_phones, ref):
     p["needs"] = needs_of(p["id"], calls, ref)
     p["stage"], extra = stage_of(calls, forced, p["needs"], ref)
     p.update(extra)
+    p["consent"] = consent_of(random.Random(f"{SEED}-{n}-consent"), p)
     return p
+
+
+def consent_of(rng, p):
+    """Consent to the calls (the "consent" generator, so the other fields stay as they are): the senior on the day of
+    enrolment (`since`), the relative mostly the same day; none without a relative and for ~10 % who did not agree."""
+    relative = p["since"] if p["relative"] and rng.random() >= CONSENT_RELATIVE_MISSING else None
+    return {"senior": p["since"], "relative": relative, "how": "písemně" if rng.random() < CONSENT_WRITTEN else "ústně při zápisu"}
 
 
 def needs_of(pid, calls, ref):

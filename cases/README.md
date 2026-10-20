@@ -244,12 +244,15 @@ PLAN = Plan(
                                      # again at step 0 (seniors: every answered daily check-in)
 )
 
-def adjust(touch: dict, journey: list) -> dict | None   # optional: applied to every touch computed from PLAN
+def adjust(touch: dict, journey: list, record: dict | None = None) -> dict | None   # optional, per touch from PLAN
 ```
 
 `adjust` gets `{"due": date, "channel", "variant", "step"}` and returns it changed (another channel, a later `due`, an
 extra `at` time label …) or `None` = no automatic touch (collections: channel opt-out, working days, weekly cap).
-If it raises, the core logs it and plans no touch. Other cadence helpers (collections `allowed_at`, `is_contact_day`)
+If it raises, the core logs it and plans no touch. With a third parameter it also gets the record (`None` when the caller
+has none) and may return `{"skip": True}`: that step does not apply to this record and the ladder moves to the next one
+(seniors: no relative → no RELATIVE SMS, the visit the same day). With skips the core walks the ladder from step 0 and
+calls `adjust` for every step, so it must be cheap and side-effect free. Other cadence helpers (collections `allowed_at`, `is_contact_day`)
 are case-internal; the core does not call them.
 
 Algorithm (`backend/cadence.next_touch`, core): nothing until the first `sent_stage`; stops when the last stage is
