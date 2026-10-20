@@ -45,7 +45,7 @@ export function timeline(p, d = {}, plan = null, outbox = null) {
   for (const m of outbox || []) {
     const st = m.live ? (C.status[m.status] || m.status) : C.simulated;
     items.push({ date: m.day || (m.ts || "").slice(0, 10), time: hhmm(m.ts), actor: m.auto ? "system" : "nurse", channel: m.channel,
-      title: m.auto ? C.autoSent(m.step) : C.sent, bodyText: callText(m), textLabel: m.channel === "voice" ? C.showScript : C.showText, status: st + (m.duration ? `, ${C.duration(m.duration)}` : ""), fail: ["failed", "undelivered", "no-answer", "busy"].includes(m.status) });
+      title: C.variant?.[m.variant] || (m.auto ? C.autoSent(m.step) : C.sent), bodyText: callText(m), textLabel: m.channel === "voice" ? C.showScript : C.showText, status: st + (m.duration ? `, ${C.duration(m.duration)}` : ""), fail: ["failed", "undelivered", "no-answer", "busy"].includes(m.status) });
   }
   for (const e of d.journey || []) {
     const isSend = e.stage === CASE.sent_stage && (!e.event || e.event === "send"); // not a reply that keeps the stage

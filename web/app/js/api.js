@@ -19,6 +19,8 @@ export const api = {
   reset: () => call("/api/reset", {}),
   tick: (days = 1) => call("/api/tick", { days }),
   mark: (id, field, value) => call("/api/mark", { id, field, value }),
+  /** A notice about a record (a message variant of the channel, no reply link), not a journey step. */
+  notify: (id, channel, variant) => call("/api/notify", { id, channel, variant }),
   fhirSync: () => call("/api/fhir/sync", {}),
   recipient: () => call("/api/recipient"),
   /** {ok:true, ...recipient} or {ok:false, error} with the server's Czech message (validation). */

@@ -1,9 +1,11 @@
 // Košík pro sociální službu: needs from the calls, per social worker of the district, with statuses
-// new → ordered (objednáno) → done (vyřízeno) and a CSV export. A summary over all districts at the end.
+// new → ordered (objednáno) → done (vyřízeno) and a CSV export. Above it: the seniors of the district a person has to
+// deal with now (tíseň, zdravotní potíž, návštěva, smutná nálada). A summary over all districts at the end.
 import { T } from "../i18n.js";
 import { mineOf } from "core/case.js";
+import { row } from "core/components/row.js";
 import { esc, fmtDate } from "core/util.js";
-import { bySurname, groups, itemLabel, ITEMS, needsOf } from "../domain.js";
+import { alertOf, bySurname, groups, itemLabel, ITEMS, needsOf, stageDate } from "../domain.js";
 import { section, tabs } from "../ui.js";
 
 const L = T.basket;
@@ -21,8 +23,13 @@ function buttons(n) {
   return a("ordered", L.reopen, "link");
 }
 
-export function render(ui, data) {
+/** The senior's phone as a tel: link (the social worker is on a phone in the field). */
+const tel = (p) => (p.phone ? `<a href="tel:${esc(p.phone.replace(/\s/g, ""))}">${esc(p.phone)}</a>` : "");
+
+export function render(ui, data, rowCtx) {
   const mine = mineOf(data, ui);
+  const alerts = mine.filter((p) => alertOf(p)).sort((a, b) => stageDate(a).localeCompare(stageDate(b)) || bySurname(a, b));
+  const alertRows = alerts.map((p) => row(p, rowCtx.of(p))).join("");
   const all = entries(mine);
   const filter = FILTERS.includes(ui.basketFilter) ? ui.basketFilter : "open";
   const counts = Object.fromEntries(FILTERS.map((f) => [f, all.filter(match[f]).length]));
@@ -34,7 +41,8 @@ export function render(ui, data) {
     section(`w-${w.replace(/\W+/g, "")}`, ns.length, esc(w), ns.map((n) => `<div class="sn-need">
       <div><button type="button" class="who" data-action="open-card" data-id="${esc(n.p.id)}">${esc(n.p.name)}</button>
         <div><b>${esc(itemLabel(n.item))}</b> <span class="sn-status is-${n.status}">${L.status[n.status]}</span></div>
-        <span class="sn-muted">${esc(n.p.address)} · ${fmtDate(n.date)}</span></div>
+        <span class="sn-muted">${esc(n.p.address)} · ${fmtDate(n.date)}</span>
+        <span class="sn-muted">${tel(n.p)}${n.p.phone && n.p.worker ? " · " : ""}${esc(n.p.worker || "")}</span></div>
       <div class="actions">${buttons(n)}</div></div>`).join(""), { hint: L.workerSub(ns.length) })).join("");
 
   const sum = Object.keys(ITEMS).map((k) => [k, ...["new", "ordered", "done"].map((s) => all.filter((n) => n.item === k && n.status === s).length)])
@@ -51,6 +59,7 @@ export function render(ui, data) {
   const districts = `<div class="tablewrap"><table><thead><tr>${L.distCols.map((c, i) => `<th${i ? ' class="n"' : ""}>${c}</th>`).join("")}</tr></thead><tbody>${dists}</tbody></table></div>`;
 
   return `<header class="pagehead"><h1>${L.title}</h1><p>${L.sub(esc(ui.gp || ""), counts.open)}</p></header>
+    ${section("alerts", alerts.length, L.alerts.title, alertRows || `<p class="empty">${L.alerts.empty}</p>`, { due: true, hint: L.alerts.hint, cls: alerts.length ? " section--lost" : "" })}
     <div class="sn-toolbar">${tabs("basket-filter", FILTERS, L.filters, filter, counts)}
       <button type="button" class="btn" data-action="basket-csv">${L.csv}</button></div>
     <div class="sn-basket">${workers || `<p class="empty">${L.empty}</p>`}</div>

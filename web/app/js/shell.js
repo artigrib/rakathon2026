@@ -244,6 +244,8 @@ const actions = {
 /** What a case action (web/actions.js) may use: `actions = { name: async (el, app) => … }`. */
 const app = {
   ui, store, T, toast, send, mark, step, find, today,
+  /** A notice about a record through the backend (POST /api/notify), e.g. an SMS to a relative; not a journey step. */
+  notify: async (...a) => { const r = await api.notify(...a); await pull(); return r; },
   get data() { return data; },
   get backend() { return backend; }, // null = static page with local simulation
 };

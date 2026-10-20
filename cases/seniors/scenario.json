@@ -11,7 +11,7 @@
     "phone": "{phone}",
     "alone": true,
     "mobility": "cane",
-    "schedule": {"kind": "daily", "days": [0, 1, 2, 3, 4, 5, 6], "from": "9:00", "to": "20:00"},
+    "schedule": {"kind": "daily", "days": [0, 1, 2, 3, 4, 5, 6], "from": "9:00", "to": "19:00"},
     "channel": "voice",
     "relative": {"name": "Petr Novák", "rel": "syn", "phone": "{phone}"},
     "since": "2026-09-01",

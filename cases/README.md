@@ -71,6 +71,9 @@ Only top-level `*.json` of the package are served (`/app/content/<name>.json`); 
   "result_stage": null,                  // optional: store copies event extra `result` into d.result
   "terminal_reply_stages": ["ok", "…"],  // a last stage in this set stops the automatic plan
   "marks": ["basket"],                   // optional: extra fields the web app may set with POST /api/mark
+  "row_demo": false,                     // optional: false = the demo toggle shows no simulated-reply buttons in the rows
+                                         // (the case renders them itself, e.g. in the card); default true
+  "login": {"email": "optional"},        // optional: the sign-in form accepts an empty e-mail (phone stays required)
   "data": "cases/seniors/synthetic/seniors.json",   // repo-relative data file; NOT under a `data/` directory
                                          // (gitignored: challenge data), so commit synthetic data e.g. in synthetic/
   "storage_key": "seniors:v1"            // localStorage key of the web app (static mode)
@@ -146,16 +149,37 @@ simulates the answer).
      "wait": {"reply": true | ["link", "sms", "voice"], "stages": ["…"], "field": "verified"},  // any one met = "done"
      "timeout": 150,         // seconds of waiting (default 60), then:
      "fallback": {"reply": "Ano, mám zájem"},     // actions as in "do" → "simulated"; none → "noreply"
-     "optional": true}       // nothing to answer, only to look at: a timeout without fallback is "done"
+     "optional": true,       // nothing to answer, only to look at: a timeout without fallback is "done"
+     // presentation (all optional; the web shell applies them once when the step starts):
+     "view": "basket",       // switch to this view of case.json "views"
+     "card": true,           // true = open the persona's card, false = close the card, "other" = the record of "who"
+     "text": "…{who}…",      // a paragraph under the step once it ran ({who} = the record a "reply" with "who" acted on)
+     "while_waiting": {"title": "…", "text": "…", "bullets": ["…"]}}   // shown while the step waits for a reply
   ]
 }
 ```
+
+A `reply` action may name another record: `{"reply": "Upadla jsem", "who": "other" | "<id>"}` acts on the first untouched
+record of the persona's group whose stage allows "send" (or the given id); the record is kept in `scenario.others` and
+reset by `POST /api/scenario/reset`. A live voice `send` keeps the Twilio call sid on the step: the wait ends at once when
+the call is over without a conversation (no-answer, busy, failed, or completed with nothing said → `fallback`), the
+`timeout` is suspended while the call rings, runs or is analysed (hard cap 300 s), and `/api/state` exposes the step's
+`call` state (dialing | in_progress | analysing | over) and `who`. Replies made by the scenario or the demo panel are
+recorded with via `"sim"` (timeline label `comm.via.sim`, core default "simulovaná odpověď"); staff entries stay `"ui"`.
 
 A step without `do` and `wait` is an explanation shown for `after` seconds. Statuses: pending, active, waiting, done,
 simulated, noreply, skipped. Texts in `messages.cs.json "scenario"`: `title, intro, facts[] (shown while it runs, e.g. the
 verification value), start, next, reset, restart, openCard, openLink, unavailable, mock, finished, now, left ({s}),
 status{…}, note{daily_limit, failed}, steps{id: {title, look}}`. No exclamation marks, no spaced dashes.
 API: `POST /api/scenario/start | next | reset` (403 without a visitor session), progress in `/api/state` → `scenario`.
+
+### Notices: `POST /api/notify`
+
+`{"id", "channel": "sms" | "email", "variant", "date"?}` sends a message *about* a record that is not a check-in (e.g. the
+relative's emergency SMS, the crisis lines): rendered from `messages.cs.json` without the personal link, to the signed-in
+visitor's own contact like every send, within the daily budget, logged to the outbox with `notify: true` and the variant.
+No state-machine guard, no journey event, the stage stays. 400 for an unknown channel or a variant the case has no text for.
+The timeline titles such an item by `comm.variant[variant]` of the case i18n when present.
 
 ## dialog.py **(checked)**
 
@@ -173,6 +197,8 @@ GREETING, ASK_AGAIN, NOT_UNDERSTOOD: str
 FAQ: list[tuple[tuple[str, ...], str]]   # (keywords without diacritics, approved answer)
 CLOSING: dict[str, str]            # intent → closing sentence; must have "handoff" and "opt_out" or "declined"
 MAX_UNCLEAR: int = 2               # optional
+AGENT_TTS: dict = {"speed": 0.9, "voice_id": "…"}   # optional: merged into the ElevenLabs agent's tts config
+                                   # (scripts/elevenlabs_agent.py --case x); default voice and speed 0.95 otherwise
 DTMF: dict[str, str]               # key pressed in a call → words for RULES, e.g. {"1": "ano", "2": "teď ne"}
 DECISIONS: set[str]                # ElevenLabs agent decision values (⊆ INTENTS, contains "unclear")
 AGENT_NAME: str

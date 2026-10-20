@@ -10,7 +10,6 @@
   "views": [
     { "id": "today", "module": "views/today.js" },
     { "id": "seniors", "module": "views/seniors.js" },
-    { "id": "calls", "module": "views/calls.js" },
     { "id": "basket", "module": "views/basket.js" },
     { "id": "overview", "module": "views/overview.js" }
   ],

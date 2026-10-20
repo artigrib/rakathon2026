@@ -286,6 +286,38 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None, progr
     return {"id": pid, **r}
 
 
+class NotifyRequest(BaseModel):
+    id: str
+    channel: str = "sms"
+    variant: str
+    date: str | None = None
+
+
+@app.post("/api/notify")
+def notify(req: NotifyRequest):
+    """A notice about a patient (seniors: the relative's emergency SMS, the crisis lines for the senior), not a check-in:
+    no `send` guard of the state machine, no journey event, no transition. The text is a messages.cs.json variant of the
+    channel, rendered without the personal reply link; recipient, live limit and the daily budget as for every send.
+    Only the outbox keeps it (store.log bumps the version, so polling clients refresh their timeline)."""
+    if req.channel not in ("sms", "email"):
+        raise HTTPException(400, "unknown channel")
+    kind = messages.M["channel_template"].get(req.channel, "email")
+    if req.variant not in (messages.M.get(kind) or {}):
+        raise HTTPException(400, "unknown variant")
+    text = messages.render(record(req.id), req.channel, req.variant)
+    day = req.date or today()
+    to = recipient.email() if req.channel == "email" else recipient.phone()
+    live = bool(settings.live and settings.live_limit > 0 and (req.channel != "email" or settings.email_live))
+    if live and not recipient.take(to, day):
+        return {"id": req.id, "sid": None, "live": False, "status": "daily_limit"}
+    try:
+        r = channels.send_email(text, live) if req.channel == "email" else channels.send_sms(text, live)
+    except Exception as e:  # a failed send is a delivery fact, not a crash
+        r = {"sid": None, "live": live, "to": to, "status": "failed", "error": str(e)}
+    store.log(patient=req.id, channel=req.channel, text=text, day=day, variant=req.variant, notify=True, **r)
+    return {"id": req.id, **r}
+
+
 class RecipientRequest(BaseModel):
     phone: str = ""
     email: str = ""

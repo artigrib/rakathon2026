@@ -4,10 +4,25 @@ import { T } from "./i18n.js";
 import { fmtDate } from "core/util.js";
 import { btn, stepBtn } from "core/components/row.js";
 import { allowed } from "core/fsm.js";
-import { alertOf, callsOf, dueToday, itemLabel, lastAnswered, latestMood, missedStreak, openNeeds, plannedContact, stageDate, stageOf } from "./domain.js";
+import { alertOf, callsOf, clock, dueToday, itemLabel, lastAnswered, latestMood, missedStreak, openNeeds, pauseOf, plannedContact, stageDate, stageOf } from "./domain.js";
 
 const S = T.state;
 const A = T.actions;
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+const HHMM = /^\d{1,2}:\d{2}$/;
+
+/** "Další krok dnes 11:00: hovor asistenta" / "Další krok za 1 h: hovor asistenta" / "Další krok 21. 10. 2026 09:00: návštěva".
+ *  plan = next automatic touch from /api/state (cadence.adjust adds `at`: "HH:MM", "za 1 h", "ihned"). */
+export function nextStep(plan) {
+  if (!plan) return "";
+  const at = plan.at || "";
+  const today = !clock() || plan.due <= clock(); // a due day that passed (the demo clock moves by days) is "now"
+  const day = today ? (at && !HHMM.test(at) ? "" : S.today) : fmtDate(plan.due); // "za 1 h" / "ihned" say it themselves
+  return S.next([day, at].filter(Boolean).join(" "), T.channel[plan.channel] || plan.channel);
+}
+
+/** A pause date or the senior's own words ("do neděle"); nothing when unknown. */
+const pauseUntil = (u) => (!u ? "" : ISO.test(u) ? fmtDate(u) : String(u));
 let current = null; // stage of the row being drawn: only events the state machine allows get a button
 const step = (id, ev, label, kind = "", extra = "") => stepBtn(current, id, ev, label, kind, extra);
 // "Vyřešeno" is the case action "resolve" (actions.js): the journey event plus closing the senior's open needs in the basket.
@@ -30,12 +45,12 @@ export function stateLine(p, d, plan) {
       const streak = heard < 0 ? calls : calls.slice(0, heard); // calls since the last answer
       const n = streak.filter((c) => !c.relative).length || p.missed || 1;
       const relative = streak.some((c) => c.relative) || p.calls?.at(-1)?.relative;
-      const next = plan ? S.next(fmtDate(plan.due), T.channel[plan.channel] || plan.channel) : relative ? S.relativeSent : "";
+      const next = plan ? nextStep(plan) : relative ? S.relativeSent : "";
       return { title: S.noAnswer(n, fmtDate(day)), sub: next };
     }
     case "escalated": {
       const why = alertOf(p);
-      const title = why === "emergency" ? S.emergency : why === "health" ? S.health : why === "visit" ? S.visit(p, missedStreak(p)) : S.escalated;
+      const title = why === "crisis" ? S.crisis : why === "emergency" ? S.emergency : why === "health" ? S.health : why === "visit" ? S.visit(p, missedStreak(p)) : S.escalated;
       return { title, sub: why === "visit" || why === "escalate" ? fmtDate(stageDate(p)) : [quote(last), when(last)].filter(Boolean).join(" ") };
     }
     case "low_mood": return { title: S.lowMood(last?.mood), sub: [quote(last), when(last)].filter(Boolean).join(" ") };
@@ -46,7 +61,12 @@ export function stateLine(p, d, plan) {
     case "callback": return { title: last?.intent === "question" || last?.intent === "unclear" ? S.question : S.callback, sub: [quote(last), when(last)].filter(Boolean).join(" ") };
     case "ok": return { title: S.ok(last?.mood || latestMood(p)), sub: when(last) };
     case "resolved": return { title: S.resolved(fmtDate(stageDate(p))), sub: last ? `${T.intent[last.intent] || ""}, ${when(last)}` : "" };
-    case "paused": return { title: S.paused(p.pause?.reason, p.pause?.until ? fmtDate(p.pause.until) : "") };
+    case "paused": {
+      const pause = pauseOf(p);
+      const reason = (pause?.reason || "").replace(/[.!\s]+$/, "");
+      const until = pauseUntil(pause?.until).replace(/^do\s+/i, ""); // the senior's words "do neděle" already say "do"
+      return { title: S.paused(reason, until && !reason.toLowerCase().includes(until.toLowerCase()) ? until : "") };
+    }
     case "declined": return { title: S.declined, sub: last?.intent === "opt_out" ? quote(last) : "" };
     default: return { title: S.enrolled(p, p.schedule ? `${T.schedule[p.schedule.kind]} ${T.schedule.window(p.schedule)}` : "") };
   }

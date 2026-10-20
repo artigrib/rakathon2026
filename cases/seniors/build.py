@@ -5,7 +5,11 @@
 
 Every name, address and phone number is made up. Phone numbers use the clearly fake range +420 000 …
 Answers are generated as Czech sentences and understood with the same rules as live answers (dialog.RULES, extract),
-so the history and the live demo agree."""
+so the history and the live demo agree.
+
+Randomness: every senior has their own generators (`random.Random(f"{SEED}-{n}-person")` for who they are,
+`…-calls` for the 30 days), so a new field or a new rule for one aspect leaves every other senior byte-identical.
+New person fields go to the END of the person draws (or get their own generator)."""
 import json
 import random
 import re
@@ -55,30 +59,59 @@ SCHEDULES = [  # weekdays 0 = Monday
     ("weekdays", [0, 1, 2, 3, 4]), ("mwf", [0, 2, 4]), ("mwf", [0, 2, 4]), ("tt", [1, 3]),
 ]
 WINDOWS = [("8:30", "9:30"), ("9:00", "10:00"), ("10:00", "11:00"), ("13:00", "14:00"), ("16:00", "17:00")]
-FLAGS = ["Nedoslýchá, mluvte pomalu a nahlas.", "Hůře vidí, SMS čte soused.", "Klíče od bytu má sousedka z 2. patra.",
-         "Má psa, při návštěvě zazvonit dvakrát.", "Večer po 19. hodině nevolat."]
+FLAG_KEYS = "Klíče od bytu má sousedka."
+FLAG_DEMENTIA = "Demence, ptát se jednoduše a potvrdit jméno."
+FLAGS = ["Nedoslýchá, mluvte pomalu a nahlas.", "Hůře vidí, SMS čte soused.", FLAG_KEYS,
+         "Má psa, při návštěvě zazvonit dvakrát.", "Odpoledne spí, volat dopoledne.", "Po operaci kyčle, chodí s chodítkem."]
+FLAG_RATE = 0.21  # + the deterministic ones below ≈ a quarter of the seniors
+
+# Deterministic people (by id), so the demo and the docs can point at them.
+NO_RELATIVE = {"S-012", "S-053"}   # nobody to text: the ladder is unchanged, a documented gap ("Bez kontaktu na příbuzného")
+DEMENTIA = {"S-009", "S-067"}
+KEYS_WITH_NEIGHBOUR = {"S-007"}    # the guided demo's emergency step acts on S-007 "… ví, že klíče má sousedka"
+EMERGENCY_HISTORY = "S-023"        # one historical emergency in the whole data set, long resolved
 
 # Answers by intent; {a} = "a" for women ("byla jsem"). Mood and items come from dialog.extract over the sentence.
 OK = {
     5: ["Výborně, děkuji. Byl{a} jsem dnes venku.", "Skvěle, vnučka mi přinesla koláč.", "Výborně, těším se na neděli."],
     4: ["Dobře, děkuji, všechno v pořádku.", "V pořádku, nic nepotřebuji.", "Dobře, dívám se na televizi.",
-        "Fajn, dcera tu byla včera.", "Dobře, děkuji za zavolání."],
-    3: ["Ujde to, nic nepotřebuji.", "Jde to, jen jsem trochu unaven{a}.", "Dá se to, nic nepotřebuji."],
+        "Fajn, dcera tu byla včera.", "Dobře, děkuji za zavolání.", "Dobře, byl{a} jsem na procházce."],
+    3: ["Ujde to, nic nepotřebuji.", "Jde to, jen jsem trochu unaven{a}.", "Dá se to, nic nepotřebuji.", "Nic moc, ale zvládám."],
+}
+# Chronic or mild complaints: intent ok (the call goes on), extract gives health_note → a note on the card, no alert.
+HEALTH_NOTE = {
+    4: ["Dobře, jen ta záda jako vždycky.", "Dobře, jen mě trochu bolí kyčel.", "Dobře, akorát v noci nespím.",
+        "Dobře, jsem jen trochu nachlazen{a}.", "Dobře, srdce drží, jen ruce se mi třesou."],
+    3: ["Ujde to, trochu mě bolí kolena.", "Ujde to, nohy už neslouží jak dřív.", "Jde to, jen ten tlak mi zase skáče.",
+        "Celkem dobře, jen ta cukrovka zlobí.", "Ujde to, s tím kolenem je to pořád stejné.",
+        "Dá se to, bolí mě klouby, jako vždycky.", "Jde to, jen ty záda po ránu."],
 }
 ITEM_SAY = {
     "nakup": "potřeboval{a} bych nakoupit", "leky": "potřebuji vyzvednout léky v lékárně",
     "obed": "chtěl{a} bych zase dovážet obědy", "doprava": "potřebuji odvézt na poštu", "uklid": "nezvládám úklid",
     "otop": "nějak mi netopí topení", "pradlo": "potřebuji vyprat prádlo", "oprava": "kape mi kohoutek v kuchyni",
+    "doprovod": "potřeboval{a} bych doprovod na vyšetření", "finance": "nepřišel mi důchod a nemám peníze",
+    "urad": "přišel mi dopis z úřadu a nerozumím mu", "pet": "potřebuji granule pro psa",
+    "hygiena": "potřeboval{a} bych pomoct s koupáním", "pomucky": "potřebuji nové baterky do sluchadla",
+    "spolecnost": "potřeboval{a} bych si s někým popovídat",
 }
-ITEM_W = {"nakup": 30, "leky": 22, "obed": 10, "doprava": 10, "uklid": 9, "otop": 7, "pradlo": 6, "oprava": 6}
+ITEM_W = {"nakup": 26, "leky": 20, "obed": 9, "doprava": 8, "uklid": 8, "otop": 6, "pradlo": 5, "oprava": 5,
+          "doprovod": 5, "urad": 4, "finance": 3, "pet": 3, "hygiena": 3, "pomucky": 3, "spolecnost": 2}
 NEED_PREFIX = {4: "Jinak dobře, jen", 3: "Ujde to, ale"}
-LOW = ["Nic moc, jsem pořád sam{a} doma.", "Je mi smutno, nikdo za mnou nechodí.", "Ani nevím, je mi těžko.",
-       "Nic moc, chtěl{a} bych si s někým popovídat.", "Smutno, chybí mi manžel."]
+LOW = ["Je mi smutno, nikdo za mnou nechodí.", "Ani nevím, je mi těžko.", "Smutno, chybí mi manžel.",
+       "Nic moc, jsem pořád sam{a} doma a je mi smutno.", "Špatně, celý den jsem sam{a}.",
+       "Smutno, chtěl{a} bych si s někým popovídat.", "Je mi smutno, dcera nevolala."]
+LOW1 = ["Je mi hrozně, nikdo nepřijde.", "Strašně, celý den jen brečím.", "Hrozně, nemám na nic sílu."]  # mood 1
+LOW1_SHARE = 0.08  # of the low-mood answers
 HEALTH = ["Bolí mě záda, špatně se mi chodí.", "Točí se mi hlava, ale už je to lepší.",
-          "Upadl{a} jsem v koupelně, ale nic vážného.", "Mám teplotu od včerejška."]
+          "Upadl{a} jsem v koupelně, ale nic vážného.", "Mám teplotu od včerejška.", "Od rána mě bolí hlava a je mi zle."]
 EMERGENCY = ["Upadl{a} jsem a nemůžu vstát."]
 CALLBACK = ["Teď nemůžu, zavolejte mi odpoledne.", "Teď nemám čas, jsem u lékaře."]
 OPT_OUT = "Už mi prosím nevolejte, dcera se o mě stará."
+
+# Shares of the answered calls (besides the personal tendencies drawn per senior).
+HEALTH_RATE = 0.024   # acute: health_problem, a worker calls back
+CALLBACK_RATE = 0.007
 
 
 def understand(text):
@@ -91,19 +124,25 @@ def understand(text):
     return "question" if dialog.QUESTION.search(t) else "unclear"
 
 
-def phone(rng):
-    return f"+420 000 {rng.randint(100, 999)} {rng.randint(100, 999)}"
+def phone(rng, used):
+    while True:
+        p = f"+420 000 {rng.randint(100, 999)} {rng.randint(100, 999)}"
+        if p not in used:
+            used.add(p)
+            return p
 
 
-def say(rng, intent, mood, sex, items=()):
+def say(rng, intent, mood, sex, items=(), kind=None):
+    """kind: None | "health_note" (intent ok with a mild complaint) | "mood1" (low_mood at the bottom)."""
     a = "a" if sex == "F" else ""
     if intent == "ok":
-        t = rng.choice(OK[max(3, min(5, mood))])
+        pool = HEALTH_NOTE if kind == "health_note" else OK
+        t = rng.choice(pool[max(min(pool), min(max(pool), mood))])
     elif intent == "need_items":
         parts = [ITEM_SAY[i] for i in items]
         t = f"{NEED_PREFIX[4 if mood >= 4 else 3]} {' a '.join(parts)}."
     elif intent == "low_mood":
-        t = rng.choice(LOW)
+        t = rng.choice(LOW1 if kind == "mood1" else LOW)
     elif intent == "health_problem":
         t = rng.choice(HEALTH)
     elif intent == "emergency":
@@ -124,14 +163,14 @@ def pick_items(rng):
     return [first]
 
 
-def call(rng, day, window, sex, intent, mood, items=(), answered=True, minute=None):
+def call(rng, day, window, sex, intent, mood, items=(), answered=True, minute=None, kind=None):
     h, m = map(int, window[0].split(":"))
     mins = h * 60 + m + (minute if minute is not None else rng.randint(0, 50))
     c = {"date": day.isoformat(), "time": f"{mins // 60}:{mins % 60:02d}", "answered": answered}
     if not answered:
         return c
     from . import dialog
-    text = say(rng, intent, mood, sex, items)
+    text = say(rng, intent, mood, sex, items, kind)
     got = understand(text)
     assert got == intent, (text, got, intent)  # generated sentences must mean what we planned
     ex = dialog.extract(text)
@@ -140,8 +179,16 @@ def call(rng, day, window, sex, intent, mood, items=(), answered=True, minute=No
         c["mood"] = ex["mood"]
     if ex.get("items"):
         c["items"] = ex["items"]
-    if ex.get("health_flag"):
-        c["health"] = True
+    if ex.get("health_acute") or intent in ("health_problem", "emergency"):
+        c["health"] = True  # an alert: the stage says escalated
+    elif ex.get("health_note"):
+        c["health_note"] = True  # a note on the card, the call went on as "ok"
+    if kind == "health_note":
+        assert c.get("health_note") and not c.get("health"), text
+    if kind == "mood1":
+        assert c.get("mood") == 1, text
+    if intent == "need_items":
+        assert set(c.get("items", [])) == set(items), (text, c.get("items"), items)
     return c
 
 
@@ -150,14 +197,16 @@ FORCED = {0: "health_problem", 1: "low_mood", 2: "need_items", 3: "need_items", 
           17: "enrolled", 18: "paused", 19: "declined"}
 
 
-def senior(rng, n, district, idx, used, ref):
+def person(rng, n, district, idx, used_names, used_phones, ref):
+    """Who the senior is (the "person" generator): identity, schedule, relative, flags."""
     workers, streets = DISTRICTS[district]
+    pid = f"S-{n:03d}"
     sex = "F" if rng.random() < 0.68 else "M"
     while True:
         sur = rng.choice(SURNAMES)
         first = rng.choice(WOMEN if sex == "F" else MEN)
-        if (first, sur) not in used:
-            used.add((first, sur))
+        if (first, sur) not in used_names:
+            used_names.add((first, sur))
             break
     surname = sur[1] if sex == "F" else sur[0]
     name = f"{first} {surname}"
@@ -172,32 +221,42 @@ def senior(rng, n, district, idx, used, ref):
     age = rng.randint(70, 95)
     mobility = rng.choice(MOBILITY) if age < 88 else rng.choice(MOBILITY[2:])
     p = {
-        "id": f"S-{n:03d}", "district": district, "worker": workers[idx % len(workers)],
+        "id": pid, "district": district, "worker": workers[idx % len(workers)],
         "name": name, "sex": sex, "age": age,
         "title": f"{'paní' if sex == 'F' else 'pan'} {name}",
         "vocative": f"paní {surname}" if sex == "F" else f"pane {sur[2]}",
         "address": f"{rng.choice(streets)} {rng.randint(1, 120)}, {district}",
-        "phone": phone(rng), "alone": True, "mobility": mobility,
+        "phone": phone(rng, used_phones), "alone": True, "mobility": mobility,
         "schedule": {"kind": kind, "days": days, "from": window[0], "to": window[1]},
         "channel": "voice",
-        "relative": {"name": rname, "rel": rel, "phone": phone(rng)},
+        "relative": {"name": rname, "rel": rel, "phone": phone(rng, used_phones)},
         "since": (ref - timedelta(days=rng.randint(40, 700))).isoformat(),
         "flags": [],
         "history": [],
     }
-    if rng.random() < 0.22:
+    if rng.random() < FLAG_RATE:
         f = rng.choice(FLAGS)
         p["flags"].append({"sev": "warning", "text": f})
         if f.startswith("Nedoslýchá"):
             p["channel"] = "sms"
-    forced = FORCED.get(idx)
-    if forced == "declined" and district not in ("Brno-střed", "Brno-Židenice"):
-        forced = None
-    # personal tendencies
+    # deterministic people (no draws: the others stay as they are)
+    if pid in NO_RELATIVE:
+        p["relative"] = None
+    if pid in KEYS_WITH_NEIGHBOUR and not any(f["text"] == FLAG_KEYS for f in p["flags"]):
+        p["flags"].insert(0, {"sev": "warning", "text": FLAG_KEYS})
+    if pid in DEMENTIA:
+        p["flags"].insert(0, {"sev": "warning", "text": FLAG_DEMENTIA})
+    return p, window
+
+
+def calls_of(rng, p, window, forced, ref):
+    """The 30 days of check-in calls (the "calls" generator): personal tendencies, then one call a scheduled day."""
+    sex, days = p["sex"], p["schedule"]["days"]
     answer = rng.uniform(0.82, 0.98)
-    base = rng.uniform(3.0, 4.6)
+    base = rng.uniform(2.9, 4.4)
     need_rate = rng.uniform(0.04, 0.16)
-    low_rate = 0.25 if base < 3.4 else 0.05
+    low_rate = rng.uniform(0.07, 0.17) if base < 3.4 else rng.uniform(0.01, 0.04)
+    note_rate = rng.uniform(0.2, 0.45) if rng.random() < 0.45 else rng.uniform(0.0, 0.05)  # a chronic complaint, or not
     mood = base
     calls = []
     start = ref - timedelta(days=DAYS)
@@ -215,7 +274,7 @@ def senior(rng, n, district, idx, used, ref):
     scheduled = [start + timedelta(days=i) for i in range((stop - start).days) if (start + timedelta(days=i)).weekday() in days]
     for i, day in enumerate(scheduled):
         last = i == len(scheduled) - 1
-        mood = max(1.6, min(5.0, mood + rng.uniform(-0.6, 0.6) + (base - mood) * 0.3))
+        mood = max(1.8, min(5.0, mood + rng.uniform(-0.6, 0.6) + (base - mood) * 0.3))
         m = round(mood)
         if last and forced:
             if forced == "no_answer":
@@ -238,24 +297,39 @@ def senior(rng, n, district, idx, used, ref):
                 calls.append(call(rng, day, window, sex, "ok", max(3, m), minute=rng.randint(110, 140)))
             continue
         r = rng.random()
-        if m <= 2 or r < low_rate * 0.4:
+        if m <= 2 or r < low_rate:
             intent = "low_mood"
-        elif r < low_rate * 0.4 + need_rate:
+        elif r < low_rate + need_rate:
             intent = "need_items"
-        elif r < low_rate * 0.4 + need_rate + 0.02:
+        elif r < low_rate + need_rate + HEALTH_RATE:
             intent = "health_problem"
-        elif r < low_rate * 0.4 + need_rate + 0.028:
+        elif r < low_rate + need_rate + HEALTH_RATE + CALLBACK_RATE:
             intent = "callback"
         else:
             intent = "ok"
+        kind = None
+        if intent == "low_mood" and rng.random() < LOW1_SHARE:
+            kind = "mood1"
+        elif intent == "ok" and rng.random() < note_rate:
+            kind = "health_note"
         calls.append(call(rng, day, window, sex, intent, max(3, m) if intent != "low_mood" else 2,
-                          pick_items(rng) if intent == "need_items" else ()))
-    # one historical emergency in the whole data set, long resolved
-    if n == 23 and len(calls) > 10:
+                          pick_items(rng) if intent == "need_items" else (), kind=kind))
+    if p["id"] == EMERGENCY_HISTORY and len(calls) > 10:
         k = len(calls) // 3
         calls[k] = call(rng, date.fromisoformat(calls[k]["date"]), window, sex, "emergency", 3)
         calls[k].pop("mood", None)
         calls[k]["note"] = "Sousedka přivolala záchrannou službu, druhý den doma. Vyřešeno."
+    return calls
+
+
+def senior(n, district, idx, used_names, used_phones, ref):
+    person_rng = random.Random(f"{SEED}-{n}-person")
+    calls_rng = random.Random(f"{SEED}-{n}-calls")
+    p, window = person(person_rng, n, district, idx, used_names, used_phones, ref)
+    forced = FORCED.get(idx)
+    if forced == "declined" and district not in ("Brno-střed", "Brno-Židenice"):
+        forced = None
+    calls = calls_of(calls_rng, p, window, forced, ref)
     p["calls"] = calls
     p["needs"] = needs_of(p["id"], calls, ref)
     p["stage"], extra = stage_of(calls, forced, p["needs"], ref)
@@ -310,13 +384,12 @@ def stage_of(calls, forced, needs, ref):
 
 
 def build(ref: str = MANIFEST["ref_date"]) -> dict:
-    rng = random.Random(SEED)
     refd = date.fromisoformat(ref)
-    used, out, n = set(), [], 0
+    used_names, used_phones, out, n = set(), set(), [], 0
     for district in DISTRICTS:
         for idx in range(PER_DISTRICT):
             n += 1
-            out.append(senior(rng, n, district, idx, used, refd))
+            out.append(senior(n, district, idx, used_names, used_phones, refd))
     return {"refDate": ref, "issues": [], "patients": out}
 
 

@@ -1,5 +1,5 @@
 // Click actions of Jsem v pořádku on top of the core ones (core/shell.js).
-// app = {ui, data, store, T, toast, send, mark, step, find, today, backend}.
+// app = {ui, data, store, T, toast, send, mark, step, find, today, notify, backend}.
 import { mineOf } from "core/case.js";
 import { entries } from "./views/basket.js";
 import { itemLabel, openNeeds, stageOf } from "./domain.js";
@@ -43,8 +43,17 @@ export const actions = {
   "sim-reply": async (el, app) => {
     const { id, reply } = el.dataset;
     const p = app.find(id);
-    await app.step(id, { reply, text: app.T.demo.replyTextOf(reply, p) });
+    await app.step(id, { reply, text: app.T.demo.replyTextOf(reply, p), sim: true }); // via "sim", as the core "reply" action
     app.toast(app.T.toast.reply(app.T.demo.replyOf(reply, p)), { undo: !app.backend });
+  },
+  // An SMS about the senior, not a check-in: the relative's emergency SMS (EMERGENCY_RELATIVE) or the crisis lines for
+  // the senior (CRISIS), from the card (hooks.py decisions.emergency / crisis). The backend logs it in the outbox only;
+  // the stage does not move. The shell's `busy` flag keeps a double click from sending twice. Static page: nothing to send.
+  notify: async (el, app) => {
+    const { id, variant, channel = "sms" } = el.dataset;
+    if (!app.backend) { app.toast(app.T.toast.backendOnly, { undo: false }); return; }
+    const r = await app.notify(id, channel, variant);
+    app.toast(r?.status === "daily_limit" ? app.T.toast.notifyLimit : app.T.toast.notified(variant), { undo: false });
   },
   "basket-filter": (el, app) => { app.ui.basketFilter = el.dataset.filter; },
   "calls-filter": (el, app) => { app.ui.callsFilter = el.dataset.filter; },

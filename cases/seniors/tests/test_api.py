@@ -196,3 +196,58 @@ def test_login_email_is_optional_for_this_case(monkeypatch, tmp_path):
     assert c.post("/api/scenario/start").status_code == 200
     r = c.post("/login", data={"code": "demo", "phone": "", "email": "", "next": "/app/"}, follow_redirects=False)
     assert r.status_code == 400 and "telefon" in r.text.lower()
+
+
+def _escalate(c, text="Upadla jsem a nemůžu vstát.", day="2026-10-19"):
+    c.post("/api/send", json={"items": [{"id": PID, "channel": "voice", "variant": "CHECKIN", "text": "x"}], "date": day})
+    return c.post("/api/step", json={"id": PID, "text": text, "date": day}).json()
+
+
+def test_notify_relative_sms_is_an_outbox_item_not_a_journey_step(client):
+    """POST /api/notify: the relative's emergency SMS. No transition, no journey event, the stage stays escalated; the outbox
+    keeps the variant (the timeline titles it "SMS blízkému") and the text carries no personal reply link."""
+    c, store = client
+    d = _escalate(c)
+    assert d["stage"] == "escalated" and store.get(PID)["emergency"]["sms"] == "EMERGENCY_RELATIVE"
+    n = len(d["journey"])
+    v0 = store.version
+    r = c.post("/api/notify", json={"id": PID, "channel": "sms", "variant": "EMERGENCY_RELATIVE"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["id"] == PID and body["live"] is False and body["status"] == "simulated"
+    assert store.version > v0  # polling clients see a new version and reload the timeline
+    assert store.get(PID)["stage"] == "escalated" and len(store.get(PID)["journey"]) == n
+    m = [x for x in store.data["outbox"] if x["patient"] == PID][-1]
+    assert m["variant"] == "EMERGENCY_RELATIVE" and m["notify"] is True and m["channel"] == "sms"
+    assert "/p/" not in m["text"] and "okamžitou pomoc" in m["text"] and not m["live"]
+    out = c.get(f"/api/patient/{PID}").json()["outbox"]
+    assert out[-1]["variant"] == "EMERGENCY_RELATIVE" and "/p/" not in out[-1]["text"]
+
+
+def test_notify_rejects_unknown_variant_and_channel(client):
+    c, store = client
+    assert c.post("/api/notify", json={"id": PID, "channel": "sms", "variant": "NOPE"}).status_code == 400
+    assert c.post("/api/notify", json={"id": PID, "channel": "voice", "variant": "EMERGENCY_RELATIVE"}).status_code == 400
+    assert not [x for x in store.data["outbox"] if x["patient"] == PID]
+
+
+def test_notify_crisis_sms_carries_the_crisis_lines(client):
+    c, store = client
+    r = c.post("/api/notify", json={"id": PID, "channel": "sms", "variant": "CRISIS"})
+    assert r.status_code == 200
+    m = [x for x in store.data["outbox"] if x["patient"] == PID][-1]
+    assert m["variant"] == "CRISIS" and "800 200 007" in m["text"] and "/p/" not in m["text"]
+    assert "stage" not in store.get(PID)  # a notice alone never starts a journey
+
+
+def test_crisis_reply_is_the_intent_crisis_with_the_event_emergency(client):
+    """"Už se mi nechce žít" escalates like an emergency, but the stored intent is crisis: the web app (domain.alertOf) keys on
+    the intent first and offers the crisis lines, never 155."""
+    c, store = client
+    d = _escalate(c, "Už se mi nechce žít.")
+    assert d["stage"] == "escalated"
+    e = d["journey"][-1]
+    assert e["intent"] == "crisis" and e["event"] == "emergency"
+    s = c.get("/api/state").json()["decisions"][PID]
+    assert s["journey"][-1]["intent"] == "crisis" and s["crisis"]["sms"] == "CRISIS" and "800 200 007" in s["crisis"]["lines"]
+    assert s["health"]["intent"] == "crisis" and s["mood"] == 1

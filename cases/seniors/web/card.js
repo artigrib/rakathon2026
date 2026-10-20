@@ -1,5 +1,6 @@
 // Blocks of the senior's card (core/components/card.js). Order of reading, one idea per block:
-// what to do now (core card__now) → the relative (tel: link, "Zavolat příbuznému") → open needs → the last three calls
+// what to do now (core card__now) → what the last call left to do (emergency SMS for the relative, crisis lines; hooks.py)
+// → the relative (tel: link, "Zavolat příbuznému") → open needs → the last three calls
 // → facts and notes a hook may have stored → [core: journey, communication] → the rest under "Více" (mood chart, all calls)
 // → the simulated answer of the demo (only here, not in the rows: case.json "row_demo": false).
 import { T } from "./i18n.js";
@@ -7,25 +8,51 @@ import { cfg } from "core/case.js";
 import { esc, fmtDate } from "core/util.js";
 import { store } from "core/state.js";
 import { allowed } from "core/fsm.js";
+import { btn } from "core/components/row.js";
 import { dialogue, recapLine } from "core/components/comm.js";
-import { callsOf, itemLabel, moodSeries, openNeeds, stageOf } from "./domain.js";
+import { callsOf, itemLabel, moodSeries, openNeeds, stageDate, stageOf } from "./domain.js";
 import { chips, moodBadge, moodChart } from "./ui.js";
 
 const C = T.card;
 
+const telLink = (phone) => {
+  const tel = (phone || "").replace(/\s/g, "");
+  return tel ? `<a href="tel:${esc(tel)}">${esc(phone)}</a>` : "";
+};
+
 function facts(p) {
   const s = p.schedule;
-  const rows = [
+  const rows = [ // [label, text] escaped, or [label, html, true]
     [C.age, `${p.age} let`],
     [C.address, p.address],
-    [C.phone, p.phone],
+    [C.phone, telLink(p.phone), true],
     [C.alone, p.alone ? C.aloneYes(p) : ""],
     [C.mobility, T.mobility[p.mobility] || p.mobility],
     [C.schedule, s ? `${T.schedule[s.kind] || T.schedule.days(s.days)}, ${T.schedule.window(s)}, ${T.channel[p.channel] || p.channel}` : ""],
     [C.worker, p.worker],
     [C.since, fmtDate(p.since)],
   ].filter(([, v]) => v);
-  return `<dl class="kv kv--wide">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
+  return `<dl class="kv kv--wide">${rows.map(([k, v, raw]) => `<dt>${k}</dt><dd>${raw ? v : esc(v)}</dd>`).join("")}</dl>`;
+}
+
+/** What the last call left for a person to do now (hooks.py decisions.emergency / crisis), while the senior is escalated
+ *  for it: one line each and the SMS the operator sends with one click (action "notify", backend only). */
+function alerts(p) {
+  const d = store.get(p.id);
+  if (stageOf(p) !== "escalated") return "";
+  const since = stageDate(p) || "";
+  const rows = [];
+  const sms = (label, variant) => (variant ? `<div class="actions">${btn(label, `data-action="notify" data-id="${esc(p.id)}" data-channel="sms" data-variant="${esc(variant)}"`, "primary")}</div>` : "");
+  const em = d.emergency;
+  if (em && (em.date || "") >= since) {
+    rows.push(`<li><b>${esc(C.emergency(C.emergencyKind[em.kind] || em.kind || "", fmtDate(em.date)))}</b>${sms(T.actions.notifyRelative, em.sms)}</li>`);
+  }
+  const cr = d.crisis;
+  if (cr && (cr.date || "") >= since) {
+    rows.push(`<li><b>${esc(C.crisis(fmtDate(cr.date)))}</b>${cr.lines ? `<br><span class="sn-muted">${esc(cr.lines)}</span>` : ""}${sms(T.actions.notifyCrisis, cr.sms)}</li>`);
+  }
+  if (!rows.length) return "";
+  return `<section class="card__block"><h3>${C.alerts}</h3><ul class="warn">${rows.join("")}</ul></section>`;
 }
 
 /** A note a hook stored (decisions.health_note, decisions.schedule_note): a string, or {text|note|wish, date}. */
@@ -40,7 +67,8 @@ function noteText(n) {
 
 function notes(p) {
   const d = store.get(p.id);
-  const rows = [[C.healthNote, noteText(d.health_note)], [C.scheduleNote, noteText(d.schedule_note)]].filter(([, v]) => v);
+  const rows = [[C.healthNote, noteText(d.health_note)], [C.scheduleNote, noteText(d.schedule_note)],
+    [C.humanRequest, d.human_request ? fmtDate(d.human_request.date) || C.humanRequestYes : ""]].filter(([, v]) => v);
   if (!rows.length) return "";
   return `<section class="card__block"><h3>${C.notes}</h3><dl class="sn-note">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>`;
 }
@@ -83,7 +111,8 @@ export function blocks(p) {
   const calls = callsOf(p);
   const li = callLine(p);
   return {
-    before: `<section class="card__block"><h3>${C.relative}</h3>${relative(p)}</section>
+    before: `${alerts(p)}
+      <section class="card__block"><h3>${C.relative}</h3>${relative(p)}</section>
       <section class="card__block"><h3>${C.needs}</h3>${needs.length ? chips(needs) : `<p class="sn-muted">${C.needsNone}</p>`}</section>
       <section class="card__block"><h3>${C.lastCalls}</h3>${calls.length ? `<ol class="sn-hist">${calls.slice(0, 3).map(li).join("")}</ol>` : `<p class="sn-muted">${T.detail.noContacts}</p>`}</section>
       <section class="card__block"><h3>${C.facts}</h3>${facts(p)}</section>

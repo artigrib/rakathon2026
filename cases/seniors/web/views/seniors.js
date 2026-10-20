@@ -30,7 +30,9 @@ export function render(ui, data) {
   const owner = new Map(mine.map((p) => [p.id, ownerOf(p, clock, plans)]));
   const q = (ui.query || "").trim().toLowerCase();
   const found = mine.filter((p) => !q || text(p).includes(q));
-  const inGroup = (p, f) => f === "all" || owner.get(p.id) === f || (f === "operator" && owner.get(p.id) === "lost");
+  // tabs: all | social | operator (also "lost") | paused (stage paused or declined, "Neaktivní"); "system" and "done" only in "all"
+  const inGroup = (p, f) => f === "all" || owner.get(p.id) === f || (f === "operator" && owner.get(p.id) === "lost")
+    || (f === "paused" && owner.get(p.id) === "done");
   const filter = cfg.FILTERS.includes(ui.filter) ? ui.filter : "all";
   const counts = Object.fromEntries(cfg.FILTERS.map((f) => [f, found.filter((p) => inGroup(p, f)).length]));
   const list = found.filter((p) => inGroup(p, filter)).sort(bySurname);

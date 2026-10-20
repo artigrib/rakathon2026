@@ -15,8 +15,9 @@ export const JOURNEY = [
   { key: "resolved", stages: ["resolved"] },
 ];
 
-// Kartotéka seniorů tabs: owner keys (domain.ownerOf) + "all".
-export const FILTERS = ["all", "social", "operator", "system", "paused", "done"];
+// Kartotéka seniorů tabs: owner keys (domain.ownerOf) + "all". "paused" = stage paused or declined (owner paused | done,
+// "Neaktivní"); "lost" shows under operator; "system" only in "all".
+export const FILTERS = ["all", "social", "operator", "paused"];
 
 // Phone of the social service per district for {call_us} (empty = omitted from texts).
 export const PRACTICES = {};

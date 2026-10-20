@@ -111,15 +111,27 @@ export function plannedContact(p) {
   return { channel: draft?.channel || p.channel || "voice", variant: "CHECKIN" };
 }
 
-/** Why the senior is escalated: emergency | health | visit | lowMood | escalate. */
+/** Why the senior is escalated: crisis | emergency | health | visit | lowMood | escalate.
+ *  A crisis reply ("nechce se mi žít") is the intent "crisis" with the journey event "emergency" (dialog.INTENT_EVENT):
+ *  the intent decides first, so the operator sends the crisis lines, not 155. */
 export function alertOf(p) {
   const stage = stageOf(p);
   if (stage === "low_mood") return "lowMood";
   if (stage !== "escalated") return null;
   const e = [...(store.get(p.id).journey || [])].reverse().find((x) => x.stage === "escalated" && !x.ignored);
-  if (e) return e.event === "emergency" ? "emergency" : e.event === "health_problem" ? "health" : e.event === "visit" ? "visit" : "escalate";
+  if (e) {
+    if (e.intent === "crisis") return "crisis";
+    return e.event === "emergency" ? "emergency" : e.event === "health_problem" ? "health" : e.event === "visit" ? "visit" : "escalate";
+  }
   const last = lastAnswered(p);
-  return last?.intent === "emergency" ? "emergency" : "health";
+  return last?.intent === "crisis" ? "crisis" : last?.intent === "emergency" ? "emergency" : "health";
+}
+
+/** A pause the senior asked for in a call (hooks.py decisions.pause {date, until, reason}) wins over the registry's.
+ *  `until` may be a date or free words ("do neděle"); an empty value shows nothing. */
+export function pauseOf(p) {
+  const d = store.get(p.id);
+  return d.pause || p.pause || null;
 }
 
 /** Date of the event that set the current stage (journey or the registry's last call). */

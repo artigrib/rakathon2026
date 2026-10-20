@@ -408,3 +408,17 @@ def test_screening_recap_sentences():
     p = d.agent_prompt()
     assert d.RECAP["interested"] in p and d.RECAP_FIX in p and "recap_confirmed" in p
     assert all("!" not in s for s in (*d.RECAP.values(), d.RECAP_ASK, d.RECAP_FIX, d.RECAP_WHEN))
+
+
+def test_notify_logs_an_outbox_item_without_a_journey(client):
+    """POST /api/notify (a notice about a patient, e.g. an SMS to a relative in another case): only the outbox, no stage,
+    no journey event, text without the personal link."""
+    c, store = client
+    pid = "SYN-000001"
+    r = c.post("/api/notify", json={"id": pid, "channel": "sms", "variant": "FIRST_INVITE"})
+    assert r.status_code == 200 and r.json()["id"] == pid and r.json()["live"] is False
+    assert "stage" not in store.get(pid) and "journey" not in store.get(pid)
+    out = c.get(f"/api/patient/{pid}").json()["outbox"]
+    assert len(out) == 1 and out[0]["variant"] == "FIRST_INVITE" and "/p/" not in out[0]["text"]
+    assert c.post("/api/notify", json={"id": pid, "channel": "voice", "variant": "FIRST_INVITE"}).status_code == 400
+    assert c.post("/api/notify", json={"id": pid, "channel": "sms", "variant": "NOPE"}).status_code == 400

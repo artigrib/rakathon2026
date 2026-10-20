@@ -15,19 +15,19 @@ export const T = {
 
   today: {
     title: (d) => `Dnes, ${d}`,
-    summary: (due, alerts, noAnswer, needs) => `${due} ${pl(due, "hovor", "hovory", "hovorů")} podle rozvrhu, ` +
-      (alerts ? `<b class="is-lost">${alerts} ${pl(alerts, "upozornění", "upozornění", "upozornění")}</b>` : "<b>bez upozornění</b>") +
-      `, ${noAnswer} bez odpovědi, ${needs} ${pl(needs, "potřebuje", "potřebují", "potřebuje")} pomoc.`,
+    // two numbers: what needs a person now · today's calls (the "Dnes zavolat" list)
+    summary: (alerts, calls) => (alerts ? `<b class="is-lost">${alerts} ${pl(alerts, "naléhavý", "naléhavé", "naléhavých")}</b>` : "<b>nic naléhavého</b>") +
+      ` · ${calls} ${pl(calls, "hovor", "hovory", "hovorů")} dnes`,
     allDone: "Hotovo. Všichni na dnešek jsou obvoláni.",
     batch: (n) => `Zavolat ${n} ${pl(n, "seniorovi", "seniorům", "seniorům")} podle rozvrhu`,
     batchHint: "Asistent zavolá každému v jeho okně. Kdo nezvedne, tomu systém zavolá znovu, pak napíše příbuznému a nakonec pošle sociálního pracovníka.",
-    toBasket: "Otevřít košík",
+    // link line under the header → the basket (open needs of the district)
+    basket: (n) => (n ? `${n} ${pl(n, "otevřená potřeba", "otevřené potřeby", "otevřených potřeb")} v košíku` : "Košík je prázdný"),
   },
   sections: {
     alerts: { title: "Naléhavé", hint: "Tíseň, zdravotní potíže, smutná nálada a kdo se ztrácí. Řeší člověk.", empty: "Nic naléhavého." },
-    due: { title: "Dnes zavolat", empty: "Dnes už nikdo na řadě není.", elsewhere: (n) => `Dalších ${n} ${pl(n, "senior z rozvrhu je", "senioři z rozvrhu jsou", "seniorů z rozvrhu je")} výše (naléhavé, bez odpovědi, potřebují pomoc); hovor dostanou také.` },
+    due: { title: "Dnes zavolat", hint: "Hovory podle rozvrhu a kdo prosil zavolat později.", empty: "Dnes už nikdo na řadě není.", elsewhere: (n) => `Dalších ${n} ${pl(n, "senior z rozvrhu je", "senioři z rozvrhu jsou", "seniorů z rozvrhu je")} výše (naléhavé, bez odpovědi); hovor dostanou také.` },
     noAnswer: { title: "Bez odpovědi", hint: "Systém zkouší znovu podle plánu. Po třech nezastižených hovorech jde úkol sociálnímu pracovníkovi.", empty: "Všichni odpověděli." },
-    needs: { title: "Potřebují pomoc", hint: "Potřeby se sbírají v košíku pro sociální službu.", empty: "Nikdo nic nepotřebuje." },
     ok: { title: "Dnes v pořádku", empty: "Zatím nikdo neodpověděl.", show: "Zobrazit" },
   },
 
@@ -43,14 +43,14 @@ export const T = {
     searchHint: "Jméno, ulice nebo příbuzný",
     groups: "Kdo je teď na řadě",
     empty: "V této skupině teď nikdo není.",
-    filters: { all: "Všichni", social: "Sociální pracovník", operator: "Operátor", system: "Hlídá systém", paused: "Pozastaveno", done: "Odhlášeni" },
+    filters: { all: "Všichni", social: "Sociální pracovník", operator: "Operátor", paused: "Neaktivní" },
     mood7: "Nálada za 30 dní",
   },
   // core/views/patients.js (not in the menu, kept for the contract)
   patients: {
     title: "Kartotéka seniorů", search: "Najít seniora", searchHint: "Jméno, ulice nebo příbuzný", groups: "Kdo je teď na řadě",
     empty: "V této skupině teď nikdo není.",
-    filters: { all: "Všichni", social: "Sociální pracovník", operator: "Operátor", system: "Hlídá systém", paused: "Pozastaveno", done: "Odhlášeni" },
+    filters: { all: "Všichni", social: "Sociální pracovník", operator: "Operátor", paused: "Neaktivní" },
   },
 
   calls: {
@@ -67,6 +67,7 @@ export const T = {
   basket: {
     title: "Košík pro sociální službu",
     sub: (d, n) => `${d}: ${n} ${pl(n, "otevřená položka", "otevřené položky", "otevřených položek")}. Potřeby z hovorů, seskupené podle sociálního pracovníka.`,
+    alerts: { title: "Řeší člověk", hint: "Tíseň, zdravotní potíže, návštěva a smutná nálada v obvodu.", empty: "Nic naléhavého." },
     filters: { open: "Otevřené", new: "Nové", ordered: "Objednáno", done: "Vyřízeno", all: "Vše" },
     status: { new: "Nové", ordered: "Objednáno", done: "Vyřízeno" },
     order: "Objednat",
@@ -106,6 +107,7 @@ export const T = {
   intent: {
     ok: "V pořádku", need_items: "Potřebuje pomoc", low_mood: "Smutná nálada", health_problem: "Zdravotní potíž",
     emergency: "Tíseň", callback: "Zavolat později", opt_out: "Nepřeje si hovory", question: "Dotaz", unclear: "Nerozumíme",
+    crisis: "Krize", pause: "Pozastavit hovory", schedule_change: "Jinak často", human: "Chce člověka",
   },
   mobility: { independent: "chodí bez pomoci", cane: "chodí o holi", walker: "chodítko", wheelchair: "vozík", homebound: "nevychází z bytu" },
   schedule: {
@@ -120,14 +122,16 @@ export const T = {
     dueSkipped: "Dnes vynecháno",
     edited: "Upravený text, odejde s ostatními",
     noAnswer: (n, d) => `Bez odpovědi: ${n} ${pl(n, "hovor", "hovory", "hovorů")}, ${d}`,
-    next: (d, ch) => `Další krok ${d}: ${ch}`,
+    next: (d, ch) => `Další krok ${d}: ${ch}`, // d = "dnes 11:00", "za 1 h", "21. 10. 2026 09:00" (row.js nextStep)
+    today: "dnes",
     relativeSent: "SMS příbuznému odeslána",
     planDone: "Plán pokusů skončil",
     ok: (m) => `V pořádku${m ? `, nálada ${T.mood[m]} (${m})` : ""}`,
     needs: (items) => `Potřebuje: ${items}`,
     needsAny: "Potřebuje pomoc, upřesnit",
     lowMood: (m) => `Smutná nálada${m ? ` (${m})` : ""}`,
-    emergency: "Tíseň: ověřit hned, zda volal 155",
+    emergency: "Tíseň: zůstat na lince, pracovník volá 155",
+    crisis: "Krize: ozvat se hned, poslat linky pomoci",
     health: "Zdravotní potíž, ozvat se ještě dnes",
     visit: (p, n) => `Bez odpovědi po ${n ? `${n} ${pl(n, "hovoru", "hovorech", "hovorech")}` : "třech hovorech"}, navštívit`,
     escalated: "Předáno sociálnímu pracovníkovi",
@@ -155,6 +159,8 @@ export const T = {
     resolve: "Vyřešeno",
     escalate: "Předat pracovníkovi",
     callRelative: "Zavolat příbuznému",
+    notifyRelative: "Poslat SMS blízkému",
+    notifyCrisis: "Poslat linky pomoci SMS",
     resolveNeeds: "Vyřešeno",
     basket: "Košík",
     pause: "Pozastavit",
@@ -231,6 +237,9 @@ export const T = {
     basket: { ordered: "Označeno jako objednané.", done: "Označeno jako vyřízené.", new: "Vráceno mezi nové." },
     needsDone: "Vyřízeno: všechny potřeby seniora jsou hotové.",
     csv: (n) => `Staženo ${n} ${pl(n, "položka", "položky", "položek")} do CSV.`,
+    notified: (v) => (v === "CRISIS" ? "Odesláno: SMS s linkami pomoci." : "Odesláno: SMS blízkému."),
+    notifyLimit: "Denní limit skutečných zpráv ukázky je vyčerpán, nic neodešlo.",
+    backendOnly: "Odeslání SMS funguje jen s backendem.",
   },
 
   compose: {
@@ -267,11 +276,19 @@ export const T = {
     noAnswer: "bez odpovědi", noAnswerF: "bez odpovědi", relativeSms: "SMS příbuznému",
     lastCalls: "Poslední hovory", moreTitle: "Více", notes: "Poznámky", healthNote: "Zdravotní potíž", scheduleNote: "Přání k hovorům",
     allCalls: (n) => `Všechny hovory (${n})`, moodChart: "Nálada za 30 dní", simulated: "simulovaná odpověď",
+    // what the last call left to do (card.js alerts: hooks.py decisions.emergency / crisis / human_request)
+    alerts: "Co teď udělat",
+    emergency: (kind, d) => `Tíseň${kind ? ` (${kind})` : ""}, ${d}: pracovník volá 155, blízký má dostat SMS`,
+    emergencyKind: { medical: "zdravotní", fire: "požár nebo plyn" },
+    crisis: (d) => `Krize, ${d}: ozvat se hned a poslat linky pomoci`,
+    humanRequest: "Chce mluvit s člověkem", humanRequestYes: "ano",
   },
 
   // Communication timeline (core/components/comm.js).
   comm: {
     title: "Komunikace",
+    // outbox items of POST /api/notify (not a check-in): the title of the timeline item by message variant
+    variant: { EMERGENCY_RELATIVE: "SMS blízkému", CRISIS: "SMS s linkami pomoci" },
     transcript: "Celý rozhovor", summary: "Shrnutí", confirmed: "potvrzeno", notConfirmed: "nepotvrzeno", bot: "asistent", person: "senior",
     actor: { record: "Z kartotéky", system: "Systém", nurse: "Operátor", patient: "Senior", doctor: "Sociální pracovník" },
     sent: "Hovor nebo zpráva odeslána",
@@ -290,7 +307,7 @@ export const T = {
     status: { queued: "ve frontě", sent: "odesláno", delivered: "doručeno", read: "přečteno", failed: "nedoručeno", undelivered: "nedoručeno",
       completed: "hovor proběhl", "no-answer": "bez odpovědi", busy: "obsazeno", ringing: "vyzvání", initiated: "vytáčí", "in-progress": "probíhá" },
     event: {
-      ok: "V pořádku", need_items: "Potřebuje pomoc", low_mood: "Smutná nálada", health_problem: "Zdravotní potíž", emergency: "Tíseň, odkázán na 155",
+      ok: "V pořádku", need_items: "Potřebuje pomoc", low_mood: "Smutná nálada", health_problem: "Zdravotní potíž", emergency: "Tíseň nebo krize, předáno člověku hned", // one journey event for both intents (dialog.INTENT_EVENT)
       callback: "Zavolat později", opt_out: "Nepřeje si hovory", visit: "Bez odpovědi po třech hovorech: úkol návštěva", escalate: "Předáno sociálnímu pracovníkovi",
       resolve: "Vyřešeno", pause: "Hovory pozastaveny", resume: "Hovory obnoveny", decline: "Odhlášen z programu", enroll: "Zapsán do programu",
     },
