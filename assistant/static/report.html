@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report hovoru</title><link rel="stylesheet" href="/base.css"></head>
+<body><main id="app"><p class="mute">Načítám…</p></main>
+<script>
+const app=document.getElementById('app');
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k in e)e[k]=v;else e.setAttribute(k,v)}for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e};
+const show=(...k)=>app.replaceChildren(...k.flat().filter(x=>x!=null&&x!==false));
+const [,kind,id]=location.pathname.match(/^\/(r|b)\/([\w-]+)$/)||[];
+const STATUS={queued:['Ve frontě','wait'],ringing:['Vyzvání','wait'],'in-progress':['Probíhá',''],completed:['Hotovo',''],busy:['Obsazeno','bad'],'no-answer':['Nikdo to nevzal','bad'],failed:['Nepovedlo se','bad'],canceled:['Zrušeno','bad']};
+const OUTCOME={done:'Splněno',partly:'Částečně',not_possible:'Nešlo to',no_answer:'Nedovoláno',yes:'Ano',maybe:'Možná',no:'Ne',wrong_person:'Špatné číslo'};
+const TOOL={record_booking:['📅','Kalendář: zapsat rezervaci'],record_pledge:['💰','Zapsat příslib'],notify_owner:['✉️','Vzkaz pro majitele'],end_call:['📞','Ukončit hovor'],check_availability:['📅','Kalendář: volné časy'],book_meeting:['📅','Kalendář: schůzka'],send_message_to_owner:['✉️','Vzkaz pro majitele']};
+const ACTION={booking:'📅',pledge:'💰',message:'✉️',email_summary:'✉️'};
+const sec=s=>s==null?'':`${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+const time=t=>new Date(t*1000).toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
+const day=v=>{if(!v)return '';const d=new Date(v.replace(' ','T'));return isNaN(d)?v:d.toLocaleString('cs-CZ',{weekday:'short',day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})};
+function compareCard(calls){const rows=calls.map(c=>({c,d:c.data||{}}));const slots=rows.map(r=>r.d.earliest_slot).filter(Boolean).sort();const prices=rows.map(r=>parseInt(r.d.price_czk)).filter(n=>!isNaN(n));
+ const best={slot:slots[0],price:prices.length?Math.min(...prices):null};
+ const th=t=>el('th',{scope:'col',style:'text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--mute)'},t);const td=(t,hi)=>el('td',{style:'padding:8px;border-bottom:1px solid var(--line);vertical-align:top'+(hi?';font-weight:700;color:var(--brand)':'')},t||'–');
+ return el('section',{className:'card'},el('h2',{},'Srovnání'),el('div',{style:'overflow-x:auto'},el('table',{style:'border-collapse:collapse;width:100%'},
+  el('thead',{},el('tr',{},th('Kam'),th('Nejbližší termín'),th('Cena'))),
+  el('tbody',{},rows.map(({c,d})=>el('tr',{},td(el('span',{},el('b',{},c.label||c.to),el('br'),el('span',{className:'small mute'},c.label?c.to:(STATUS[c.status]||[c.status])[0]),d.price_note?el('span',{className:'small mute'},el('br'),d.price_note):null)),
+   td(d.earliest_slot?el('span',{},day(d.earliest_slot),d.earliest_slot===best.slot?el('span',{className:'small'},el('br'),'nejdřív'):null):(done(c)?'nezjištěno':'…'),d.earliest_slot&&d.earliest_slot===best.slot),
+   td(d.price_czk?el('span',{},d.price_czk+'\u00a0Kč',parseInt(d.price_czk)===best.price?el('span',{className:'small'},el('br'),'nejlevnější'):null):(done(c)?'nezjištěno':'…'),d.price_czk&&parseInt(d.price_czk)===best.price)))))),
+  el('p',{className:'small mute',style:'margin-top:8px'},'Nic nebylo rezervováno. Termín si zarezervujte sami, nebo spusťte rezervaci jako nový hovor.'))}
+const AVAIL={ano:'volno',jiny_termin:'jiný termín',ne:'nemají'};
+function venueCard(calls){const rows=calls.map(c=>({c,d:c.data||{}}));const ok=rows.filter(r=>r.d.available==='ano');
+ const prices=ok.map(r=>parseInt(r.d.price_per_person_czk)).filter(n=>!isNaN(n));const best=prices.length?Math.min(...prices):null;
+ const th=t=>el('th',{scope:'col',style:'text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--mute)'},t);
+ const td=(t,hi)=>el('td',{style:'padding:8px;border-bottom:1px solid var(--line);vertical-align:top'+(hi?';font-weight:700;color:var(--brand)':'')},t||'–');
+ const sub=d=>[d.capacity?`až ${d.capacity} hostů`:'',d.room,d.deposit_czk!==undefined&&d.deposit_czk!==''?(d.deposit_czk==='0'?'bez zálohy':`záloha ${d.deposit_czk}\u00a0Kč`):'',d.conditions].filter(Boolean);
+ return el('section',{className:'card'},el('h2',{},'Srovnání míst'),el('table',{style:'border-collapse:collapse;width:100%'},
+  el('thead',{},el('tr',{},th('Kam'),th('Termín'),th('Cena na osobu'))),
+  el('tbody',{},rows.map(({c,d})=>{const p=parseInt(d.price_per_person_czk);const isBest=d.available==='ano'&&p===best;
+   return el('tr',{},td(el('span',{},el('b',{},c.label||c.to),el('br'),el('span',{className:'small mute'},c.label?c.to:(STATUS[c.status]||[c.status])[0]),sub(d).map(x=>el('span',{className:'small mute'},el('br'),x)))),
+    td(d.available?el('span',{},AVAIL[d.available]||d.available,d.offered_time&&d.available!=='ano'?el('span',{className:'small'},el('br'),day(d.offered_time)):null):(done(c)?'nezjištěno':'…'),d.available==='ano'),
+    td(!isNaN(p)?el('span',{},p+'\u00a0Kč',isBest?el('span',{className:'small'},el('br'),'nejlevnější'):null):(done(c)?'nezjištěno':'…'),isBest))}))),
+  el('p',{className:'small mute',style:'margin-top:8px'},ok.length?`Volno má ${ok.length} z ${rows.length} míst. Nic nebylo rezervováno, potvrzení zavolejte sami nebo spusťte rezervaci.`:'Nic nebylo rezervováno.'))}
+const INTEREST={ano:'má zájem',mozna:'možná',ne:'nemá zájem'};
+function barterCard(calls){const th=t=>el('th',{scope:'col',style:'text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--mute)'},t);
+ const td=(t,hi)=>el('td',{style:'padding:8px;border-bottom:1px solid var(--line);vertical-align:top'+(hi?';font-weight:700;color:var(--brand)':'')},t||'–');
+ const yes=calls.filter(c=>(c.data||{}).interest==='ano').length;
+ return el('section',{className:'card'},el('h2',{},'Vyjednané podmínky'),el('table',{style:'border-collapse:collapse;width:100%'},
+  el('thead',{},el('tr',{},th('Kam'),th('Nabízí'),th('Chtějí'))),
+  el('tbody',{},calls.map(c=>{const d=c.data||{};return el('tr',{},
+   td(el('span',{},el('b',{},c.label||c.to),el('br'),el('span',{className:d.interest==='ano'?'small':'small mute',style:d.interest==='ano'?'color:var(--brand);font-weight:700':''},INTEREST[d.interest]||(done(c)?(STATUS[c.status]||[c.status])[0]:'…')),
+    d.contact?el('span',{className:'small mute'},el('br'),d.contact):null)),
+   td(el('span',{},d.venue_gives||'',d.discount_pct?el('span',{className:'small'},el('br'),`sleva ${d.discount_pct} %`):null)),
+   td(el('span',{},d.venue_wants||'',d.next_step?el('span',{className:'small mute'},el('br'),'Dál: '+d.next_step):null)))}))),
+  el('p',{className:'small mute',style:'margin-top:8px'},`Zájem má ${yes} z ${calls.length}. Nic nebylo definitivně domluveno, podmínky potvrzujete sami.`))}
+const LABEL={amount_czk:'částka (Kč)',name:'jméno',note:'poznámka',day_time:'kdy',people:'osob',place:'podnik',details:'detaily',text:'text'};
+const params=p=>Object.entries(p||{}).map(([k,v])=>`${LABEL[k]||k}: ${v}`).join(' · ');
+const done=c=>['busy','no-answer','failed','canceled'].includes(c.status)||(c.status==='completed'&&c.ready);
+
+function callCard(c,single){const d=c.data||{};const [st,cls]=STATUS[c.status]||[c.status,'wait'];const running=c.status==='in-progress';
+ const steps=[...c.tools.filter(t=>t.name!=='end_call').map(t=>({ic:(TOOL[t.name]||['🔧'])[0],title:(TOOL[t.name]||[,t.name])[1],text:params(t.params)+(t.error?' · chyba':''),when:t.t!=null?sec(t.t):''})),
+  ...c.actions.map(a=>({ic:ACTION[a.kind]||'✔️',title:'Provedeno',text:a.detail,when:time(a.at)}))];
+ const facts=[[ 'Výsledek',OUTCOME[d.outcome]||d.outcome],['Rezervace',d.booked_time],['Nejbližší termín',day(d.earliest_slot)],['Cena',d.price_czk?d.price_czk+' Kč':''],['V ceně',d.price_note],['Volno',AVAIL[d.available]||d.available],['Nabízí',day(d.offered_time)],['Kapacita',d.capacity?d.capacity+' hostů':''],['Prostor',d.room],['Cena na osobu',d.price_per_person_czk?d.price_per_person_czk+' Kč':''],['Záloha',d.deposit_czk?(d.deposit_czk==='0'?'žádná':d.deposit_czk+' Kč'):''],['Podmínky',d.conditions],['Zájem',INTEREST[d.interest]],['Nabízí',d.venue_gives],['Chtějí',d.venue_wants],['Kontakt',d.contact],['Další krok',d.next_step],['Příslib',d.pledge_amount?d.pledge_amount+' Kč':''],['Námitky',d.objections],['Co zjistil',d.result]].filter(([,v])=>v);
+ return el('section',{className:'card'},
+  el('div',{className:'row',style:'justify-content:space-between'},el('h2',{style:'margin:0'},c.label||c.to,c.label?el('span',{className:'small mute',style:'font-weight:400'},' '+c.to):null),el('span',{className:'chip '+cls},running?el('span',{className:'live','aria-hidden':'true'}):null,st+(c.duration!=null?' · '+sec(c.duration):''))),
+  c.summary?el('p',{style:'margin-top:10px'},c.summary):c.status==='completed'&&!c.ready?el('p',{className:'mute',style:'margin-top:10px'},'Připravuji shrnutí…'):null,
+  facts.length?el('dl',{className:'kv'},facts.flatMap(([k,v])=>[el('dt',{},k),el('dd',{},v)])):null,
+  el('h2',{style:'margin-top:16px'},'Nástroje a akce'),
+  steps.length?el('ul',{className:'tl'},steps.map(s=>el('li',{},el('span',{className:'ic','aria-hidden':'true'},s.ic),el('div',{},el('b',{},s.title),el('div',{className:'small mute'},s.text)),el('span',{className:'when'},s.when)))):el('p',{className:'small mute'},c.status==='queued'?'Čeká na předchozí hovor.':c.status==='ringing'?'Vyzvání…':running?'Zatím nic.':'Žádné nástroje nebyly použity.'),
+  c.transcript.length?el('details',{open:running||single},el('summary',{style:'cursor:pointer;color:var(--brand)'},running?'Přepis (živě)':'Přepis'),c.transcript.map(t=>el('p',{className:'turn'},el('b',{},t.who==='caller'?'Druhá strana: ':c.assistant+': '),t.text))):null)}
+
+let timer,openState={};
+async function draw(){let r;try{r=await fetch(`/api/${kind==='b'?'batch':'report'}/${id}`);if(!r.ok)throw 0;r=await r.json()}catch{show(el('h1',{},'Report nenalezen'));clearInterval(timer);return}
+ document.querySelectorAll('details').forEach((d,i)=>openState[i]=d.open);
+ const calls=r.calls,first=calls[0];const sales=first.mode==='sales';
+ const pledged=calls.reduce((s,c)=>s+(parseInt((c.data||{}).pledge_amount)||0),0);
+ const count=o=>calls.filter(c=>(c.data||{}).outcome===o).length;
+ show(el('p',{className:'small mute'},`Asistent ${first.assistant} · za ${first.owner} · ${new Date(first.startedAt*1000).toLocaleString('cs-CZ')}`),
+  el('h1',{},sales?'Sbírka na pivo: prodejní hovory':first.mode==='venue'?'Místo pro akci':first.mode==='barter'?'Akce na barter':first.mode==='compare'?'Průzkum a srovnání':calls.length>1?'Hovory za vás':'Hovor za vás'),
+  el('details',{className:'card'},el('summary',{style:'cursor:pointer;font-weight:600'},'Zadání'),el('p',{style:'margin-top:10px;white-space:pre-wrap'},first.task),first.notes?el('p',{className:'small mute',style:'white-space:pre-wrap'},first.notes):null),
+  sales?el('div',{className:'stats'},el('div',{className:'stat'},el('b',{},pledged+' Kč'),el('span',{},'přislíbeno')),el('div',{className:'stat'},el('b',{},String(count('yes'))),el('span',{},'ano')),el('div',{className:'stat'},el('b',{},String(count('maybe')+count('no'))),el('span',{},'možná / ne')),el('div',{className:'stat'},el('b',{},`${calls.filter(done).length}/${calls.length}`),el('span',{},'hotovo'))):null,
+  first.mode==='compare'?compareCard(calls):first.mode==='venue'?venueCard(calls):first.mode==='barter'?barterCard(calls):null,
+  calls.map(c=>callCard(c,calls.length===1)),
+  el('p',{className:'small mute'},'Report je dostupný každému s tímto odkazem. Hovory a přepisy se mažou po 30 dnech.'));
+ document.querySelectorAll('details').forEach((d,i)=>{if(i in openState&&!d.querySelector('.live'))d.open=openState[i]});
+ if(calls.every(done))clearInterval(timer)}
+draw();timer=setInterval(()=>{if(!document.hidden)draw()},2500);
+</script></body></html>

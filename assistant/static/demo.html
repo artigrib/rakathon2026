@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zavolej za mě</title><link rel="stylesheet" href="/base.css">
+<style>
+.step{display:flex;gap:10px;align-items:baseline;margin:0 0 6px}.step .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem}
+.step h2{margin:0}.choice .em{font-size:1.4rem;display:block;margin-bottom:4px}.choice input{position:absolute;opacity:0}.choice{position:relative}.choice:has(input:focus-visible){outline:3px solid var(--brand);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 12px}.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 12px;margin-top:6px}
+.checks label{font-weight:400;margin:0;display:flex;gap:8px;align-items:center}.checks input{width:18px;height:18px}
+.place{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:8px 0;align-items:center}@media (max-width:560px){.place{grid-template-columns:1fr auto}.place>div:first-child{grid-column:1/-1}}
+.say{background:var(--soft);border-radius:8px;padding:12px;white-space:pre-wrap;margin:6px 0}.linkbtn{background:none;border:0;color:var(--brand);padding:0;font-weight:600;text-decoration:underline;cursor:pointer}
+</style></head>
+<body><main id="app"><p class="mute">Načítám…</p></main>
+<script>
+const app=document.getElementById('app');
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==='on')for(const[n,f]of Object.entries(v))e.addEventListener(n,f);else if(k in e)e[k]=v;else e.setAttribute(k,v)}for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e};
+const show=(...k)=>app.replaceChildren(...k.flat().filter(x=>x!=null&&x!==false));
+async function api(path,opts={}){const r=await fetch(path,{...opts,headers:opts.body?{'Content-Type':'application/json'}:{}});let d={};try{d=await r.json()}catch{}if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Něco se nepovedlo, zkuste to znovu.');e.status=r.status;throw e}return d}
+let uid=0;const inp=(label,{tag='input',...attrs},hint)=>{const id='f'+(++uid);const i=el(tag,{id,...attrs});return {i,box:el('div',{},el('label',{htmlFor:id},label,hint?el('span',{className:'mute'},' ('+hint+')'):null),i)}};
+const iso=d=>d.toISOString().slice(0,10);
+const nextFriday=()=>{const d=new Date();d.setDate(d.getDate()+((12-d.getDay())%7||7));return iso(d)};
+const longDate=v=>{const d=new Date(v+'T12:00');return isNaN(d)?v:d.toLocaleDateString('cs-CZ',{weekday:'long',day:'numeric',month:'numeric',year:'numeric'})};
+
+// Each scenario: its fields, how they become the assistant's task, and what the assistant knows about the owner.
+const SCENARIOS={
+ errand:{em:'🍽️',title:'Rezervovat stůl',text:'Zavolá do restaurace a zarezervuje.',places:'Restaurace, kam zavolat',labels:['Kavárna U Lípy'],
+  fields:()=>({date:inp('Kdy',{type:'date',value:iso(new Date())}),time:inp('V kolik',{type:'time',value:'19:00'}),people:inp('Kolik osob',{type:'number',min:1,max:30,value:2}),
+   ask:inp('Na co se ještě zeptat',{type:'text',value:'jaká vína nabízejí a kolik stojí sklenka'},'nepovinné')}),
+  task:f=>`Zarezervuj stůl pro ${f.people} os. na ${longDate(f.date)} v ${f.time}. Když v ${f.time} volno není, zjisti, kdy ten den volno mají, a nic jiného nerezervuj.${f.ask?` Zeptej se také: ${f.ask}.`:''}`,
+  notes:'Přijdeme s kočárkem s miminkem: zeptej se, kam ho můžeme dát.\nPřijedeme autem: zeptej se, jestli je u podniku parkování.\nAlergie: banány a okurky. Řekni to předem, ať je kuchyně nedává do jídla.'},
+ venue:{em:'🎉',title:'Najít místo pro akci',text:'Obvolá restaurace, kdo má volno, kolik to stojí. Nic nerezervuje.',places:'Restaurace, které obvolat',labels:['Restaurace U Lípy','Lokál Dlouhá','Bistro Karlín'],
+  fields:()=>({kind:inp('Jaká akce',{tag:'select'}),date:inp('Datum',{type:'date',value:nextFriday()}),time:inp('Od kolika',{type:'time',value:'18:00'}),
+   guests:inp('Počet hostů',{type:'number',min:2,max:300,value:20}),budget:inp('Rozpočet na osobu',{type:'number',min:0,step:50,value:600},'Kč, nepovinné'),
+   needs:{checks:['salonek nebo oddělený prostor','projektor nebo televize','vlastní hudba','bezbariérový přístup','dětský koutek','vegetariánské jídlo']}}),
+  init:f=>['narozeniny','firemní večírek','rodinná oslava','rozlučka','jiná akce'].forEach(k=>f.kind.i.append(el('option',{value:k},k))),
+  task:f=>`Hledám místo na ${f.kind} ${longDate(f.date)} od ${f.time} pro ${f.guests} hostů${f.budget?`, rozpočet do ${f.budget} Kč na osobu`:''}.${f.needs.length?` Potřebujeme: ${f.needs.join(', ')}.`:''} Zjisti, jestli mají ten den volno a pro kolik lidí, jestli mají salonek nebo oddělený prostor, cenu na osobu nebo menu, minimální útratu, zálohu a co je v ceně. Nic nerezervuj ani nedávej na opci.`,
+  notes:'Mezi hosty bude miminko v kočárku: zeptej se, kam ho dát.\nPřijede asi 5 aut: zeptej se na parkování.\nJeden host má alergii na banány a okurky.'},
+ barter:{em:'🤝',title:'Akce na barter',text:'Obvolá kavárny, nabídne spolupráci a vyjedná co nejlepší podmínky.',places:'Kavárny a restaurace, které obvolat',labels:['Kavárna U Lípy','Café Karlín','Bistro Vinohrady'],
+  fields:()=>({kind:inp('Jaká akce',{type:'text',value:'komunitní večer pro startupisty'}),date:inp('Datum',{type:'date',value:nextFriday()}),time:inp('Od kolika',{type:'time',value:'18:00'}),
+   guests:inp('Kolik hostů přivedete',{type:'number',min:5,max:300,value:40}),reach:inp('Dosah na sítích',{type:'number',min:0,step:100,value:3000},'sledujících, nepovinné'),
+   offer:{label:'Co nabízíte',checks:['příspěvky a stories na Instagramu','fotky a video z akce pro podnik','logo podniku na pozvánce','útrata hostů na baru','recenze na Google Maps']},
+   want:{label:'Co chcete',checks:['prostor zdarma','sleva na jídlo a pití','welcome drink pro hosty','ozvučení nebo projektor','prodloužená otevírací doba']}}),
+  defaults:{offer:['příspěvky a stories na Instagramu','fotky a video z akce pro podnik','útrata hostů na baru'],want:['prostor zdarma','welcome drink pro hosty']},
+  task:f=>`Pořádám ${f.kind} ${longDate(f.date)} od ${f.time}, přivedu asi ${f.guests} hostů. Hledám podnik, který akci hostí na barter. Nabízím: ${f.offer.join(', ')||'propagaci akce'}${f.reach?` (dosah asi ${f.reach} sledujících)`:''}. Chci: ${f.want.join(', ')||'prostor'}. Vyjednej co nejlepší podmínky: začni tím, co chci, a ustupuj postupně, třeba na slevu místo prostoru zdarma. Zjisti, kdo rozhoduje, jejich nejlepší nabídku, co za to chtějí a kdy potvrdit. Nic definitivně neslibuj.`,
+  notes:'Nemám rozpočet na pronájem, maximálně menší zálohu, kterou potvrdím sám.\nAkce je nekomerční, vstup zdarma.\nMezi hosty bude miminko v kočárku, jeden host má alergii na banány a okurky.'},
+ compare:{em:'🦷',title:'Obvolat a porovnat',text:'Stejné otázky na víc míst, nejbližší termín a cena.',places:'Místa, která obvolat',labels:['Zubní klinika Vinohrady','Dentální centrum Karlín','Zubař Smíchov'],
+  fields:()=>({what:inp('Co hledáte',{tag:'textarea',value:'Hledám zubaře na preventivní prohlídku a dentální hygienu. Zjisti nejbližší volný termín (přesný den a hodinu), cenu dentální hygieny v Kč a co je v ceně, a jestli berou nové pacienty s pojišťovnou VZP.'})}),
+  task:f=>`${f.what} Nic nerezervuj.`,notes:'Jsem dospělý, bez akutních bolestí.\nNejlépe dopoledne nebo hned po 16. hodině.'},
+ sales:{em:'🍺',title:'Sbírka na pivo',text:'Prodejní hovor kamarádům: nabídka, námitky, příslib.',places:'Kamarádi, kterým zavolat',labels:['Petr','Jana','Tomáš'],
+  fields:()=>({what:inp('Na co se vybírá',{type:'text',value:'pátek večer pivo s partou'}),amount:inp('Kolik chcete od každého',{type:'number',min:10,step:10,value:200},'Kč'),
+   perks:inp('Proč se přidat',{tag:'textarea',value:'první kolo platí kasa, kdo přispěje, vybírá hospodu, a {owner} přinese něco k zakousnutí'})}),
+  task:(f,o)=>`${o} zve partu: ${f.what}. Získej od kamaráda příspěvek ${f.amount} Kč do společné kasy. Výhody: ${f.perks.replaceAll('{owner}',o)}. Když nemůže přijít, nabídni polovinu „na zdraví party“ i bez účasti.`,
+  notes:'Kasu drží {owner}, peníze se posílají až jemu, ne asistentovi.\nKdo přispěje do čtvrtka, má první pivo zdarma.'}};
+
+function viewLogin(){const c=inp('Přístupový kód',{type:'password',required:true,autocomplete:'current-password'});const err=el('p',{className:'err',role:'alert'});
+ show(el('h1',{},'Zavolej za mě'),el('p',{className:'mute'},'Demo hlasového asistenta, který telefonuje za vás.'),
+ el('form',{className:'card',on:{submit:async e=>{e.preventDefault();err.textContent='';try{await api('/api/login',{method:'POST',body:JSON.stringify({code:c.i.value})});start()}catch(x){err.textContent=x.message}}}},c.box,el('p',{style:'margin-top:16px'},el('button',{},'Pokračovat')),err));c.i.focus()}
+
+function viewForm(info){
+ let mode='venue',fields={},manual=false,preset=true;
+ const step=(n,title,...kids)=>el('section',{className:'card'},el('div',{className:'step'},el('span',{className:'n','aria-hidden':'true'},String(n)),el('h2',{},title)),...kids);
+ // 1: what
+ const choices=el('div',{className:'choices',role:'radiogroup','aria-label':'Co má asistent zařídit'},Object.entries(SCENARIOS).map(([k,sc])=>el('label',{className:'choice'},
+  el('input',{type:'radio',name:'mode',value:k,checked:k===mode,on:{change:()=>{mode=k;manual=false;buildDetails();resetPlaces()}}}),el('span',{className:'em','aria-hidden':'true'},sc.em),el('b',{},sc.title),el('div',{className:'small mute',style:'margin-top:4px'},sc.text))));
+ // 2: where
+ const rows=el('div',{});const placesHint=el('p',{className:'small mute',style:'margin:0 0 6px'});
+ const count=()=>[...rows.children].filter(r=>r.querySelectorAll('input,select')[1].value.trim()).length;
+ const addRow=(v={})=>{if(rows.children.length>=5)return;const lab=el('input',{type:'text',placeholder:'Název, např. Restaurace U Lípy',value:v.label||'',maxLength:80,'aria-label':'Kam voláme'});
+  lab.addEventListener('input',()=>preset=false);
+  const num=info.signedIn?el('input',{type:'tel',placeholder:'+420 777 123 456',value:v.number||'','aria-label':'Telefonní číslo',on:{input:()=>{preset=false;updateButton()}}})
+   :el('select',{'aria-label':'Testovací číslo',on:{change:()=>{preset=false;updateButton()}}},(info.targets||[]).map(t=>el('option',{value:t,selected:t===v.number},t)));
+  const row=el('div',{className:'place'},el('div',{},lab),el('div',{},num),
+   el('button',{type:'button',className:'ghost','aria-label':'Odebrat',style:'padding:10px 12px',on:{click:()=>{preset=false;row.remove();if(!rows.children.length)addRow();updateButton()}}},'×'));
+  rows.append(row);updateButton()};
+ const plus=el('button',{type:'button',className:'ghost',on:{click:()=>{preset=false;const used=[...rows.children].map(r=>r.querySelectorAll('input,select')[1].value);addRow({number:info.signedIn?'':(info.targets||[]).find(t=>!used.includes(t))});rows.lastChild.querySelector('input').focus()}}},'+ Přidat místo');
+ const resetPlaces=()=>{const sc=SCENARIOS[mode];placesHint.textContent=sc.places+'. Volá postupně jedno po druhém, nejvýše 5.';
+  if(!preset&&count())return;rows.replaceChildren();const t=info.targets||[];
+  if(t.length)sc.labels.slice(0,t.length).forEach((label,i)=>addRow({label,number:t[i]}));else{addRow();addRow()}
+  preset=true;if(t.length)placesHint.textContent+=info.signedIn?' Předvyplněná jsou testovací čísla dema.':' Bez přístupového kódu volá jen na testovací čísla dema.'};
+ // 3: details
+ const details=el('div',{});const say=el('div',{className:'say','aria-live':'polite'});const edit=el('textarea',{maxLength:1500,style:'min-height:140px;display:none','aria-label':'Zadání pro asistenta'});
+ const toggle=el('button',{type:'button',className:'linkbtn',on:{click:()=>{manual=!manual;if(manual)edit.value=say.textContent;else refresh();layout()}}});
+ const layout=()=>{say.style.display=manual?'none':'';edit.style.display=manual?'':'none';toggle.textContent=manual?'Vrátit automatický text':'Upravit text ručně'};
+ const values=()=>Object.fromEntries(Object.entries(fields).map(([k,f])=>[k,f.checks?[...f.box.querySelectorAll('input:checked')].map(x=>x.value):String(f.i.value).trim()]));
+ const ownerName=()=>owner.i.value.trim()||info.owner;
+ const refresh=()=>{if(!manual)say.textContent=SCENARIOS[mode].task(values(),ownerName())};
+ const buildDetails=()=>{const sc=SCENARIOS[mode];fields=sc.fields();
+  const groups=Object.entries(fields).filter(([,f])=>f.checks);
+  for(const [k,f] of groups){const on=(sc.defaults&&sc.defaults[k])||(k==='needs'?['salonek nebo oddělený prostor']:[]);
+   f.box=el('div',{style:'margin-top:12px'},el('label',{},f.label||'Co potřebujete',el('span',{className:'mute'},' (nepovinné)')),el('div',{className:'checks'},f.checks.map(t=>el('label',{},el('input',{type:'checkbox',value:t,checked:on.includes(t)}),t))))}
+  sc.init&&sc.init(fields);
+  const plain=Object.values(fields).filter(f=>!f.checks);
+  details.replaceChildren(el('div',{className:plain.length>1?'grid2':''},plain.map(f=>f.box)),groups.map(([,f])=>f.box));
+  details.querySelectorAll('input,select,textarea').forEach(x=>{x.addEventListener('input',refresh);x.addEventListener('change',refresh)});
+  notes.i.value=sc.notes.replaceAll('{owner}',ownerName());layout();refresh()};
+ // 4: who
+ const owner=inp('Za koho volá',{type:'text',required:true,maxLength:80,value:info.owner});owner.i.addEventListener('input',refresh);
+ const notes=inp('Co o vás asistent ví',{tag:'textarea',maxLength:1500,style:'min-height:100px'},'řekne to sám, když se to hodí, a nic jiného si nevymyslí');
+ const err=el('p',{className:'err',role:'alert'});const btn=el('button',{});
+ function updateButton(){const n=count();btn.textContent=n>1?`Zavolat na ${n} místa`:'Zavolat';btn.disabled=!n}
+ const form=el('form',{on:{submit:async e=>{e.preventDefault();err.textContent='';
+  const to=[...rows.children].map(r=>{const [l,n]=r.querySelectorAll('input,select');return {label:l.value.trim(),number:n.value.trim()}}).filter(x=>x.number);
+  const task=manual?edit.value:say.textContent;if(!to.length){err.textContent='Zadejte aspoň jedno číslo.';return}
+  btn.disabled=true;btn.textContent='Volám…';
+  try{const r=await api('/api/demo/call',{method:'POST',body:JSON.stringify({to,task,notes:notes.i.value,mode,owner:ownerName()})});location.href='/b/'+r.batch}
+  catch(x){err.textContent=x.message;updateButton()}}}},
+  step(1,'Co má asistent zařídit?',choices),
+  step(2,'Kam zavolat',placesHint,rows,plus),
+  step(3,'Podrobnosti',details,el('p',{className:'small mute',style:'margin:14px 0 0'},'Asistent dostane tohle zadání:'),say,edit,toggle),
+  step(4,'Za koho volá',owner.box,el('details',{},el('summary',{style:'cursor:pointer;color:var(--brand);margin-top:12px'},'Co o vás asistent ví'),notes.box)),
+  el('div',{className:'card'},el('p',{className:'small mute',style:'margin-top:0'},`Volá z čísla ${info.number}. Vždy řekne, že je automat a že se hovor zapisuje. Nikdy nechce kartu ani platbu. Hovory 8–21 h, do 3 minut, nejvýše 10 denně. E-maily jdou na ${info.mail||'(nenastaveno)'}.`),btn,err));
+ const codeLink=info.signedIn?null:el('p',{},el('button',{type:'button',className:'linkbtn',on:{click:viewLogin}},'Mám přístupový kód a chci volat na vlastní čísla'));
+ show(el('h1',{},'Zavolej za mě'),el('p',{className:'mute'},`Asistent ${info.assistant} zavolá za vás a výsledek uvidíte v reportu, živě během hovoru.`),codeLink,form);
+ buildDetails();resetPlaces()}
+
+async function start(){try{viewForm(await api('/api/demo'))}catch(x){show(el('p',{className:'err'},x.message))}}
+start();
+</script></body></html>

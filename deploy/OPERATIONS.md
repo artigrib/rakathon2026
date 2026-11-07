@@ -122,6 +122,11 @@ For the two case containers live:
 How to show it: open the stand, sign in with the access code and your phone and e-mail, open "Ukázka", press
 "Spustit celou ukázku" and follow "where to look" in the step list.
 
+## Phone assistant demo
+
+`asistent.jsemvcas.cz`, service `app-assistant`, profile `assistant`, port 127.0.0.1:8003, volume `deploy_assistant-data`, own
+`assistant/.env`. Not touched by the auto-deploy, health check or backup. See `assistant/README.md`.
+
 ## Restore
 
 ```bash

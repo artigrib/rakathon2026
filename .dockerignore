@@ -6,3 +6,5 @@ examples
 tests
 cases/*/.env
 backend/state-*.json
+assistant/.env
+assistant/tests

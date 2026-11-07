@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefonní asistent</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1c1f24;--mute:#5f6670;--line:#dfddd5;--brand:#14605a;--brand-ink:#fff;--soft:#e7f1ef;--warn:#8a5a00;--warn-bg:#fbf1dc;--err:#a3271f}
+@media (prefers-color-scheme:dark){:root{--bg:#14171a;--card:#1d2125;--ink:#ecedee;--mute:#a2a9b1;--line:#31363c;--brand:#5cc2b6;--brand-ink:#0d1a18;--soft:#1e2f2d;--warn:#e5bb6b;--warn-bg:#33291a;--err:#f08b83}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 64px}h1{font-size:1.6rem;margin:0 0 4px;line-height:1.25}h2{font-size:1.1rem;margin:0 0 8px}
+p{margin:0 0 12px}.mute{color:var(--mute)}.small{font-size:.875rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:16px 0}
+label{display:block;font-weight:600;font-size:.9rem;margin:14px 0 4px}label .mute{font-weight:400}
+input[type=text],input[type=tel],input[type=email],input[type=password],textarea,select{width:100%;padding:10px 12px;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+textarea{min-height:120px;resize:vertical}
+button,.btn{display:inline-block;font:inherit;font-weight:600;padding:10px 16px;border-radius:8px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);cursor:pointer;text-decoration:none}
+button.ghost,.btn.ghost{background:transparent;color:var(--brand)}button.danger{background:transparent;border-color:var(--err);color:var(--err)}button:disabled{opacity:.6;cursor:default}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.err{color:var(--err);margin-top:10px}.ok{color:var(--brand)}
+.number{font-size:1.5rem;font-weight:700;letter-spacing:.01em}
+.code{font:600 1.1rem ui-monospace,Menlo,Consolas,monospace;background:var(--soft);padding:12px;border-radius:8px;overflow-wrap:anywhere;margin:8px 0}
+.note{background:var(--warn-bg);color:var(--warn);padding:10px 12px;border-radius:8px;font-size:.9rem;margin:10px 0}
+.perm{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}.perm input{margin-top:5px;width:18px;height:18px;flex:none}.perm label{margin:0;font-weight:400}.perm b{display:block}
+.call{border-top:1px solid var(--line);padding:12px 0}.call summary{cursor:pointer;color:var(--brand);font-size:.9rem}.turn{margin:6px 0;font-size:.95rem}
+.tag{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--brand);margin-left:6px}
+a{color:var(--brand)}a.btn{color:var(--brand-ink)}a.btn.ghost{color:var(--brand)}ol{padding-left:20px;margin:8px 0}li{margin:4px 0}
+</style></head><body><main id="app"><p class="mute">Načítám…</p></main>
+<script>
+const app=document.getElementById('app');
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==='on')for(const[n,f]of Object.entries(v))e.addEventListener(n,f);else if(k in e&&k!=='list')e[k]=v;else e.setAttribute(k,v)}for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e};
+async function api(path,opts={}){const r=await fetch(path,{...opts,headers:opts.body?{'Content-Type':'application/json'}:{}});let d={};try{d=await r.json()}catch{}if(!r.ok){const m=typeof d.detail==='string'?d.detail:'Něco se nepovedlo, zkuste to znovu.';const e=new Error(m);e.status=r.status;throw e}return d}
+const field=(label,input,hint)=>el('div',{},el('label',{htmlFor:input.id},label,hint?el('span',{className:'mute'},' ('+hint+')'):null),input);
+const show=(...kids)=>app.replaceChildren(...kids.flat().filter(k=>k!=null&&k!==false));
+let cfg={},timer=null;
+const recent=()=>{try{return JSON.parse(localStorage.getItem('assistants')||'[]')}catch{return[]}};
+const remember=(id,name)=>{try{localStorage.setItem('assistants',JSON.stringify([{id,name},...recent().filter(x=>x.id!==id)].slice(0,10)))}catch{}};
+const forget=id=>{try{localStorage.setItem('assistants',JSON.stringify(recent().filter(x=>x.id!==id)))}catch{}};
+
+function viewLogin(){const code=el('input',{type:'password',id:'code',autocomplete:'current-password',required:true});const err=el('p',{className:'err',role:'alert'});
+ show(el('h1',{},'Telefonní asistent'),el('p',{className:'mute'},'Asistent, který vezme telefon, když to nestihnete. Demo je chráněné přístupovým kódem.'),
+ el('form',{className:'card',on:{submit:async e=>{e.preventDefault();err.textContent='';try{await api('/api/login',{method:'POST',body:JSON.stringify({code:code.value})});route()}catch(x){err.textContent=x.message}}}},field('Přístupový kód',code),el('p',{style:'margin-top:16px'},el('button',{},'Pokračovat')),err));code.focus()}
+
+function viewCreate(){const langs=Object.keys(cfg.languages);const f={owner_name:el('input',{type:'text',id:'owner',required:true,maxLength:80}),owner_phone:el('input',{type:'tel',id:'phone',required:true,placeholder:'+420 777 123 456',autocomplete:'tel'}),name:el('input',{type:'text',id:'name',required:true,maxLength:60,value:'Klára'}),
+ language:el('select',{id:'lang'},langs.map(k=>el('option',{value:k},({cs:'Čeština',sk:'Slovenština',en:'Angličtina',ru:'Ruština',uk:'Ukrajinština',de:'Němčina'})[k]))),
+ greeting:el('input',{type:'text',id:'greet',required:true,maxLength:300}),instructions:el('textarea',{id:'instr',maxLength:3000,placeholder:'Čím se zabývám, kdy jsem k zastižení, co mají volající vědět, jak se mají oslovovat…'}),notify_email:el('input',{type:'email',id:'mail',autocomplete:'email'})};
+ const setGreet=()=>{if(!f.greeting.dataset.edited)f.greeting.value=`Dobrý den, tady ${f.name.value||'asistent'}, asistentka ${f.owner_name.value||'…'}. Teď to nemůže vzít.`};f.greeting.addEventListener('input',()=>f.greeting.dataset.edited='1');f.name.addEventListener('input',setGreet);f.owner_name.addEventListener('input',setGreet);setGreet();
+ const err=el('p',{className:'err',role:'alert'});const btn=el('button',{},'Vytvořit asistenta');
+ const list=recent();
+ show(el('h1',{},'Nový telefonní asistent'),el('p',{className:'mute'},'Nastavíte ho, dostanete číslo a kód pro přesměrování. Pak vám hovory, které nestihnete, vezme on.'),
+ list.length?el('div',{className:'card'},el('h2',{},'Vaši asistenti'),list.map(x=>el('p',{},el('a',{href:'/a/'+x.id},x.name)))):null,
+ el('form',{className:'card',on:{submit:async e=>{e.preventDefault();err.textContent='';btn.disabled=true;btn.textContent='Vytvářím…';try{const b=Object.fromEntries(Object.entries(f).map(([k,i])=>[k,i.value]));const r=await api('/api/assistants',{method:'POST',body:JSON.stringify(b)});remember(r.id,b.name);location.href='/a/'+r.id}catch(x){err.textContent=x.message;btn.disabled=false;btn.textContent='Vytvořit asistenta'}}}},
+ field('Vaše jméno',f.owner_name),field('Váš mobil',f.owner_phone,'podle něj poznáme vaše přesměrované hovory'),field('Jméno asistenta',f.name),field('Jazyk',f.language),field('Pozdrav',f.greeting,'na konec vždy přidáme, že jde o automat a hovor se zapisuje'),field('Co má asistent vědět',f.instructions,'nepovinné'),field('E-mail pro shrnutí hovorů',f.notify_email,'nepovinné'),
+ el('p',{style:'margin-top:16px'},btn),err))}
+
+const copyBtn=text=>{const b=el('button',{type:'button',className:'ghost',on:{click:async()=>{try{await navigator.clipboard.writeText(text);b.textContent='Zkopírováno';setTimeout(()=>b.textContent='Kopírovat',1500)}catch{b.textContent='Označte a zkopírujte ručně'}}}},'Kopírovat');return b};
+const fmtTime=s=>new Date(s*1000).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+
+function forwardCard(a){const sec=el('select',{id:'sec',style:'width:auto'},[5,10,15,20,25,30].map(s=>el('option',{value:s,selected:s===10},s+' s')));const box=el('div',{});
+ const draw=()=>{const code=`**61*${a.number}**${sec.value}#`;box.replaceChildren(el('div',{className:'code'},code),el('div',{className:'row'},el('a',{className:'btn',href:'tel:'+encodeURIComponent(code)},'Vytočit kód'),copyBtn(code)))};sec.addEventListener('change',draw);draw();
+ const foreign=!a.number.startsWith('+420');
+ return el('section',{className:'card'},el('h2',{},'Číslo a přesměrování'),el('p',{className:'number'},a.number),el('p',{className:'mute small'},'Na tohle číslo může kdokoli zavolat i přímo, asistent to vezme stejně.'),
+ el('label',{htmlFor:'sec'},'Přesměrovat, když to nevezmete do'),sec,box,
+ el('ol',{className:'small'},el('li',{},'Vytočte kód na svém telefonu jako běžné číslo (na iPhonu ho vložte do Telefonu ručně).'),el('li',{},'Počkejte na potvrzení od operátora.'),el('li',{},'Nechte si z jiného telefonu zavolat a hovor nezvedejte.')),
+ el('p',{className:'small mute'},'Kontrola: ',el('code',{},'*#61#'),' · zrušit: ',el('code',{},'##61#'),'. Přesměrování nahradí hlasovou schránku pro nepřijaté hovory.'),
+ foreign?el('p',{className:'note'},'Toto je zahraniční číslo. Přesměrovaný hovor vám operátor může účtovat jako mezinárodní, cenu si ověřte v tarifu.'):el('p',{className:'small mute'},'Přesměrovaný hovor vám účtuje operátor podle tarifu.'),
+ a.shared?el('p',{className:'note'},'Číslo sdílí víc asistentů. Hovor poznáme podle vašeho mobilu, pokud operátor přesměrování oznámí. Jinak ho vezme nejnovější asistent.'):null)}
+
+function connectCard(a,refresh){const err=el('p',{className:'err',role:'alert'});
+ const toggle=async(perm,box)=>{err.textContent='';box.disabled=true;try{await api('/api/assistants/'+a.id,{method:'PATCH',body:JSON.stringify({perms:{[perm]:box.checked}})});await refresh()}catch(x){err.textContent=x.message;box.checked=!box.checked;box.disabled=false}};
+ const perm=(key,title,text)=>{const id='p-'+key;const blocked=!!a.permMissing[key];const box=el('input',{type:'checkbox',id,checked:!!a.perms[key],disabled:blocked,on:{change:e=>toggle(key,e.target)}});return el('div',{className:'perm'},box,el('label',{htmlFor:id},el('b',{},title),el('span',{className:'small mute'},text)))};
+ const connect=want=>cfg.google?el('a',{className:'btn ghost',href:`/oauth/google/start?a=${encodeURIComponent(a.id)}&want=${want}`},want==='calendar'?'Připojit Google Kalendář':'Připojit Gmail'):null;
+ const disconnect=el('button',{type:'button',className:'ghost',on:{click:async()=>{err.textContent='';try{await api(`/api/assistants/${a.id}/google/disconnect`,{method:'POST'});await refresh()}catch(x){err.textContent=x.message}}}},'Odpojit Google');
+ return el('section',{className:'card'},el('h2',{},'Účty a oprávnění'),el('p',{className:'mute small'},'Volající je pro asistenta cizí člověk, proto má asistent jen to, co tady povolíte. Poštu nikdy nečte a z kalendáře vidí jen volno, ne názvy událostí.'),
+ a.googleConnected?el('p',{},'Připojeno: ',el('b',{},a.google_email||'Google')):null,
+ el('h2',{style:'margin-top:16px'},'Kalendář',a.googleCalendar?el('span',{className:'tag'},'připojeno'):null),
+ perm('calendar_read','Zjistit, kdy mám volno',`Asistent řekne volajícímu volné časy, pondělí až pátek ${cfg.workHours[0]}–${cfg.workHours[1]} h.`),
+ perm('calendar_book','Zapsat schůzku do kalendáře','Jen do volného času, nejvýše 5 denně, bez pozvánek komukoli dalšímu.'),
+ !a.googleCalendar?connect('calendar'):null,
+ el('h2',{style:'margin-top:20px'},'E-mail',a.googleMail?el('span',{className:'tag'},'Gmail'):a.notify_email&&cfg.smtp?el('span',{className:'tag'},a.notify_email):null),
+ perm('email_summary','Poslat mi shrnutí po hovoru','Přijde vám shrnutí a přepis hovoru.'),
+ perm('email_message','Předat naléhavý vzkaz hned','Asistent vám může napsat během hovoru. Píše jen vám, nikomu jinému.'),
+ !a.googleMail?connect('mail'):null,
+ a.permMissing.email_summary&&cfg.smtp?el('p',{className:'small mute'},'Nebo vyplňte e-mail v nastavení asistenta dole a shrnutí přijdou tam, bez připojení účtu.'):null,
+ !cfg.google?el('p',{className:'note'},'Připojení Google zatím není na serveru nastavené.'):null,
+ a.googleConnected?el('p',{style:'margin-top:16px'},disconnect):null,err)}
+
+function errandCard(a,refresh){const to=el('input',{type:'tel',id:'er-to',required:true,placeholder:'+420 …'});const task=el('textarea',{id:'er-task',required:true,maxLength:1000,placeholder:'Například: zarezervuj stůl pro 2 osoby dnes na 19:00, když nebude volno, zjisti, kdy mají volno. Zeptej se, jaká vína nabízejí.'});
+ const msg=el('p',{role:'status'});const btn=el('button',{},'Zavolat');
+ return el('section',{className:'card'},el('h2',{},'Zavolat za mě'),el('p',{className:'small mute'},`Asistent zavolá z čísla ${a.number}, řekne, že volá vaším jménem a že je automat, a výsledek zapíše sem. Jen česká čísla, 8–21 h, nejvýše 10 hovorů denně, hovor do 3 minut. Zaplatit ani dát kartu nesmí.`),
+ el('form',{on:{submit:async e=>{e.preventDefault();msg.textContent='';btn.disabled=true;btn.textContent='Volám…';try{await api(`/api/assistants/${a.id}/errands`,{method:'POST',body:JSON.stringify({to:to.value,task:task.value})});msg.className='ok';msg.textContent='Volám. Výsledek se objeví v hovorech.';task.value='';await refresh()}catch(x){msg.className='err';msg.textContent=x.message}btn.disabled=false;btn.textContent='Zavolat'}}},field('Komu',to),field('Co má zařídit',task),el('p',{style:'margin-top:16px'},btn),msg))}
+
+function callsCard(a){const routeText={own_number:null,forwarded_from:'poznán podle vašeho mobilu',owner_calling:'volali jste vy',newest:'sdílené číslo, nejnovější asistent'};
+ return el('section',{className:'card'},el('h2',{},'Hovory'),!a.calls.length?el('p',{className:'mute'},'Zatím žádné. Zkuste na číslo zavolat.'):null,
+ a.calls.map(c=>{const d=c.data||{};const out=c.direction==='outbound';const name=out?'Za vás → '+c.to:(d.caller_name||c.from||'Skryté číslo');return el('div',{className:'call'},el('div',{},el('b',{},name),' ',el('span',{className:'mute small'},fmtTime(c.startedAt)+(c.duration!=null?` · ${c.duration} s`:'')),out?el('span',{className:'tag'},'odchozí'):c.forwarded?el('span',{className:'tag'},'přesměrováno'):el('span',{className:'tag'},'přímo'),d.urgent==='ano'?el('span',{className:'tag'},'naléhavé'):null),
+ el('p',{style:'margin:4px 0'},c.summary||(c.ready?'Bez shrnutí.':c.status==='completed'?'Připravuji shrnutí…':c.status==='failed'?'Hovor se nepodařilo spojit s asistentem.':['no-answer','busy','canceled'].includes(c.status)?'Nikdo to nevzal.':'Hovor probíhá…')),
+ out?el('p',{className:'small mute',style:'margin:0'},'Úkol: '+c.task+' ',c.report?el('a',{href:'/r/'+c.report},'Report'):null):null,out&&d.result?el('p',{className:'small',style:'margin:4px 0 0'},el('b',{},'Výsledek: '),d.result):null,out&&d.booked_time?el('p',{className:'small',style:'margin:2px 0 0'},el('b',{},'Rezervace: '),d.booked_time):null,routeText[c.route]?el('p',{className:'small mute',style:'margin:0'},routeText[c.route]):null,
+ c.transcript.length?el('details',{},el('summary',{},'Přepis'),c.transcript.map(t=>el('p',{className:'turn'},el('b',{},t.who==='caller'?'Volající: ':a.name+': '),t.text))):null)}),
+ a.actions.length?el('div',{style:'margin-top:16px'},el('h2',{},'Co asistent udělal'),a.actions.map(x=>el('p',{className:'small'},fmtTime(x.at)+' · '+x.detail))):null)}
+
+function personaCard(a,refresh){const f={name:el('input',{type:'text',id:'e-name',value:a.name,maxLength:60,required:true}),greeting:el('input',{type:'text',id:'e-greet',value:a.greeting,maxLength:300,required:true}),instructions:el('textarea',{id:'e-instr',value:a.instructions,maxLength:3000}),notify_email:el('input',{type:'email',id:'e-mail',value:a.notify_email})};
+ const msg=el('p',{role:'status'});const del=el('button',{type:'button',className:'danger',on:{click:async()=>{if(!confirm('Smazat asistenta, jeho hovory i připojení?'))return;try{await api('/api/assistants/'+a.id,{method:'DELETE'});forget(a.id);location.href='/'}catch(x){msg.className='err';msg.textContent=x.message}}}},'Smazat asistenta');
+ return el('details',{className:'card'},el('summary',{style:'cursor:pointer;font-weight:600'},'Nastavení asistenta'),el('form',{on:{submit:async e=>{e.preventDefault();msg.textContent='';try{await api('/api/assistants/'+a.id,{method:'PATCH',body:JSON.stringify(Object.fromEntries(Object.entries(f).map(([k,i])=>[k,i.value])))});msg.className='ok';msg.textContent='Uloženo.';await refresh(true)}catch(x){msg.className='err';msg.textContent=x.message}}}},
+ field('Jméno',f.name),field('Pozdrav',f.greeting),el('p',{className:'small mute',style:'margin:4px 0 0'},'Na konec přidáme: '+a.disclosure),field('Co má asistent vědět',f.instructions),field('E-mail pro shrnutí',f.notify_email),el('div',{className:'row',style:'margin-top:16px'},el('button',{},'Uložit'),del),msg))}
+
+async function viewAssistant(id){let openEditor=false;
+ const banner={ok:['ok','Google je připojený.'],denied:['err','Připojení Google bylo zrušeno.'],failed:['err','Připojení Google se nepovedlo, zkuste to znovu.'],sync:['err','Google je připojený, ale asistenta se nepodařilo aktualizovat. Přepněte některé oprávnění.']}[new URLSearchParams(location.search).get('google')];
+ if(banner)history.replaceState(null,'',location.pathname);
+ let last='';
+ const draw=async(force)=>{let a;try{a=await api('/api/assistants/'+id)}catch(x){if(x.status===401)return viewLogin();show(el('h1',{},'Asistent nenalezen'),el('p',{},el('a',{href:'/'},'Vytvořit nového')));clearInterval(timer);return}
+ const sig=JSON.stringify(a);if(sig===last&&!force)return;const editing=app.querySelector('details.card[open]')||document.activeElement?.closest?.('form');if(editing&&!force)return;last=sig;remember(a.id,a.name);
+ show(el('p',{className:'small'},el('a',{href:'/'},'Všichni asistenti')),el('h1',{},a.name),el('p',{className:'mute'},`Telefonní asistent, ${a.owner_name}`),banner&&!draw.seen?el('p',{className:banner[0],role:'status'},banner[1]):null,forwardCard(a),errandCard(a,()=>draw(true)),connectCard(a,()=>draw(true)),callsCard(a),personaCard(a,draw));draw.seen=true};
+ await draw(true);clearInterval(timer);timer=setInterval(()=>{if(!document.hidden)draw()},5000)}
+
+async function route(){clearInterval(timer);cfg=await api('/api/config');if(!cfg.signedIn)return viewLogin();const m=location.pathname.match(/^\/a\/([\w-]+)$/);m?viewAssistant(m[1]):viewCreate()}
+route().catch(()=>show(el('p',{className:'err'},'Stránku se nepodařilo načíst. Zkuste ji obnovit.')));
+</script></body></html>

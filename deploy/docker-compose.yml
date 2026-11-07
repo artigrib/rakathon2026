@@ -49,6 +49,16 @@ services:
     environment: { CASE: collections, STATE_FILE: /data/state-collections.json }
     ports: ["127.0.0.1:8002:8000"]
     volumes: ["collections-data:/data"]
+  app-assistant:   # phone assistant demo, see assistant/README.md. Own image, own .env (not backend/.env), own profile.
+    build: { context: .., dockerfile: assistant/Dockerfile }
+    env_file:
+      - path: ../assistant/.env
+        required: false
+    ports: ["127.0.0.1:8003:8000"]
+    volumes: ["assistant-data:/data"]
+    restart: unless-stopped
+    logging: *logging
+    profiles: ["assistant"]
   tunnel:
     image: cloudflare/cloudflared:2024.12.2
     command: tunnel --no-autoupdate run
@@ -61,3 +71,4 @@ volumes:
   plice-data:
   seniors-data:
   collections-data:
+  assistant-data:
