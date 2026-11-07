@@ -9,7 +9,14 @@
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0 12px}.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 12px;margin-top:6px}
 .checks label{font-weight:400;margin:0;display:flex;gap:8px;align-items:center}.checks input{width:18px;height:18px}
 .place{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:8px 0;align-items:center}@media (max-width:560px){.place{grid-template-columns:1fr auto}.place>div:first-child{grid-column:1/-1}}
-.say{background:var(--soft);border-radius:8px;padding:12px;white-space:pre-wrap;margin:6px 0}.linkbtn{background:none;border:0;color:var(--brand);padding:0;font-weight:600;text-decoration:underline;cursor:pointer}
+.say{background:var(--soft);border-radius:8px;padding:12px;white-space:pre-wrap;margin:6px 0;font-size:.92rem}
+main{padding:16px 16px 24px}h1{font-size:1.5rem}.card{padding:16px;margin:12px 0}
+.choices{grid-template-columns:1fr 1fr;gap:8px}.choice{padding:10px;display:flex;flex-direction:column;justify-content:center;min-height:76px}.choice .em{font-size:1.25rem;margin:0 0 2px}.choice b{font-size:.92rem;line-height:1.25}.choice .small{display:none}
+.desc{margin:10px 0 0;font-size:.9rem;color:var(--mute)}
+.callbar{position:sticky;bottom:0;background:var(--bg);margin:12px -16px 0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);z-index:2}
+.callbar button{width:100%;padding:15px;font-size:1.05rem;border-radius:12px}.callbar .err{margin:6px 0 0}
+input,select,textarea,button{min-height:44px}
+@media (min-width:720px){main{padding:24px 16px 48px}.choices{grid-template-columns:repeat(3,1fr)}.choice .small{display:block}.desc{display:none}.callbar{position:static;margin:12px 0 0;padding:0;border:0;background:none}.callbar button{width:auto}}.linkbtn{background:none;border:0;color:var(--brand);padding:0;font-weight:600;text-decoration:underline;cursor:pointer}
 </style></head>
 <body><main><div class="top"><a href="/">📞 Zavolej za mě</a><div class="langs" role="group" aria-label="Language"></div></div><div id="app"><p class="mute">…</p></div></main>
 <script>
@@ -25,26 +32,26 @@ const pickLang=()=>{const q=new URLSearchParams(location.search).get('lang');if(
 let lang=pickLang();
 
 const U={
- en:{title:'Make a call for me',intro:a=>`${a} calls for you. Watch the report live while the call runs.`,code:'I have an access code and want to call my own numbers',
+ en:{title:'Make a call for me',intro:a=>`${a} makes the call. You watch the result live.`,code:'I have an access code and want to call my own numbers',
   s1:'What should the assistant do?',s2:'Where to call',s3:'Details',s4:'Who is calling',taskIs:'The assistant gets this task:',edit:'Edit the text by hand',auto:'Back to the generated text',
   perStep:'Calls them one after another, up to 5.',preset:' The demo test numbers are filled in.',locked:' Without an access code it calls only the demo test numbers.',
   name:'Name, e.g. Restaurace U Lípy',add:'+ Add a place',remove:'Remove',caller:'Calling on behalf of',notes:'What the assistant knows about you',notesHint:'it says this when it helps and invents nothing else',
   call:'Call',callN:n=>`Call ${n} places`,calling:'Calling…',needNumber:'Enter at least one number.',
-  fine:(n,m)=>`Calls from ${n}. It always says it is an automated assistant and that the call is transcribed. It never pays or gives card details. 8:00–21:00, up to 3 minutes, 10 calls a day. E-mails go to ${m||'(not set)'}.`,
+  fine:n=>`Calls from ${n} · says it is an AI and that the call is transcribed · never pays · 8:00–21:00, max 3 min, 10 calls a day.`,
   login:'Access code',cont:'Continue',opt:'optional',report:'Report language: English'},
- cs:{title:'Zavolej za mě',intro:a=>`Asistent ${a} zavolá za vás a výsledek uvidíte v reportu, živě během hovoru.`,code:'Mám přístupový kód a chci volat na vlastní čísla',
+ cs:{title:'Zavolej za mě',intro:a=>`${a} zavolá za vás. Výsledek sledujete živě.`,code:'Mám přístupový kód a chci volat na vlastní čísla',
   s1:'Co má asistent zařídit?',s2:'Kam zavolat',s3:'Podrobnosti',s4:'Za koho volá',taskIs:'Asistent dostane tohle zadání:',edit:'Upravit text ručně',auto:'Vrátit automatický text',
   perStep:'Volá postupně jedno po druhém, nejvýše 5.',preset:' Předvyplněná jsou testovací čísla dema.',locked:' Bez přístupového kódu volá jen na testovací čísla dema.',
   name:'Název, např. Restaurace U Lípy',add:'+ Přidat místo',remove:'Odebrat',caller:'Za koho volá',notes:'Co o vás asistent ví',notesHint:'řekne to sám, když se to hodí, a nic jiného si nevymyslí',
   call:'Zavolat',callN:n=>`Zavolat na ${n} místa`,calling:'Volám…',needNumber:'Zadejte aspoň jedno číslo.',
-  fine:(n,m)=>`Volá z čísla ${n}. Vždy řekne, že je automat a že se hovor zapisuje. Nikdy nechce kartu ani platbu. Hovory 8–21 h, do 3 minut, nejvýše 10 denně. E-maily jdou na ${m||'(nenastaveno)'}.`,
+  fine:n=>`Volá z čísla ${n} · řekne, že je AI a že se hovor zapisuje · nikdy neplatí · 8–21 h, max. 3 minuty, 10 hovorů denně.`,
   login:'Přístupový kód',cont:'Pokračovat',opt:'nepovinné',report:'Jazyk reportu: čeština'},
- ru:{title:'Позвони за меня',intro:a=>`${a} позвонит за вас, а отчёт видно вживую во время звонка.`,code:'У меня есть код доступа, хочу звонить на свои номера',
+ ru:{title:'Позвони за меня',intro:a=>`${a} позвонит за вас. Результат видно вживую.`,code:'У меня есть код доступа, хочу звонить на свои номера',
   s1:'Что должен сделать ассистент?',s2:'Куда звонить',s3:'Детали',s4:'От чьего имени',taskIs:'Ассистент получит такую задачу:',edit:'Изменить текст вручную',auto:'Вернуть автоматический текст',
   perStep:'Звонит по очереди, до 5 мест.',preset:' Подставлены тестовые номера демо.',locked:' Без кода доступа звонит только на тестовые номера демо.',
   name:'Название, напр. Restaurace U Lípy',add:'+ Добавить место',remove:'Убрать',caller:'От чьего имени',notes:'Что ассистент знает о вас',notesHint:'скажет сам, когда уместно, и ничего не придумает',
   call:'Позвонить',callN:n=>`Позвонить в ${n} места`,calling:'Звоню…',needNumber:'Укажите хотя бы один номер.',
-  fine:(n,m)=>`Звонит с номера ${n}. Всегда говорит, что он автомат и звонок записывается. Никогда не платит и не называет данные карты. Звонки 8–21, до 3 минут, не больше 10 в день. Письма уходят на ${m||'(не задано)'}.`,
+  fine:n=>`Звонит с номера ${n} · говорит, что он AI и звонок записывается · никогда не платит · 8–21, до 3 минут, 10 звонков в день.`,
   login:'Код доступа',cont:'Дальше',opt:'необязательно',report:'Язык отчёта: русский'}};
 
 // Scenarios. Task templates: Czech for the Czech UI, English otherwise (the assistant reads any language and speaks Czech on the phone).
@@ -109,7 +116,8 @@ function viewForm(info){
  let mode=lang==='cs'?'venue':'office',fields={},manual=false,preset=true;
  const step=(n,title,...kids)=>el('section',{className:'card'},el('div',{className:'step'},el('span',{className:'n','aria-hidden':'true'},String(n)),el('h2',{},title)),...kids);
  const choices=el('div',{className:'choices',role:'radiogroup','aria-label':u.s1},Object.entries(S).map(([k,sc])=>el('label',{className:'choice'},
-  el('input',{type:'radio',name:'mode',value:k,checked:k===mode,on:{change:()=>{mode=k;manual=false;buildDetails();resetPlaces()}}}),el('span',{className:'em','aria-hidden':'true'},sc.em),el('b',{},sc.title),el('div',{className:'small mute',style:'margin-top:4px'},sc.text))));
+  el('input',{type:'radio',name:'mode',value:k,checked:k===mode,on:{change:()=>{mode=k;manual=false;desc.textContent=S[k].text;buildDetails();resetPlaces()}}}),el('span',{className:'em','aria-hidden':'true'},sc.em),el('b',{},sc.title),el('div',{className:'small mute',style:'margin-top:4px'},sc.text))));
+ const desc=el('p',{className:'desc','aria-live':'polite'},S[mode].text);
  const rows=el('div',{});const placesHint=el('p',{className:'small mute',style:'margin:0 0 6px'});
  const val=r=>r.querySelectorAll('input,select')[1].value.trim();
  const count=()=>[...rows.children].filter(val).length;
@@ -142,11 +150,13 @@ function viewForm(info){
   if(!to.length){err.textContent=u.needNumber;return}btn.disabled=true;btn.textContent=u.calling;
   try{const r=await api('/api/demo/call',{method:'POST',body:JSON.stringify({to,task:manual?edit.value:say.textContent,notes:notes.i.value,mode,owner:ownerName(),report_lang:lang})});location.href='/b/'+r.batch+'?lang='+lang}
   catch(x){err.textContent=x.message;updateButton()}}}},
-  step(1,u.s1,choices),step(2,u.s2,placesHint,rows,plus),
+  step(1,u.s1,choices,desc),step(2,u.s2,placesHint,rows,plus),
   step(3,u.s3,details,el('p',{className:'small mute',style:'margin:14px 0 0'},u.taskIs),say,edit,toggle),
   step(4,u.s4,owner.box,el('details',{},el('summary',{style:'cursor:pointer;color:var(--brand);margin-top:12px'},u.notes),notes.box)),
-  el('div',{className:'card'},el('p',{className:'small mute',style:'margin-top:0'},u.fine(info.number,info.mail)+' '+u.report),btn,err));
- show(el('h1',{},u.title),el('p',{className:'mute'},u.intro(info.assistant)),info.signedIn?null:el('p',{},el('button',{type:'button',className:'linkbtn',on:{click:viewLogin}},u.code)),form);
+  el('p',{className:'small mute',style:'margin:12px 4px 0'},u.fine(info.number)+' '+u.report),
+  info.signedIn?null:el('p',{style:'margin:8px 4px 0'},el('button',{type:'button',className:'linkbtn small',on:{click:viewLogin}},u.code)),
+  el('div',{className:'callbar'},btn,err));
+ show(el('h1',{},u.title),el('p',{className:'mute',style:'margin-bottom:4px'},u.intro(info.assistant)),form);
  buildDetails();resetPlaces()}
 
 let info;

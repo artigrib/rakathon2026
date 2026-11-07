@@ -844,7 +844,7 @@ def demo_info(request: Request):
     """Open without the access code; without it, calls go only to the demo's own test numbers (demo_call)."""
     a = _demo_assistant()
     return {"assistant": a["name"], "owner": a["owner_name"], "number": a["number"], "notes": config.env("ASSISTANT_DEMO_NOTES") or a["instructions"],
-            "mail": _mail_target(a), "googleCalendar": google.has(a, google.SCOPE_EVENTS),
+            "mail": _mail_target(a) if _signed_in(request) else "", "googleCalendar": google.has(a, google.SCOPE_EVENTS),  # no address on the public page
             # preset numbers the demo form fills in (test phones), from assistant/.env, never in the code
             "targets": _demo_targets(), "signedIn": _signed_in(request)}
 

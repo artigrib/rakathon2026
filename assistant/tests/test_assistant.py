@@ -507,7 +507,9 @@ def test_demo_without_code_calls_only_the_test_numbers(client, monkeypatch):
     monkeypatch.setenv("ASSISTANT_DEMO_ID", aid)
     monkeypatch.setenv("ASSISTANT_DEMO_TARGETS", "+420600111222,+420600111224")
     anon = TestClient(appmod.app, base_url=BASE)
+    db.update_assistant(aid, notify_email="owner@example.com")
     info = anon.get("/api/demo").json()
+    assert info["mail"] == "" and "owner@example.com" not in json.dumps(info) and client.get("/api/demo").json()["mail"] == "owner@example.com"
     assert info["signedIn"] is False and info["targets"] == ["+420600111222", "+420600111224"]
     body = {"task": "x", "mode": "venue", "owner": "Gleb"}
     assert anon.post("/api/demo/call", json={**body, "to": [{"number": "+420777000999"}]}).status_code == 403
