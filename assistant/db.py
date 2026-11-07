@@ -30,7 +30,7 @@ CALL_COLUMNS = {"direction": "TEXT NOT NULL DEFAULT 'inbound'", "task": "TEXT NO
                 "notes": "TEXT NOT NULL DEFAULT ''", "report_id": "TEXT NOT NULL DEFAULT ''", "call_ref": "TEXT NOT NULL DEFAULT ''",
                 "tools": "TEXT NOT NULL DEFAULT '[]'", "live_at": "REAL NOT NULL DEFAULT 0",
                 "mode": "TEXT NOT NULL DEFAULT 'errand'", "owner": "TEXT NOT NULL DEFAULT ''", "batch_id": "TEXT NOT NULL DEFAULT ''",
-                "label": "TEXT NOT NULL DEFAULT ''"}
+                "label": "TEXT NOT NULL DEFAULT ''", "report_lang": "TEXT NOT NULL DEFAULT 'cs'"}
 
 
 def _path() -> str:
@@ -140,13 +140,13 @@ def add_call(sid: str, assistant_id, to_number: str, from_number: str, forwarded
 
 def add_outbound(sid: str, assistant_id: str, to_number: str, from_number: str, task: str, agent_id: str,
                  notes: str = "", report_id: str = "", call_ref: str = "", mode: str = "errand", owner: str = "", batch_id: str = "",
-                 label: str = ""):
+                 label: str = "", report_lang: str = "cs"):
     """Stored before Twilio is asked to call (sid = 'pending-…'), so the call webhook always finds it."""
     with conn() as c:
         c.execute("INSERT INTO calls(sid,assistant_id,to_number,from_number,route,direction,task,agent_id,notes,report_id,call_ref,status,"
-                  "mode,owner,batch_id,label,started_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  "mode,owner,batch_id,label,report_lang,started_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                   (sid, assistant_id, to_number, from_number, "outbound", "outbound", task, agent_id, notes, report_id, call_ref, "queued",
-                   mode, owner, batch_id, label, time.time()))
+                   mode, owner, batch_id, label, report_lang, time.time()))
 
 
 def batch(batch_id: str) -> list:

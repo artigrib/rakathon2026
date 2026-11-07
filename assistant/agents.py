@@ -385,7 +385,24 @@ def errand_config(language: str, token: str = "") -> dict:
     }
 
 
-def errand_agent(language: str, store, mode: str = "errand") -> str:
+def report_language(conf: dict, report: str) -> dict:
+    """Results, notes and tool texts in the language of the person who reads the report (the call stays in `language`)."""
+    import re
+    name = LANGUAGES[report]
+    sub = lambda t: re.sub(r"\b([Ii])n Czech\b(?! crowns)", lambda m: f"{m.group(1)}n {name}", t)  # noqa: E731
+
+    def walk(x):
+        if isinstance(x, dict):
+            return {k: walk(v) for k, v in x.items()}
+        if isinstance(x, list):
+            return [walk(v) for v in x]
+        return sub(x) if isinstance(x, str) else x
+    out = walk(conf)
+    out["name"] = f"{conf['name']} [{report}]"
+    return out
+
+
+def errand_agent(language: str, store, mode: str = "errand", report: str = "cs") -> str:
     """One shared errand agent per language, created on first use and updated when its config changes in the code;
     the task comes in as a dynamic variable."""
     import hashlib
@@ -395,6 +412,8 @@ def errand_agent(language: str, store, mode: str = "errand") -> str:
         token = secrets.token_urlsafe(32)
         store.set("errand_tool_token", token)
     key, conf = f"{mode}_agent_{language}", MODES[mode](language, token)
+    if report != "cs":
+        key, conf = f"{key}_{report}", report_language(conf, report)
     version = hashlib.sha256(json.dumps(conf, sort_keys=True).encode()).hexdigest()[:16]
     agent_id = store.get(key)
     if not agent_id:
@@ -475,4 +494,35 @@ def barter_config(language: str, token: str = "") -> dict:
     return conf
 
 
-MODES = {"errand": errand_config, "sales": sales_config, "compare": compare_config, "venue": venue_config, "barter": barter_config}
+def office_config(language: str, token: str = "") -> dict:
+    """Book an appointment at an office for a client who does not speak Czech, and find out what to bring."""
+    conf = errand_config(language, token)
+    field = lambda d: {"type": "string", "description": d}  # noqa: E731
+    agent = conf["conversation_config"]["agent"]
+    conf["name"] = f"Asistent – objednání na úřad ({language})"
+    agent["prompt"]["prompt"] += """
+
+This call is to an office (úřad) on behalf of a client of {{owner_name}}. The client does not speak Czech; say so early.
+- Book an appointment that fits the task. Repeat the exact day, time, address, floor or window, and a reference number.
+  When the office confirms it, call record_booking.
+- Ask what the client must bring: which documents, originals or copies, photos, translations, filled forms.
+- Ask about the fee, how to pay it (cash, card, stamp), and how long the appointment takes.
+- Ask whether the client may come with an interpreter, or whether English is possible.
+- If the office cannot book by phone, ask how to book (online system, in person, e-mail) and note it."""
+    conf["platform_settings"] = {"data_collection": {
+        "outcome": field("Exactly one: done (appointment booked), partly (only information), not_possible, no_answer."),
+        "appointment_time": field("Booked appointment as YYYY-MM-DD HH:MM, empty if none."),
+        "place": field("In Czech: address, building, floor, office or window for the appointment."),
+        "documents": field("In Czech: everything the client must bring, as a list separated by semicolons."),
+        "fees": field("In Czech: fees, amount in CZK and how to pay; empty if not said."),
+        "language_help": field("In Czech: whether an interpreter may come or English is possible."),
+        "reference": field("Reference or booking number, empty if none."),
+        "next_step": field("In Czech: what the client must do next (fill a form online, send documents ...)."),
+        "summary": field("In Czech, one or two sentences for the owner about the call. Only what was said."),
+    }}
+    return conf
+
+
+MODES = {"errand": errand_config, "sales": sales_config, "compare": compare_config, "venue": venue_config, "barter": barter_config,
+         "office": office_config}
+BOOKING_MODES = {"errand", "office"}  # the only calls that may record a booking

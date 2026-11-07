@@ -492,7 +492,7 @@ def fetch_outcome(sid: str, wait: float = None, step: float = None) -> bool:
                                *([f"Rezervace: {d['booked_time']}"] if d.get("booked_time") else []), "", "Přepis:"]
                               + [f"{'Druhá strana' if t['who'] == 'caller' else a['name']}: {t['text']}" for t in o["transcript"]])
             if _send_mail(a, f"Hovor za vás: {call['to_number']}", body):
-                db.add_action(a["id"], "email_summary", f"Výsledek hovoru odeslán e-mailem: {_mail_target(a)}", sid)
+                db.add_action(a["id"], "email_summary", _act(call, "summary", x=_mail_target(a)), sid)
         return True
     if agents.can(a, "email_summary") and o["transcript"] and db.claim_notification(sid):
         d = o["data"]
@@ -537,7 +537,10 @@ def _check_window(a: dict, new_calls: int):
         raise HTTPException(429, f"Dnešní limit {config.MAX_OUTBOUND_PER_DAY} hovorů za vás by se překročil")
 
 
-def _place_errand(a: dict, to_raw, task_raw: str, notes_raw: str, mode: str = "errand", owner: str = "") -> dict:
+REPORT_LANGS = ("cs", "en", "ru")
+
+
+def _place_errand(a: dict, to_raw, task_raw: str, notes_raw: str, mode: str = "errand", owner: str = "", report: str = "cs") -> dict:
     """Limits first: only Czech numbers, daytime, a few a day. The callee hears who calls and that it is automated.
     Several numbers are called one after another (the next when the previous call has ended)."""
     raw = [to_raw] if isinstance(to_raw, (str, dict)) else list(to_raw)
@@ -554,6 +557,7 @@ def _place_errand(a: dict, to_raw, task_raw: str, notes_raw: str, mode: str = "e
         raise HTTPException(422, f"Zadejte 1 až {MAX_BATCH} čísel")
     if mode not in agents.MODES:
         raise HTTPException(422, "Neznámý scénář")
+    report = report if report in REPORT_LANGS else "cs"
     clean = lambda t: t.replace("{{", "(").replace("}}", ")")  # noqa: E731
     task = clean(_text(task_raw, "scénář", 1500))
     notes = clean(_text(notes_raw, "poznámky", 1500, required=False))
@@ -561,7 +565,7 @@ def _place_errand(a: dict, to_raw, task_raw: str, notes_raw: str, mode: str = "e
     _check_window(a, len(numbers))
     language = "en" if a["language"] == "en" else "cs"
     try:
-        agent_id = agents.errand_agent(language, db.kv, mode)
+        agent_id = agents.errand_agent(language, db.kv, mode, report)
     except Exception as e:  # noqa: BLE001
         log.error("errand agent: %s", str(e)[:300])
         raise HTTPException(502, "Hlasového agenta se nepodařilo připravit") from None
@@ -569,7 +573,7 @@ def _place_errand(a: dict, to_raw, task_raw: str, notes_raw: str, mode: str = "e
     for n, label in numbers:
         rid = secrets.token_urlsafe(12)
         db.add_outbound("pending-" + secrets.token_hex(8), a["id"], n, a["number"], task, agent_id, notes, rid,
-                        secrets.token_urlsafe(24), mode, owner, batch_id, label)
+                        secrets.token_urlsafe(24), mode, owner, batch_id, label, report)
         reports.append(rid)
     first = db.call_by("report_id", reports[0])
     if not _dial(first):
@@ -666,6 +670,24 @@ def _ics(uid: str, start: datetime, minutes: int, title: str, description: str) 
                          "END:VEVENT", "END:VCALENDAR", ""])
 
 
+# Activity lines written during a call, in the language of its report.
+ACT = {
+    "cs": {"booking": "Rezervace {when}: {place}", "to_google": " → Google Kalendář ({x})", "to_ics": " → pozvánka .ics e-mailem ({x})",
+           "here": " (jen zapsáno zde)", "pledge": "{who} přispěje {n} Kč", "message": "Vzkaz pro vás: {x}", "mail": " → e-mail {x}",
+           "mail_failed": " (e-mail nešel odeslat)", "summary": "Výsledek hovoru odeslán e-mailem: {x}"},
+    "en": {"booking": "Booking {when}: {place}", "to_google": " → Google Calendar ({x})", "to_ics": " → .ics invitation by e-mail ({x})",
+           "here": " (recorded here only)", "pledge": "{who} pledged {n} CZK", "message": "Message for you: {x}", "mail": " → e-mail {x}",
+           "mail_failed": " (e-mail could not be sent)", "summary": "Call result sent by e-mail: {x}"},
+    "ru": {"booking": "Бронь {when}: {place}", "to_google": " → Google Календарь ({x})", "to_ics": " → приглашение .ics на e-mail ({x})",
+           "here": " (записано только здесь)", "pledge": "{who} обещал(а) {n} Kč", "message": "Сообщение вам: {x}", "mail": " → e-mail {x}",
+           "mail_failed": " (e-mail не отправлен)", "summary": "Итог звонка отправлен на e-mail: {x}"},
+}
+
+
+def _act(call: dict, key: str, **kw) -> str:
+    return ACT.get(call.get("report_lang") or "cs", ACT["cs"])[key].format(**kw)
+
+
 class BookingIn(BaseModel):
     call_ref: str
     day_time: str
@@ -677,7 +699,7 @@ class BookingIn(BaseModel):
 @app.post("/tools/errand/booking")
 def errand_booking(body: BookingIn, request: Request):
     call, a = errand_auth(request, body.call_ref)
-    if call["mode"] != "errand":  # an inquiry or a sales call never books, whatever the model does
+    if call["mode"] not in agents.BOOKING_MODES:  # an inquiry or a sales call never books, whatever the model does
         return {"ok": False, "error": "Booking is not part of this call."}
     try:
         start = datetime.fromisoformat(body.day_time.strip().replace(" ", "T")[:16]).replace(tzinfo=config.TZ)
@@ -693,12 +715,12 @@ def errand_booking(body: BookingIn, request: Request):
     if google.has(a, google.SCOPE_EVENTS):
         try:
             google.create_event(a, start, 120, title, details)
-            where = f"Google Kalendář ({a['google_email']})"
+            where = _act(call, "to_google", x=a["google_email"])
         except Exception as e:  # noqa: BLE001
             log.error("booking event: %s", str(e)[:200])
     if not where and _mail_target(a) and _send_mail(a, f"{title}, {start.strftime('%d.%m. %H:%M')}", details, _ics(call["call_ref"][:16], start, 120, title, details)):
-        where = f"pozvánka .ics e-mailem ({_mail_target(a)})"
-    db.add_action(a["id"], "booking", f"Rezervace {start.strftime('%d.%m. %H:%M')}: {place}{people}" + (f" → {where}" if where else " (jen zapsáno zde)"), call["sid"])
+        where = _act(call, "to_ics", x=_mail_target(a))
+    db.add_action(a["id"], "booking", _act(call, "booking", when=start.strftime("%d.%m. %H:%M"), place=place + people) + (where or _act(call, "here")), call["sid"])
     return {"ok": True}
 
 
@@ -719,7 +741,7 @@ def errand_pledge(body: PledgeIn, request: Request):
     if any(x["kind"] == "pledge" for x in db.actions_of_call(call["sid"])):
         return {"ok": True, "note": "Already recorded."}
     who = body.name.strip()[:80] or call["to_number"]
-    db.add_action(a["id"], "pledge", f"{who} přispěje {body.amount_czk} Kč" + (f": {body.note.strip()[:200]}" if body.note.strip() else ""), call["sid"])
+    db.add_action(a["id"], "pledge", _act(call, "pledge", who=who, n=body.amount_czk) + (f": {body.note.strip()[:200]}" if body.note.strip() else ""), call["sid"])
     return {"ok": True}
 
 
@@ -734,7 +756,7 @@ def errand_notify(body: NotifyIn, request: Request):
     if db.actions_since(a["id"], "message", _day_start()) >= config.MAX_MESSAGES_PER_DAY:
         return {"ok": False, "error": "Too many messages today."}
     sent = bool(_mail_target(a)) and _send_mail(a, f"Asistent volá {call['to_number']}: potřebuje vás", body.text.strip()[:1000])
-    db.add_action(a["id"], "message", f"Vzkaz pro vás: {body.text.strip()[:200]}" + (f" → e-mail {_mail_target(a)}" if sent else " (e-mail nešel odeslat)"), call["sid"])
+    db.add_action(a["id"], "message", _act(call, "message", x=body.text.strip()[:200]) + (_act(call, "mail", x=_mail_target(a)) if sent else _act(call, "mail_failed")), call["sid"])
     return {"ok": sent}
 
 
@@ -765,7 +787,7 @@ def _report(call: dict) -> dict:
     a = db.get_assistant(call["assistant_id"]) or {}
     return {"report": call["report_id"], "status": call["status"], "duration": call["duration"], "to": call["to_number"], "from": call["from_number"],
             "label": call["label"],
-            "mode": call["mode"], "owner": call["owner"] or a.get("owner_name", ""), "assistant": a.get("name", ""),
+            "mode": call["mode"], "lang": call["report_lang"], "owner": call["owner"] or a.get("owner_name", ""), "assistant": a.get("name", ""),
             "task": call["task"], "notes": call["notes"], "startedAt": call["started_at"], "ready": bool(call["fetched"]),
             "summary": call["summary"], "data": json.loads(call["data"]), "transcript": json.loads(call["transcript"]),
             "tools": json.loads(call["tools"]), "actions": [{"kind": x["kind"], "detail": x["detail"], "at": x["at"]} for x in db.actions_of_call(call["sid"])]}
@@ -803,6 +825,7 @@ class DemoIn(BaseModel):
     notes: str = ""
     mode: str = "errand"
     owner: str = ""
+    report_lang: str = "cs"
 
 
 def _demo_assistant() -> dict:
@@ -833,7 +856,7 @@ def demo_call(body: DemoIn, request: Request):
         wanted = [config.normalize_phone(str(x.get("number", "") if isinstance(x, dict) else x)) for x in body.to]
         if not allowed or not wanted or any(n not in allowed for n in wanted):
             raise HTTPException(403, "Bez přístupového kódu lze volat jen na testovací čísla dema")
-    return _place_errand(_demo_assistant(), [x if isinstance(x, dict) else str(x) for x in body.to][:20], body.task, body.notes, body.mode, body.owner)
+    return _place_errand(_demo_assistant(), [x if isinstance(x, dict) else str(x) for x in body.to][:20], body.task, body.notes, body.mode, body.owner, body.report_lang)
 
 
 # ---------- tools the voice agent calls during a call ----------
@@ -947,7 +970,12 @@ def _html(name: str) -> HTMLResponse:
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return _html("demo.html" if request.headers.get("host", "").startswith("zavolej.") else "index.html")
+    return _html("landing.html" if request.headers.get("host", "").startswith("zavolej.") else "index.html")
+
+
+@app.get("/demo", response_class=HTMLResponse)
+def demo_page():
+    return _html("demo.html")
 
 
 @app.get("/a/{aid}", response_class=HTMLResponse)

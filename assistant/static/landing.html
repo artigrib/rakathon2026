@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zavolej za mě</title>
+<meta name="description" content="A phone assistant that makes your calls: it speaks the local language, calls several places, negotiates and reports back.">
+<link rel="stylesheet" href="/base.css">
+<style>
+main{max-width:960px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}.brand{font-weight:800;font-size:1.05rem}
+.langs{display:flex;gap:4px}.langs button{background:transparent;color:var(--mute);border:1px solid var(--line);padding:4px 10px;font-size:.85rem;font-weight:600}
+.langs button[aria-pressed=true]{background:var(--soft);color:var(--brand);border-color:var(--brand)}
+.hero{padding:24px 0 8px}.hero h1{font-size:clamp(2rem,5vw,3.1rem);line-height:1.1;margin:0 0 16px;letter-spacing:-.02em;max-width:16ch}
+.hero p.lead{font-size:1.15rem;color:var(--mute);max-width:56ch;margin-bottom:24px}.cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn.big{padding:14px 22px;font-size:1.05rem}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0}
+.pain{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}.pain .em{font-size:1.6rem}.pain h3{margin:8px 0 6px;font-size:1.1rem}.pain p{color:var(--mute);margin:0}
+.pain.lead{border-color:var(--brand);background:var(--soft)}
+section.block{margin:44px 0}section.block>h2{font-size:1.5rem;margin-bottom:6px}section.block>p.sub{color:var(--mute);margin-bottom:16px}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.steps div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}.steps div::before{counter-increment:s;content:counter(s);display:inline-flex;width:28px;height:28px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font-weight:700;align-items:center;justify-content:center;margin-bottom:8px}
+.steps b{display:block;margin-bottom:4px}.steps span{color:var(--mute)}
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.case{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card)}.case b{display:block}.case span{color:var(--mute);font-size:.9rem}
+.sample{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;overflow-x:auto}.sample table{border-collapse:collapse;width:100%;min-width:420px}
+.sample th{text-align:left;font-size:.8rem;color:var(--mute);padding:6px 8px;border-bottom:1px solid var(--line)}.sample td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}.sample .hi{color:var(--brand);font-weight:700}
+.quote{border-left:3px solid var(--brand);padding:6px 12px;margin:12px 0 0;color:var(--mute);font-style:italic}
+.trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 20px;padding:0;list-style:none}.trust li{padding-left:26px;position:relative}.trust li::before{content:"✓";position:absolute;left:0;color:var(--brand);font-weight:800}
+.final{text-align:center;background:var(--soft);border-radius:16px;padding:32px 16px}.final h2{margin-top:0}
+footer{color:var(--mute);font-size:.85rem;margin-top:40px}
+</style></head>
+<body><main>
+<div class="top"><span class="brand">📞 Zavolej za mě</span><div class="langs" role="group" aria-label="Language"></div></div>
+<div id="page"></div>
+</main>
+<script>
+const T={
+en:{lang:'English',hero:"Calls you'd rather not make. Done for you.",lead:'Your phone assistant calls in the local language, rings several places at once, negotiates and comes back with the answers you need to decide. You confirm, it books.',
+ try:'Try the demo',how:'How it works',
+ pains:[['🗣️','You don’t speak the local language','It is your local voice and interpreter for anyone you can phone: the doctor, the landlord, the plumber, the school. Write the task in your language, get the report in your language.'],
+  ['😮‍💨','Live calls drain you','No hold music, no small talk, no “could you repeat that”. You write what you need, the assistant makes the call and handles the awkward part.'],
+  ['📋','Too many calls to make','Five restaurants, three dentists, ten venues. It calls them one after another and hands you one table: who is free, what it costs, what they want.']],
+ howT:'Three steps, no app',howS:'Works with any phone number you could call yourself.',
+ steps:[['Say what you need','“A room for 20 people on Friday, around 600 CZK each, with space for a pram.”'],['It makes the calls','It introduces itself as your automated assistant, asks every question and negotiates where it makes sense.'],['You decide','Live transcript, a comparison table and next steps. Pick one and it finalises the booking.']],
+ casesT:'What people delegate',cases:[['Find a venue','free dates, price per person, deposit'],['Book a table','with allergies, a pram and parking sorted'],['Barter deals','an event at a café for posts and guests'],['Doctors and dentists','nearest free slot and price'],['Home repairs','who can come this week, for how much'],['Officials and landlords','in the language they speak']],
+ sampleT:'What you get back',sampleS:'A real report layout from the demo: three restaurants, one decision.',
+ cols:['Place','Date','Per person'],rows:[['Restaurace U Lípy','free · private room for 25','650 CZK'],['Lokál Dlouhá','only Saturday','520 CZK'],['Bistro Karlín','free · main room','590 CZK · cheapest free']],
+ quote:'“Yes, we can put the pram by the window, and the kitchen will leave out bananas and cucumbers.”',
+ trustT:'Safe by design',trust:['Always says it is an automated assistant','Never pays, never gives card details','Books only what you asked, or asks you first','Transcripts deleted after 30 days'],
+ finalT:'Make the first call now',finalS:'The demo rings preset test numbers, so you can play the restaurant yourself.',foot:'Demo by the Jsem včas team. Calls are transcribed.'},
+cs:{lang:'Čeština',hero:'Hovory, do kterých se vám nechce. Vyřízené za vás.',lead:'Telefonní asistent zavolá v místním jazyce, obvolá víc míst najednou, vyjedná podmínky a vrátí vám odpovědi, podle kterých se rozhodnete. Vy potvrdíte, on zarezervuje.',
+ try:'Vyzkoušet demo',how:'Jak to funguje',
+ pains:[['🗣️','Nemluvíte místním jazykem','Váš místní hlas a tlumočník pro kohokoli, komu se dá zavolat: lékař, pronajímatel, instalatér, škola. Zadání napíšete svým jazykem a report dostanete svým jazykem.'],
+  ['😮‍💨','Živé hovory vás vyčerpávají','Žádné čekání na lince ani „můžete to zopakovat“. Napíšete, co potřebujete, asistent zavolá a nepříjemnou část vyřeší za vás.'],
+  ['📋','Hovorů je moc','Pět restaurací, tři zubaři, deset prostorů. Obvolá je jeden po druhém a dá vám jednu tabulku: kdo má volno, kolik to stojí, co chtějí.']],
+ howT:'Tři kroky, bez aplikace',howS:'Funguje s jakýmkoli číslem, na které byste zavolali sami.',
+ steps:[['Řekněte, co potřebujete','„Prostor pro 20 lidí v pátek, kolem 600 Kč na osobu, s místem pro kočárek.“'],['Asistent volá','Představí se jako váš automatický asistent, zeptá se na vše a kde to dává smysl, vyjednává.'],['Vy rozhodnete','Živý přepis, srovnávací tabulka a další kroky. Vyberete a on rezervaci dokončí.']],
+ casesT:'Co lidé delegují',cases:[['Místo pro akci','volné termíny, cena na osobu, záloha'],['Rezervace stolu','i s alergiemi, kočárkem a parkováním'],['Barterová spolupráce','akce v kavárně za příspěvky a hosty'],['Lékaři a zubaři','nejbližší volný termín a cena'],['Opravy doma','kdo přijde tento týden a za kolik'],['Úřady a pronajímatelé','v jazyce, kterým mluví oni']],
+ sampleT:'Co dostanete zpět',sampleS:'Skutečná podoba reportu z dema: tři restaurace, jedno rozhodnutí.',
+ cols:['Kam','Termín','Na osobu'],rows:[['Restaurace U Lípy','volno · salonek pro 25','650 Kč'],['Lokál Dlouhá','jen v sobotu','520 Kč'],['Bistro Karlín','volno · hlavní sál','590 Kč · nejlevnější s volnem']],
+ quote:'„Ano, kočárek můžete dát k oknu a kuchyně vynechá banány a okurky.“',
+ trustT:'Bezpečné od základu',trust:['Vždy řekne, že je automatický asistent','Nikdy neplatí a nedává údaje z karty','Rezervuje jen to, co jste zadali, jinak se zeptá','Přepisy se mažou po 30 dnech'],
+ finalT:'Udělejte první hovor hned',finalS:'Demo volá na přednastavená testovací čísla, restauraci si můžete zahrát sami.',foot:'Demo týmu Jsem včas. Hovory se přepisují.'},
+ru:{lang:'Русский',hero:'Звонки, которые не хочется делать. Сделаем за вас.',lead:'Телефонный ассистент звонит на местном языке, обзванивает несколько мест сразу, торгуется и возвращается с ответами, по которым вы принимаете решение. Вы подтверждаете, он бронирует.',
+ try:'Попробовать демо',how:'Как это работает',
+ pains:[['🗣️','Вы не говорите на местном языке','Ваш местный голос и переводчик для любого, кому можно позвонить: врач, арендодатель, сантехник, школа. Задачу пишете на своём языке, отчёт получаете на своём языке.'],
+  ['😮‍💨','Живые звонки выматывают','Без ожидания на линии и «повторите, пожалуйста». Пишете, что нужно, ассистент звонит и берёт неловкую часть на себя.'],
+  ['📋','Звонков слишком много','Пять ресторанов, три стоматологии, десять площадок. Он обзванивает их по очереди и даёт одну таблицу: у кого свободно, сколько стоит, чего хотят.']],
+ howT:'Три шага, без приложения',howS:'Работает с любым номером, на который вы позвонили бы сами.',
+ steps:[['Скажите, что нужно','«Зал на 20 человек в пятницу, около 600 Kč с человека, с местом для коляски».'],['Ассистент звонит','Представляется вашим автоматическим ассистентом, задаёт все вопросы и торгуется, где это уместно.'],['Вы решаете','Живая расшифровка, таблица сравнения и следующие шаги. Выбираете, и он завершает бронь.']],
+ casesT:'Что делегируют',cases:[['Площадка для события','свободные даты, цена на человека, депозит'],['Бронь столика','с аллергиями, коляской и парковкой'],['Бартер','мероприятие в кафе за посты и гостей'],['Врачи и стоматологи','ближайшее окно и цена'],['Ремонт дома','кто придёт на этой неделе и за сколько'],['Ведомства и арендодатели','на их языке']],
+ sampleT:'Что вы получаете',sampleS:'Реальный вид отчёта из демо: три ресторана, одно решение.',
+ cols:['Место','Дата','С человека'],rows:[['Restaurace U Lípy','свободно · зал на 25','650 Kč'],['Lokál Dlouhá','только суббота','520 Kč'],['Bistro Karlín','свободно · общий зал','590 Kč · дешевле всех']],
+ quote:'«Да, коляску можно поставить у окна, а кухня уберёт бананы и огурцы».',
+ trustT:'Безопасно по умолчанию',trust:['Всегда говорит, что он автоматический ассистент','Никогда не платит и не называет данные карты','Бронирует только то, что вы просили, иначе спросит','Расшифровки удаляются через 30 дней'],
+ finalT:'Сделайте первый звонок сейчас',finalS:'Демо звонит на заранее заданные тестовые номера, ресторан можно сыграть самому.',foot:'Демо команды Jsem včas. Звонки расшифровываются.'}};
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==='on')for(const[n,f]of Object.entries(v))e.addEventListener(n,f);else if(k in e)e[k]=v;else e.setAttribute(k,v)}for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e};
+const pick=()=>{try{const s=localStorage.getItem('lang');if(T[s])return s}catch{}const n=(navigator.language||'en').slice(0,2);return T[n]?n:(n==='sk'?'cs':n==='uk'||n==='be'?'ru':'en')};
+let lang=pick();
+function render(){const t=T[lang];document.documentElement.lang=lang;
+ document.querySelector('.langs').replaceChildren(...Object.keys(T).map(k=>el('button',{type:'button','aria-pressed':String(k===lang),on:{click:()=>{lang=k;try{localStorage.setItem('lang',k)}catch{}render()}}},k.toUpperCase())));
+ const demo=el('a',{className:'btn big',href:'/demo'},t.try);
+ document.getElementById('page').replaceChildren(
+  el('section',{className:'hero'},el('h1',{},t.hero),el('p',{className:'lead'},t.lead),el('div',{className:'cta'},demo,el('a',{className:'btn ghost big',href:'#how'},t.how))),
+  el('div',{className:'grid3'},t.pains.map(([em,h,p],i)=>el('div',{className:'pain'+(i===0?' lead':'')},el('span',{className:'em','aria-hidden':'true'},em),el('h3',{},h),el('p',{},p)))),
+  el('section',{className:'block',id:'how'},el('h2',{},t.howT),el('p',{className:'sub'},t.howS),el('div',{className:'steps'},t.steps.map(([b,s])=>el('div',{},el('b',{},b),el('span',{},s))))),
+  el('section',{className:'block'},el('h2',{},t.casesT),el('div',{className:'cases'},t.cases.map(([b,s])=>el('div',{className:'case'},el('b',{},b),el('span',{},s))))),
+  el('section',{className:'block'},el('h2',{},t.sampleT),el('p',{className:'sub'},t.sampleS),el('div',{className:'sample'},
+   el('table',{},el('thead',{},el('tr',{},t.cols.map(c=>el('th',{scope:'col'},c)))),el('tbody',{},t.rows.map((r,i)=>el('tr',{},r.map((c,j)=>el('td',{className:i===2&&j===2?'hi':''},j===0?el('b',{},c):c)))))),
+   el('p',{className:'quote'},t.quote))),
+  el('section',{className:'block'},el('h2',{},t.trustT),el('ul',{className:'trust'},t.trust.map(x=>el('li',{},x)))),
+  el('section',{className:'final'},el('h2',{},t.finalT),el('p',{className:'mute'},t.finalS),el('a',{className:'btn big',href:'/demo'},t.try)),
+  el('footer',{},t.foot))}
+render();
+</script></body></html>

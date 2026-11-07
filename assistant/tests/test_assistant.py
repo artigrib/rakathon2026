@@ -339,7 +339,7 @@ def _errand_ready(client, monkeypatch, hour=12):
     login(client)
     aid = new(client)
     monkeypatch.setattr(appmod, "_now", lambda: datetime.now(config.TZ).replace(hour=hour, minute=0))
-    monkeypatch.setattr(agents, "errand_agent", lambda lang, store, mode="errand": f"{mode}-{lang}")
+    monkeypatch.setattr(agents, "errand_agent", lambda lang, store, mode="errand", report="cs": f"{mode}-{lang}" + ("" if report == "cs" else "-" + report))
     placed = []
     monkeypatch.setattr(appmod, "_twilio_call", lambda to, frm, url: placed.append((to, frm, url)) or f"CAout{len(placed)}")
     monkeypatch.setattr(appmod, "_background", lambda fn, *args: fn(*args) if fn is appmod._dial_next else None)  # dial at once, no fetch
@@ -514,3 +514,38 @@ def test_demo_without_code_calls_only_the_test_numbers(client, monkeypatch):
     assert anon.post("/api/demo/call", json={**body, "to": [{"number": "600 111 222"}, {"number": "+420777000999"}]}).status_code == 403
     assert anon.post("/api/demo/call", json={**body, "to": [{"number": "600 111 222", "label": "A"}, {"number": "+420600111224"}]}).status_code == 200
     assert client.post("/api/demo/call", json={**body, "to": [{"number": "+420777000999"}]}).status_code == 200  # with the code: any Czech number
+
+
+def test_office_scenario_books_and_reports_in_english(client, monkeypatch, registered):
+    conf = agents.report_language(agents.office_config("cs", "tok"), "en")
+    dc = conf["platform_settings"]["data_collection"]
+    assert dc["documents"]["description"].startswith("In English") and "In Czech" not in json.dumps(conf)
+    assert "Amount in Czech crowns" in json.dumps(agents.report_language(agents.sales_config("cs", "t"), "en"))  # the currency stays
+    assert conf["conversation_config"]["agent"]["language"] == "cs"  # the office is still spoken to in Czech
+    assert "record_booking" in [t["name"] for t in conf["conversation_config"]["agent"]["prompt"]["tools"]]
+    aid, placed, r = _demo(client, monkeypatch, [{"number": "+420600111222", "label": "OAMP Praha"}], mode="office")
+    assert r.status_code == 200
+    call = db.call_by("report_id", r.json()["report"])
+    db.kv.set("errand_tool_token", "tok")
+    monkeypatch.setattr(appmod, "_send_mail", lambda *a, **k: True)
+    db.update_assistant(aid, notify_email="me@example.com")
+    db.update_call(call["sid"], report_lang="en")
+    assert client.post("/tools/errand/booking", json={"call_ref": call["call_ref"], "day_time": "2030-01-07 09:30", "details": "pas"},
+                       headers={"X-Tool-Token": "tok"}).json()["ok"]
+    assert db.actions_of_call(call["sid"])[0]["detail"].startswith("Booking 07.01. 09:30") and ".ics invitation" in db.actions_of_call(call["sid"])[0]["detail"]
+
+
+def test_report_language_reaches_the_agent_and_the_report(client, monkeypatch, registered):
+    aid, placed = _errand_ready(client, monkeypatch)
+    monkeypatch.setenv("ASSISTANT_DEMO_ID", aid)
+    r = client.post("/api/demo/call", json={"to": ["+420600111222"], "task": "x", "mode": "office", "report_lang": "en"})
+    call = db.call_by("report_id", r.json()["report"])
+    assert call["agent_id"] == "office-cs-en" and client.get(f"/api/report/{call['report_id']}").json()["calls"][0]["lang"] == "en"
+    r = client.post("/api/demo/call", json={"to": ["+420600111223"], "task": "x", "mode": "venue", "report_lang": "xx"})
+    assert db.call_by("report_id", r.json()["report"])["report_lang"] == "cs"
+
+
+def test_pages_by_host(client):
+    assert "Zavolej" in client.get("/", headers={"host": "zavolej.jsemvcas.cz"}).text and "Calls you" in client.get("/", headers={"host": "zavolej.jsemvcas.cz"}).text
+    assert "SCENARIOS" not in client.get("/", headers={"host": "asistent.jsemvcas.cz"}).text
+    assert "const SC=" in client.get("/demo").text and client.get("/r/x").status_code == 200
