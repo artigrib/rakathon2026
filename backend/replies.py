@@ -46,19 +46,18 @@ def _with_extra(r: dict, text: str) -> dict:
     return {**r, "extra": extra} if extra else r
 
 
-def understand(text: str) -> dict:
-    """What the backend actually uses: rules for hard safety (opt-out always wins), the LLM for everything else
-    when configured, rules again as the fallback. Low-confidence AI answers go to a person."""
-    return _with_extra(_understand(text), text)
+def understand(text: str, conversation_id: str | None = None) -> dict:
+    """Understand one reply, grouping any configured LLM call under its conversation."""
+    return _with_extra(_understand(text, conversation_id=conversation_id), text)
 
 
-def _understand(text: str) -> dict:
+def _understand(text: str, conversation_id: str | None = None) -> dict:
     from . import llm
     rules = classify(text)
     if rules["intent"] == "opt_out" or not llm.enabled():
         return {**rules, "source": "rules"}
     try:
-        ai = llm.classify(text)
+        ai = llm.classify(text, conversation_id=conversation_id)
     except Exception as e:  # never fail a webhook because of the model
         return {**rules, "source": "rules", "why": f"{rules['why']} (AI nedostupná: {type(e).__name__})"}
     if ai["intent"] == "opt_out":

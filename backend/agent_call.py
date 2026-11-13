@@ -80,7 +80,7 @@ def read(c: dict) -> dict:
     extra = {}
     if said:
         try:
-            u = understand(". ".join(said))
+            u = understand(". ".join(said), conversation_id=f"agent:{c.get('conversation_id', '')}")
         except Exception:  # noqa: BLE001 – the agent's decision is enough
             u = {}
         if u.get("intent") in DECISIONS and (u["intent"] in ("opt_out", "emergency") or intent == "unclear"):
