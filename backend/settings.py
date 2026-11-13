@@ -51,6 +51,8 @@ _STATE = Path(__file__).with_name("state.json" if CASE_ID == "screening" else f"
 
 @dataclass(frozen=True)
 class Settings:
+    posthog_project_token: str = os.getenv("POSTHOG_PROJECT_TOKEN", "")
+    posthog_host: str = os.getenv("POSTHOG_HOST", "")
     account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")      # needed to check webhook signatures
     api_key: str = os.getenv("TWILIO_API_KEY", "")            # SK..., preferred for REST calls

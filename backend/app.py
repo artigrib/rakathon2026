@@ -12,14 +12,19 @@ from xml.sax.saxutils import escape
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from posthog import Posthog
+from posthog.integrations.asgi import PosthogASGIMiddleware
 from pydantic import BaseModel
 
 import asyncio
+import atexit
+from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from types import SimpleNamespace
 from urllib.parse import quote
 import json
 import logging
+import os
 import re
 from datetime import timedelta
 
@@ -35,7 +40,78 @@ _rlog = logging.getLogger("uvicorn.error")  # voice turns and agent outcomes in 
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "app"
-app = FastAPI(title=CASE.manifest["title"])
+posthog_client = None
+posthog_log_provider = None
+posthog_log = logging.getLogger("rakathon.posthog")
+posthog_log.propagate = False
+
+if settings.posthog_project_token and settings.posthog_host:
+    posthog_client = Posthog(
+        settings.posthog_project_token,
+        host=settings.posthog_host,
+        enable_exception_autocapture=True,
+        privacy_mode=False,
+    )
+    atexit.register(posthog_client.shutdown)
+    try:
+        from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+        from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+        from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+
+        posthog_log_provider = LoggerProvider()
+        posthog_log_provider.add_log_record_processor(
+            BatchLogRecordProcessor(
+                OTLPLogExporter(
+                    endpoint=f"{settings.posthog_host}/i/v1/logs",
+                    headers={"Authorization": f"Bearer {settings.posthog_project_token}"},
+                )
+            )
+        )
+        posthog_log.addHandler(LoggingHandler(logger_provider=posthog_log_provider))
+        posthog_log.setLevel(logging.INFO)
+    except Exception:  # Log export must not prevent the application from starting.
+        _rlog.warning("PostHog log export setup failed", exc_info=True)
+elif os.getenv("ENVIRONMENT", "").lower() != "production":
+    missing = "POSTHOG_PROJECT_TOKEN" if not settings.posthog_project_token else "POSTHOG_HOST"
+    _rlog.warning(
+        "%s variable required by PostHog is missing or un-configured, this causes events to be silently missed. "
+        "This error stops appearing once %s is configured",
+        missing,
+        missing,
+    )
+
+
+def _capture(event: str, properties: dict | None = None) -> None:
+    """Capture safe product metadata without allowing analytics delivery to affect the app."""
+    if not posthog_client:
+        return
+    try:
+        posthog_client.capture(event, properties=properties)
+    except Exception:  # PostHog delivery must not interfere with application work.
+        _rlog.debug("PostHog capture failed for %s", event, exc_info=True)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    if posthog_log_provider:
+        posthog_log.info("backend_started", extra={"event": "backend.started", "case": CASE.id})
+    yield
+    if posthog_client:
+        try:
+            posthog_client.flush()
+        except Exception:  # PostHog delivery must not interfere with application shutdown.
+            _rlog.warning("PostHog flush failed during shutdown", exc_info=True)
+    if posthog_log_provider:
+        try:
+            posthog_log_provider.force_flush(timeout_millis=3000)
+        except Exception:  # Log export must not interfere with application shutdown.
+            _rlog.warning("PostHog log flush failed during shutdown", exc_info=True)
+
+
+app = FastAPI(title=CASE.manifest["title"], lifespan=lifespan)
+if posthog_client:
+    app.add_middleware(PosthogASGIMiddleware, client=posthog_client)
+
 REDIRECTS = CASE.manifest.get("redirects", {})  # public short links of the case, e.g. /centra
 # case.json "login": {"email": "optional"}: the case sends nothing by e-mail, so the sign-in asks only for the phone
 # (the login template may use $email_required = the input attribute and $email_hint = "nepovinný" or empty).
@@ -79,6 +155,23 @@ def _enter(token: str, sess: dict):
     recipient.use({"phone": sess["phone"], "email": sess["email"], "token": token})
 
 
+def _visitor_distinct_id(token: str) -> str:
+    """Return the existing stable resource ID for this authenticated demo session."""
+    return f"visitor_session:{sessions.sid(token)}"
+
+
+def _set_visitor_person_properties(token: str, sess: dict):
+    """Store visitor contact information as person properties, never event properties."""
+    if posthog_client and sess.get("email"):
+        try:
+            posthog_client.set(
+                distinct_id=_visitor_distinct_id(token),
+                properties={"email": sess["email"]},
+            )
+        except Exception:  # PostHog delivery must not interfere with sign-in.
+            _rlog.debug("PostHog person update failed", exc_info=True)
+
+
 def _basic_ok(request: Request) -> bool:
     """Basic auth stays for scripts (auto-deploy FHIR sync, monitoring); browsers use /login."""
     import base64
@@ -104,7 +197,13 @@ async def access(request: Request, call_next):
         token, sess = sessions.by_sid(request.query_params["s"])
     if sess:
         _enter(token, sess)
-    if not settings.demo_password or sess or path in OPEN_EXACT or path.startswith(OPEN) or _basic_ok(request):
+        if posthog_client:
+            # The ASGI middleware inherits this request context, including for errors.
+            with posthog_client.new_context(capture_exceptions=False):
+                posthog_client.identify_context(_visitor_distinct_id(token))
+                return await call_next(request)
+        return await call_next(request)
+    if not settings.demo_password or path in OPEN_EXACT or path.startswith(OPEN) or _basic_ok(request):
         return await call_next(request)
     if request.method == "GET" and not path.startswith("/api/"):
         return RedirectResponse("/login?next=" + quote(path))
@@ -191,6 +290,7 @@ def mark(req: MarkRequest):
     if req.field not in MARKS:
         raise HTTPException(400, "unknown field")
     store.patch(req.id, **{req.field: req.value})
+    _capture("patient_record_marked", {"field": req.field, "has_value": req.value is not None})
     return store.get(req.id)
 
 
@@ -283,6 +383,28 @@ def _send(pid, channel, variant, text, day, budget, auto=False, step=None, progr
     store.log(patient=pid, channel=channel, text=text, day=day, variant=variant, auto=auto, step=step, **r)
     extra = {"auto": True, "step": step} if auto else {}
     transition(pid, "send", day, channel=channel, variant=variant, live=r["live"], **extra)
+    _capture(
+        "contact_send_completed",
+        {
+            "channel": channel,
+            "variant": variant,
+            "delivery_mode": "live" if r["live"] else "simulated",
+            "outcome": r.get("status", "unknown"),
+            "automated": auto,
+        },
+    )
+    if posthog_log_provider:
+        posthog_log.info(
+            "contact_delivery_completed",
+            extra={
+                "event": "contact_delivery.completed",
+                "channel": channel,
+                "variant": variant,
+                "delivery_mode": "live" if r["live"] else "simulated",
+                "outcome": r.get("status", "unknown"),
+                "automated": auto,
+            },
+        )
     return {"id": pid, **r}
 
 
@@ -315,6 +437,15 @@ def notify(req: NotifyRequest):
     except Exception as e:  # a failed send is a delivery fact, not a crash
         r = {"sid": None, "live": live, "to": to, "status": "failed", "error": str(e)}
     store.log(patient=req.id, channel=req.channel, text=text, day=day, variant=req.variant, notify=True, **r)
+    _capture(
+        "demo_notification_completed",
+        {
+            "channel": req.channel,
+            "variant": req.variant,
+            "delivery_mode": "live" if r["live"] else "simulated",
+            "outcome": r.get("status", "unknown"),
+        },
+    )
     return {"id": req.id, **r}
 
 
@@ -333,9 +464,14 @@ def get_recipient():
 def set_recipient(req: RecipientRequest):
     """Presenter sets the test phone and e-mail in the demo panel; empty = default from .env."""
     try:
-        return recipient.save(req.phone, req.email)
+        saved = recipient.save(req.phone, req.email)
     except ValueError as e:
         raise HTTPException(400, str(e))
+    _capture(
+        "demo_recipient_updated",
+        {"custom_phone_provided": bool(req.phone.strip()), "custom_email_provided": bool(req.email.strip())},
+    )
+    return saved
 
 
 class TickRequest(BaseModel):
@@ -369,6 +505,7 @@ def tick(req: TickRequest):
             text = messages.render(record(pid), n["channel"], n["variant"], patient_link(pid))
             done.append(_send(pid, n["channel"], n["variant"], text, day, budget, auto=True, step=n["step"]))
     store._save()
+    _capture("demo_clock_advanced", {"days_processed": max(1, req.days), "touches_processed": len(done)})
     return {"clock": today(), "touches": done}
 
 
@@ -416,6 +553,7 @@ def fhir_sync():
     info = {"at": datetime_now(), "resources": len(res), "patients": len(out["patients"])}
     store.data["fhir_sync"] = info
     store._save()
+    _capture("fhir_sync_completed", {"resource_count": info["resources"], "patient_count": info["patients"]})
     return info
 
 
@@ -456,6 +594,7 @@ if CASE.feature("fhir"):  # screening: the practice's patients live on an IRIS F
 @app.post("/api/reset")
 def reset():
     store.reset()
+    _capture("demo_state_reset")
     return {"ok": True}
 
 
@@ -520,6 +659,7 @@ def _need_scenario():
 def scenario_start():
     _need_scenario()
     scenario.start(store, recipient.visitor(), OPS)
+    _capture("guided_demo_started")
     return state()
 
 
@@ -528,6 +668,8 @@ def scenario_next():
     """"Další krok": start the waiting step now, or give up waiting and run its fallback."""
     _need_scenario()
     scenario.poll(store, OPS, force=True)
+    current = scenario.public(store, _scenario_ok(), OPS)
+    _capture("guided_demo_advanced", {"is_running": bool(current.get("running")), "is_finished": bool(current.get("finished"))})
     return state()
 
 
@@ -535,6 +677,7 @@ def scenario_next():
 def scenario_reset():
     _need_scenario()
     scenario.reset(store)
+    _capture("guided_demo_reset")
     return state()
 
 
@@ -566,7 +709,16 @@ def transition(pid, event, day=None, **extra):
     if event in ("declined", "opt_out"):
         extra.setdefault("intent", event)
     d = store.event(pid, target, day, event=event, **extra)
-    if _current.get() is None and CASE.feature("fhir"):  # only the shared demo writes back; visitors' demos would overwrite each other in IRIS
+    _capture(
+        "care_journey_stage_changed",
+        {
+            "from_stage": state,
+            "to_stage": target,
+            "source": extra.get("via", "system"),
+            "automated": bool(extra.get("auto")),
+        },
+    )
+    if _current.get() is None and CASE.feature("fhir"):   # only the shared demo writes back; visitors' demos would overwrite each other in IRIS
         fhir_sink.push(settings, pid, event, d, PATIENTS.get(pid, {}).get("gp"))  # write-back to the FHIR server, async
     return d
 
@@ -593,7 +745,7 @@ def _record_reply(pid, text, understood, via, day=None, transcript=None, summary
 
 
 def _apply_reply(pid, text, via, day=None):
-    return _record_reply(pid, text, understand(text), via, day)
+    return _record_reply(pid, text, understand(text, conversation_id=f"patient:{pid}"), via, day)
 
 
 @app.post("/twilio/sms")
@@ -728,7 +880,9 @@ async def voice(pid: str, request: Request):
         ws = settings.public_url.replace("https://", "wss://").replace("http://", "ws://") + f"/ws/relay/{pid}"
         return Response(channels.relay_twiml(ws, GREETING), media_type="application/xml")
     script = next((m["text"] for m in reversed(store.data["outbox"]) if m["patient"] == pid and m["channel"] == "voice"), "")
-    _CALLS[_call_key(pid, form)] = {"pid": pid, "turns": [{"who": "bot", "text": (script or VOICE_NO_DIGIT).strip()}], "said": [], "keys": []}
+    call_key = _call_key(pid, form)
+    _CALLS[call_key] = {"pid": pid, "conversation_id": f"voice:{call_key}",
+                         "turns": [{"who": "bot", "text": (script or VOICE_NO_DIGIT).strip()}], "said": [], "keys": []}
     return Response(channels.voice_twiml(pid, script or VOICE_NO_DIGIT), media_type="application/xml")
 
 
@@ -763,7 +917,7 @@ def _plain(t: str) -> str:
 def _understood(call) -> dict:
     """Everything the person said in this call, understood at once (cached per number of answers)."""
     if call.get("u_n") != len(call["said"]):
-        call["u"], call["u_n"] = understand(". ".join(call["said"])), len(call["said"])
+        call["u"], call["u_n"] = understand(". ".join(call["said"]), conversation_id=call.get("conversation_id")), len(call["said"])
     return call["u"]
 
 
@@ -842,7 +996,7 @@ async def voice_answer(pid: str, request: Request, n: int = 1, end: int = 0, rec
     key = _call_key(pid, form)
     if recap and key not in _CALLS:  # the call was already recorded (hung up): nothing more to do
         return Response(channels.twiml_say(VOICE_NO_DIGIT), media_type="application/xml")
-    call = _CALLS.setdefault(key, {"pid": pid, "turns": [], "said": [], "keys": []})
+    call = _CALLS.setdefault(key, {"pid": pid, "conversation_id": f"voice:{key}", "turns": [], "said": [], "keys": []})
     digits, speech = form.get("Digits") or "", (form.get("SpeechResult") or "").strip()
     said = digits or speech
     more = bool(said)
@@ -900,7 +1054,7 @@ async def relay(ws: WebSocket, pid: str):
             if msg.get("type") != "prompt":
                 continue
             said = msg.get("voicePrompt", "")
-            understood = understand(said)
+            understood = understand(said, conversation_id=f"relay:{call_sid or pid}")
             reply, done, intent = conv.feed(said, understood)
             turns += [{"who": "user", "text": said}, {"who": "bot", "text": reply}]
             if intent:
@@ -1043,6 +1197,7 @@ if PAGE_HOOK:
             extra = r.get("extra") or {}
             transition(pid, r["event"], today(), via="link", intent=r["intent"], **({"extra": extra} if extra else {}))
             _on_reply(pid, r["intent"], extra)
+            _capture("patient_link_response_submitted", {"response_type": "case_form"})
         body = PAGE.substitute(content=out["html"])
         if out.get("title"):
             body = re.sub(r"<title>.*?</title>", f"<title>{escape(out['title'])}</title>", body, count=1)
@@ -1072,6 +1227,7 @@ def patient_answer(token: str, answer: str = Form(...)):
     event, intent, thanks = ANSWERS[answer]
     transition(pid, event, today(), via="link", intent=intent)
     _on_reply(pid, intent, {})
+    _capture("patient_link_response_submitted", {"response_type": "choice"})
     return _page(f'<h1>{P["thanks_title"]}</h1><div class="box"><p>{thanks}</p></div>')
 
 
@@ -1229,6 +1385,12 @@ async def login(request: Request):
     except ValueError as err:
         return _login_page(nxt, str(err), code, phone, email, 400)
     token = sessions.create(p, e)
+    if posthog_client:
+        # Login changes identity mid-request, after the request context was created.
+        with posthog_client.new_context(capture_exceptions=False):
+            posthog_client.identify_context(_visitor_distinct_id(token))
+            _set_visitor_person_properties(token, {"email": e})
+            _capture("visitor_signed_in")
     r = RedirectResponse(_safe_next(nxt), status_code=303)
     https = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
     r.set_cookie(sessions.COOKIE, token, max_age=sessions.MAX_AGE_DAYS * 86400, httponly=True, samesite="lax", secure=https)

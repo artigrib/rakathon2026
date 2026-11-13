@@ -201,7 +201,7 @@ def voice_twiml(eid: str, n: int) -> str:
 
 def answer(eid: str, n: int, said: str) -> str:
     digit = CASE.dialog.DTMF.get(said.strip(), said)
-    intent = understand(digit)["intent"]
+    intent = understand(digit, conversation_id=f"hall:{eid}:{n}")["intent"]
     status = STATUS.get(intent, "unclear")
     _update(eid, n, status=status, said=said[:120])
     return channels.twiml_say(CLOSING.get(status, CLOSING["not_now"] if status == "declined" else NOT_UNDERSTOOD))
@@ -260,7 +260,7 @@ def inbound(phone: str, body: str):
     ev = current()
     for p in ev["participants"]:
         if p["phone"] == phone and "sms" in p.get("fallback", []):
-            intent = understand(body)["intent"]
+            intent = understand(body, conversation_id=f"hall:{ev['id']}:{p['n']}")["intent"]
             status = STATUS.get(intent, p["status"])
             _update(ev["id"], p["n"], status=status, said=body[:120])
             return messages.sms_reply(intent, status) if status in ("interested", "not_now", "declined") else ""
